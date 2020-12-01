@@ -24,40 +24,40 @@ dir_output <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
 setDTthreads(threads = 0)
 
 ########## 1. get IDs and enroll info for ADRD cohort from hosp. ##############
-# med <- readRDS(paste0(dir_data, "hospital_total.rds"))
-# setDT(med)
-# 
-# ADRDmed <- subset(med, Alzheimer_pdx==1|Alzheimer_pdx2dx_10==1|Alzheimer_pdx2dx_25==1|
-#                     Dementia_pdx==1|Dementia_pdx2dx_10==1|Dementia_pdx2dx_25 ==1,
-#                   select = c("QID", "year"))
-# 
-# ## save all the IDs with ADRD diagnoses
-# id <- ADRDmed[!duplicated(QID),]
-# id$include <- 1 # add a column to mark whether to include
-# id[, year := NULL]
-# head(id)
-# fwrite(id, paste0(dir_output, "populationID.csv"))
-# 
-# ## save enroll info for ADRD cohort
-# enrollyr <- aggregate(year ~ QID, ADRDmed, min)
-# setnames(enrollyr, "year", "firstADRDyear")
-# fwrite(enrollyr, paste0(dir_output, "enrollyrINFO.csv"))
+med <- readRDS(paste0(dir_data, "hospital_total.rds"))
+setDT(med)
+
+ADRDmed <- subset(med, Alzheimer_pdx==1|Alzheimer_pdx2dx_10==1|Alzheimer_pdx2dx_25==1|
+                    Dementia_pdx==1|Dementia_pdx2dx_10==1|Dementia_pdx2dx_25 ==1,
+                  select = c("QID", "year"))
+
+## save all the IDs with ADRD diagnoses
+id <- ADRDmed[!duplicated(QID),]
+id$include <- 1 # add a column to mark whether to include
+id[, year := NULL]
+head(id)
+fwrite(id, paste0(dir_output, "populationID.csv"))
+
+## save enroll info for ADRD cohort
+enrollyr <- aggregate(year ~ QID, ADRDmed, min)
+setnames(enrollyr, "year", "firstADRDyear")
+fwrite(enrollyr, paste0(dir_output, "enrollyrINFO.csv"))
 
 ##################### 2. load denominator file ################################
 # denom_file <- read_fst(paste0(dir_data,"national_exp.fst"))
 # >  dim(denom_file)
 # [1] 538173801        37
-n.denom <- 538173801
-id  <- fread(paste0(dir_output, "populationID.csv"))
+# n.denom <- 538173801
+# id  <- fread(paste0(dir_output, "populationID.csv"))
 
 ## split the national denominator file to save memory and subset
-denom_file.1 <- read_fst(paste0(dir_data,"national_exp.fst"), 
+denom_file.1 <- read_fst(paste0(dir_data,"national_exp.fst"),
                          from = 1, to = floor(n.denom/2))
 setDT(denom_file.1)
 ADRDdenom.1 <- denom_file.1[QID %in% id[,QID]]
 rm(denom_file.1)
 gc()
-denom_file.2 <- read_fst(paste0(dir_data,"national_exp.fst"), 
+denom_file.2 <- read_fst(paste0(dir_data,"national_exp.fst"),
                          from = ceiling(n.denom/2))
 setDT(denom_file.2)
 ADRDdenom.2 <- denom_file.2[QID %in% id[,QID]]
@@ -68,26 +68,32 @@ ADRDdenom <- rbind(ADRDdenom.1, ADRDdenom.2) # combine splits
 rm(ADRDdenom.1, ADRDdenom.2)
 gc()
 
+ADRDdenom <- ADRDdenom[order(QID, year),] # order
 fwrite(ADRDdenom, paste0(dir_output, "ADRDnational_exp.csv"))
-rm(denom_file)
 gc()
 
-ADRDdenom <- ADRDdenom[order(QID, year),] # order
+ADRDdenom <- fread(paste0(dir_output, "ADRDnational_exp.csv"))
+enrollyr <- fread(paste0(dir_output, "enrollyrINFO.csv"))
 
 ## add firstADRDyear
-ADRDdenom <- left_join(ADRDdenom, enrollyr, by="QID")
-summary(ADRDdenom$firstARDRyear)
-# data=subset(ADRDdenom,year>=firstARDRyear)
+ADRDdenom <- merge(ADRDdenom, enrollyr, by="QID")
+summary(ADRDdenom$firstADRDyear)
 
-## add the year of death
-ADRDdenom$mort_year<-as.numeric(format(ADRDdenom$bene_dod, "%Y"))
-table(ADRDdenom$mort_year)
+## start to follow-up after firstADRDyear
+ADRDmort <- ADRDdenom[year>firstADRDyear]
+rm(ADRDdenom)
+temp <- ADRDmort[,.(followyr = year-firstADRDyear), by=QID]
+temp[,.SD[1], by=QID] %>% filter(followyr!=1) %>% select(followyr) %>% count()
 
-#Add to all QID rows
-data$dyear_no_miss<-data$mort_year
-data$dyear_no_miss[is.na(data$dyear_no_miss)] <- 0
-setDT(data)[, Max_dyear:= max(dyear_no_miss), QID]
-
-#Drop years after death
-data1=subset(data,Max_dyear==0|(Max_dyear!=0 & year<=Max_dyear))
-rm(data)
+# ## add the year of death
+# ADRDdenom$mort_year<-as.numeric(format(ADRDdenom$bene_dod, "%Y"))
+# table(ADRDdenom$mort_year)
+# 
+# #Add to all QID rows
+# data$dyear_no_miss<-data$mort_year
+# data$dyear_no_miss[is.na(data$dyear_no_miss)] <- 0
+# setDT(data)[, Max_dyear:= max(dyear_no_miss), QID]
+# 
+# #Drop years after death
+# data1=subset(data,Max_dyear==0|(Max_dyear!=0 & year<=Max_dyear))
+# rm(data)
