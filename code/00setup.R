@@ -2,12 +2,16 @@
 # Project: Medicare Mortality and Air Pollution in AD/ADRD                    #
 # Code: clean/merge datasets                                                  #
 # Input: "national_exp.fst", "hospital_total.rds"                             #
-# Output: "final_.."                                                          #
+# Output: "populationID.csv" as study population's IDs                        #
+# Output: "enrollyrINFO.csv" as the year of enrollment for each ID            #
 # Author: Shuxin Dong                                                         #
 # Date: Nov 30, 2020                                                          #
 ###############################################################################
 
 ############################# 0. Setup ########################################
+rm(list = ls())
+gc()
+
 library(data.table)
 library(dplyr)
 library(fst)
@@ -17,37 +21,62 @@ setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia")
 dir_data <- "/nfs/home/S/shd968/shared_space/ci3_myitshak/dementia/"
 dir_output <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
 
-#### 1. get study population's IDs and firstADRDyear from hospital_total.rds ##
-med <- readRDS(paste0(dir_data, "hospital_total.rds"))
-med <- as.data.table(med)
-## store all the IDs with ADRD diagnoses
-d <- subset(med, Alzheimer_pdx==1|Alzheimer_pdx2dx_10==1|Alzheimer_pdx2dx_25==1|
-              Dementia_pdx==1|Dementia_pdx2dx_10==1|Dementia_pdx2dx_25 ==1,
-            select = c("QID", "year"))
-id <- d[!duplicated(QID),] # remove duplicated IDs
-id$include <- 1 # add a column to mark whether to include
-fwrite(id, paste0(dir_output, "population.csv")) # save study population's ID
+setDTthreads(threads = 0)
 
-## add the time when first diagnosed with ADRD 
-enrollyr <- aggregate(year~QID, d, min)
-# setnames(enrollyr,"year","firstADRDyear")
+########## 1. get IDs and enroll info for ADRD cohort from hosp. ##############
+# med <- readRDS(paste0(dir_data, "hospital_total.rds"))
+# setDT(med)
+# 
+# ADRDmed <- subset(med, Alzheimer_pdx==1|Alzheimer_pdx2dx_10==1|Alzheimer_pdx2dx_25==1|
+#                     Dementia_pdx==1|Dementia_pdx2dx_10==1|Dementia_pdx2dx_25 ==1,
+#                   select = c("QID", "year"))
+# 
+# ## save all the IDs with ADRD diagnoses
+# id <- ADRDmed[!duplicated(QID),]
+# id$include <- 1 # add a column to mark whether to include
+# id[, year := NULL]
+# head(id)
+# fwrite(id, paste0(dir_output, "populationID.csv"))
+# 
+# ## save enroll info for ADRD cohort
+# enrollyr <- aggregate(year ~ QID, ADRDmed, min)
+# setnames(enrollyr, "year", "firstADRDyear")
+# fwrite(enrollyr, paste0(dir_output, "enrollyrINFO.csv"))
 
-############################# 2. load denominator-admissions ##################
-denom_file <- read_fst(paste0(dir_data,"national_exp.fst"))
-names(denom_file)
+##################### 2. load denominator file ################################
+# denom_file <- read_fst(paste0(dir_data,"national_exp.fst"))
+# >  dim(denom_file)
+# [1] 538173801        37
+n.denom <- 538173801
+id  <- fread(paste0(dir_output, "populationID.csv"))
 
+## split the national denominator file to save memory and subset
+denom_file.1 <- read_fst(paste0(dir_data,"national_exp.fst"), 
+                         from = 1, to = floor(n.denom/2))
+setDT(denom_file.1)
+ADRDdenom.1 <- denom_file.1[QID %in% id[,QID]]
+rm(denom_file.1)
+gc()
+denom_file.2 <- read_fst(paste0(dir_data,"national_exp.fst"), 
+                         from = ceiling(n.denom/2))
+setDT(denom_file.2)
+ADRDdenom.2 <- denom_file.2[QID %in% id[,QID]]
+rm(denom_file.2)
+gc()
 
-## subset the national dataset to those with ADRD diagnoses based on IDs
-denom_file <- left_join(denom_file, id, by = "QID")
-ADRDdenom <- subset(denom_file, include == 1)
+ADRDdenom <- rbind(ADRDdenom.1, ADRDdenom.2) # combine splits
+rm(ADRDdenom.1, ADRDdenom.2)
+gc()
+
 fwrite(ADRDdenom, paste0(dir_output, "ADRDnational_exp.csv"))
-
 rm(denom_file)
 gc()
 
-ADRDdenom <- ADRDdenom[order(QID, year),]
-# ADRDdenom <- left_join(ADRDdenom, enrollyr, by="QID")
-# summary(ADRDdenom$firstARDRyear)
+ADRDdenom <- ADRDdenom[order(QID, year),] # order
+
+## add firstADRDyear
+ADRDdenom <- left_join(ADRDdenom, enrollyr, by="QID")
+summary(ADRDdenom$firstARDRyear)
 # data=subset(ADRDdenom,year>=firstARDRyear)
 
 ## add the year of death
