@@ -83,7 +83,7 @@ summary(ADRDdenom$firstADRDyear)
 ADRDmort <- ADRDdenom[year>firstADRDyear]
 rm(ADRDdenom)
 temp <- ADRDmort[,.(followyr = year-firstADRDyear), by=QID]
-temp[,.SD[1], by=QID] %>% filter(followyr!=1) %>% select(followyr) %>% count()
+temp[,.(min.followyr = min(followyr)), by=QID][,min.followyr] %>% table()
 
 # ## add the year of death
 # ADRDdenom$mort_year<-as.numeric(format(ADRDdenom$bene_dod, "%Y"))
