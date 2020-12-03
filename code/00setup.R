@@ -4,6 +4,8 @@
 # Input: "national_exp.fst", "hospital_total.rds"                             #
 # Output: "populationID.csv" as study population's IDs                        #
 # Output: "enrollyrINFO.csv" as the year of enrollment for each ID            #
+# Output: "ADRDnational_exp.csv" as retricted "national_exp.fst"              #
+# Output: "ADRDmort_all.csv" as data added death info but not checking dups   #
 # Author: Shuxin Dong                                                         #
 # Date: Nov 30, 2020                                                          #
 ###############################################################################
@@ -29,7 +31,8 @@ setDT(med)
 
 ADRDmed <- subset(med, Alzheimer_pdx==1|Alzheimer_pdx2dx_10==1|Alzheimer_pdx2dx_25==1|
                     Dementia_pdx==1|Dementia_pdx2dx_10==1|Dementia_pdx2dx_25 ==1,
-                  select = c("QID", "year"))
+                  select = c("QID", "ADATE"))
+ADRDmed$year_admit <- as.numeric(format(ADRDmed$ADATE, "%Y"))
 
 ## save all the IDs with ADRD diagnoses
 id <- ADRDmed[!duplicated(QID),]
@@ -39,8 +42,8 @@ head(id)
 fwrite(id, paste0(dir_output, "populationID.csv"))
 
 ## save enroll info for ADRD cohort
-enrollyr <- aggregate(year ~ QID, ADRDmed, min)
-setnames(enrollyr, "year", "firstADRDyear")
+enrollyr <- aggregate(year_admit ~ QID, ADRDmed, min)
+setnames(enrollyr, "year_admit", "firstADRDyear")
 fwrite(enrollyr, paste0(dir_output, "enrollyrINFO.csv"))
 
 ##################### 2. load denominator file ################################
@@ -50,7 +53,8 @@ fwrite(enrollyr, paste0(dir_output, "enrollyrINFO.csv"))
 # n.denom <- 538173801
 # id  <- fread(paste0(dir_output, "populationID.csv"))
 
-## split the national denominator file to save memory and subset
+## split the national denominator file to save memory
+## subset the dataset to those in ADRD cohort
 denom_file.1 <- read_fst(paste0(dir_data,"national_exp.fst"),
                          from = 1, to = floor(n.denom/2))
 setDT(denom_file.1)
@@ -75,25 +79,40 @@ gc()
 ADRDdenom <- fread(paste0(dir_output, "ADRDnational_exp.csv"))
 enrollyr <- fread(paste0(dir_output, "enrollyrINFO.csv"))
 
-## add firstADRDyear
+## add "firstADRDyear"
 ADRDdenom <- merge(ADRDdenom, enrollyr, by="QID")
-summary(ADRDdenom$firstADRDyear)
+table(ADRDdenom$firstADRDyear)
 
 ## start to follow-up after firstADRDyear
-ADRDmort <- ADRDdenom[year>firstADRDyear]
-rm(ADRDdenom)
+ADRDmort <- ADRDdenom[year>=firstADRDyear]
+
+## get death info as mortINFO
+ADRDmort$bene_dod <- as.Date(ADRDmort$bene_dod, format = "%Y-%m-%d") # convert format
+mortINFO <- ADRDmort[,.(QID, bene_dod)][!is.na(bene_dod)][, mort_yr := as.numeric(format(bene_dod, "%Y"))] #get death year for each ID
+# mortINFO[!duplicated(mortINFO)][duplicated(QID)]
+mortINFO <- mortINFO[!duplicated(mortINFO)][, ':=' (bene_dod = NULL, death = 1)]
+
+## add "mort_year" and "death" status into ADRDmort
+ADRDmort <- merge(ADRDmort, mortINFO, by = "QID", all.x = TRUE)
+ADRDmort$death[is.na(ADRDmort$death)] <- 0 # not dead mark as 0
+
+## Drop years after death
+ADRDmort <- subset(ADRDmort, death==1 & year <= mort_yr)
+fwrite(ADRDmort, paste0(dir_output, "ADRDmort_all.csv"))
+
+ADRDmort <- fread(paste0(dir_output, "ADRDmort_all.csv"))
+##################### 3. check completeness of follow-up ######################
+## drop info of admission dates, diagnoses, diabetes
+ADRDmort[, ':=' (bene_dod=NULL, 
+                 ADATE=NULL,DDATE=NULL, year=NULL,
+                 DIAG1=NULL, DIAG2=NULL,
+                 diabetes=NULL)]
+
+## remove duplication
+ADRDmort <- ADRDmort[!duplicated(ADRDmort)]
+
+##
 temp <- ADRDmort[,.(followyr = year-firstADRDyear), by=QID]
 temp[,.(min.followyr = min(followyr)), by=QID][,min.followyr] %>% table()
+rm(ADRDdenom)
 
-# ## add the year of death
-# ADRDdenom$mort_year<-as.numeric(format(ADRDdenom$bene_dod, "%Y"))
-# table(ADRDdenom$mort_year)
-# 
-# #Add to all QID rows
-# data$dyear_no_miss<-data$mort_year
-# data$dyear_no_miss[is.na(data$dyear_no_miss)] <- 0
-# setDT(data)[, Max_dyear:= max(dyear_no_miss), QID]
-# 
-# #Drop years after death
-# data1=subset(data,Max_dyear==0|(Max_dyear!=0 & year<=Max_dyear))
-# rm(data)
