@@ -84,7 +84,7 @@ ADRDdenom <- merge(ADRDdenom, enrollyr, by="QID")
 table(ADRDdenom$firstADRDyear)
 
 ## start to follow-up after firstADRDyear
-ADRDmort <- ADRDdenom[year>=firstADRDyear]
+ADRDmort <- ADRDdenom[year_admit>=firstADRDyear]
 
 ## get death info as mortINFO
 ADRDmort$bene_dod <- as.Date(ADRDmort$bene_dod, format = "%Y-%m-%d") # convert format
@@ -95,9 +95,10 @@ mortINFO <- mortINFO[!duplicated(mortINFO)][, ':=' (bene_dod = NULL, death = 1)]
 ## add "mort_year" and "death" status into ADRDmort
 ADRDmort <- merge(ADRDmort, mortINFO, by = "QID", all.x = TRUE)
 ADRDmort$death[is.na(ADRDmort$death)] <- 0 # not dead mark as 0
+summary(ADRDmort$death)
 
 ## Drop years after death
-ADRDmort <- subset(ADRDmort, death==1 & year <= mort_yr)
+ADRDmort <- subset(ADRDmort, death==0|(death==1 & year_admit <= mort_yr))
 fwrite(ADRDmort, paste0(dir_output, "ADRDmort_all.csv"))
 
 ADRDmort <- fread(paste0(dir_output, "ADRDmort_all.csv"))
@@ -111,8 +112,15 @@ ADRDmort[, ':=' (bene_dod=NULL,
 ## remove duplication
 ADRDmort <- ADRDmort[!duplicated(ADRDmort)]
 
-##
-temp <- ADRDmort[,.(followyr = year-firstADRDyear), by=QID]
-temp[,.(min.followyr = min(followyr)), by=QID][,min.followyr] %>% table()
-rm(ADRDdenom)
+## detect follow-up info problems
+temp <- ADRDmort[,.(QID, year_admit, firstADRDyear, mort_yr, death)][,followyr := year_admit-firstADRDyear]
+temp[,.(min.followyr = min(followyr)), by=QID][,min.followyr] %>% table() #detect problems
 
+## for those alive 
+alive <- temp[death==0]
+ideal_alive <- merge(alive[,.(max.year_admit = max(year_admit)), by = QID], enrollyr, by = "QID")[,.(idealN = max.year_admit-firstADRDyear + 1)]
+
+temp[deaht==0][,.(max.year_admit = max(year_admit)), by = QID]
+
+merge(temp[,.(max.year_admit = max(year_admit)), by = QID], enrollyr, by = "QID")
+[max.year_admit == mort_yr]
