@@ -47,6 +47,7 @@ ADRDmed$year_admit <- as.numeric(format(ADRDmed$ADATE, "%Y"))
 
 ## drop subjects whose firstADRDyr <= 2006
 enrollINFO <- aggregate(year_admit ~ QID, ADRDmed, min)
+setDT(enrollINFO)
 setnames(enrollINFO, "year_admit", "firstADRDyr")
 enrolledINFO <- enrollINFO[firstADRDyr>2006]
 fwrite(enrolledINFO, paste0(dir_output, "enrolledINFO.csv"))
@@ -55,8 +56,7 @@ fwrite(enrolledINFO, paste0(dir_output, "enrolledINFO.csv"))
 # denom_file <- read_fst(paste0(dir_data,"national_exp.fst"))
 # >  dim(denom_file)
 # [1] 538173801        37
-# n.denom <- 538173801
-
+n.denom <- 538173801
 enrolledINFO  <- fread(paste0(dir_output, "enrolledINFO.csv"))
 
 ## split the national denominator file to save memory
