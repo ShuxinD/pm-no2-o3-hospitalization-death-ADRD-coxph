@@ -81,12 +81,12 @@ gc()
 
 ADRDdenom <- fread(paste0(dir_output, "ADRDnational_exp.csv"))
 
-## add "firstADRDyear"
+## add "firstADRDyr"
 ADRDdenom <- merge(ADRDdenom, enrolledINFO, by="QID")
 table(ADRDdenom$firstADRDyr)
 
-## start to follow-up after firstADRDyear
-ADRDmort <- ADRDdenom[year_admit>=firstADRDyear]
+## start to follow-up after firstADRDyr
+ADRDmort <- ADRDdenom[year_admit>=firstADRDyr]
 
 ## get death info as mortINFO
 ADRDmort$bene_dod <- as.Date(ADRDmort$bene_dod, format = "%Y-%m-%d") # convert format
@@ -113,13 +113,13 @@ check <- ADRDmort[, !c("bene_dod", "ADATE", "DDATE", "year", "DIAG1", "DIAG2"), 
 check <- check[!duplicated(ADRDmort)]
 
 ## detect follow-up info problems
-temp <- check[,.(QID, year_admit, firstADRDyear, mort_yr, death)]
-temp[,followyr := year_admit-firstADRDyear]
+temp <- check[,.(QID, year_admit, firstADRDyr, mort_yr, death)]
+temp[,followyr := year_admit-firstADRDyr]
 temp[,.(min.followyr = min(followyr)), by=QID][, min.followyr] %>% table() #detect problems
 
 ## for those alive 
 alive <- temp[death==0]
-ideal_alive <- merge(alive[,.(max.year_admit = max(year_admit)), by = QID], enrollyr, by = "QID")[,.(idealN = max.year_admit-firstADRDyear + 1)]
+ideal_alive <- merge(alive[,.(max.year_admit = max(year_admit)), by = QID], enrollyr, by = "QID")[,.(idealN = max.year_admit-firstADRDyr + 1)]
 
 temp[deaht==0][,.(max.year_admit = max(year_admit)), by = QID]
 
