@@ -24,6 +24,15 @@ setDTthreads(threads = 0)
 
 dt <- fread(paste0(dir_data, "ADRDmort_cplt.csv"))
 names(dt)
+# > names(dt)
+# [1] "QID"                 "year"                "zip"                 "AGE"                 "STATECODE"          
+# [6] "Sex_gp"              "age_gp"              "Dual_gp"             "race"                "bene_dod"           
+# [11] "ADATE"               "DDATE"               "DIAG1"               "DIAG2"               "diabetes"           
+# [16] "year_admit"          "pm25"                "no2"                 "PctEye"              "PctLDL"             
+# [21] "Pctmam"              "LungCancerRate"      "poverty"             "popdensity"          "medianhousevalue"   
+# [26] "pct_blk"             "medhouseholdincome"  "pct_owner_occ"       "hispanic"            "education"          
+# [31] "smoke_rate"          "mean_bmi"            "amb_visit_pct"       "a1c_exm_pct"         "nearest_hospital_km"
+# [36] "ozone"               "firstADRDyr"         "mort_yr"             "death" 
 
 ########################## 1. calculate corr ##################################
 corr_data <- dt[,.(PctEye, PctLDL, Pctmam, LungCancerRate, poverty, 
