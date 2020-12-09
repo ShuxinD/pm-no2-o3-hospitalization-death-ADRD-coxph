@@ -42,7 +42,7 @@ ADRDmed$year_admit <- as.numeric(format(ADRDmed$ADATE, "%Y"))
 # 
 # ## save enroll info for ADRD cohort
 # enrollyr <- aggregate(year_admit ~ QID, ADRDmed, min)
-# setnames(enrollyr, "year_admit", "firstADRDyear")
+# setnames(enrollyr, "year_admit", "firstADRDyr")
 # fwrite(enrollyr, paste0(dir_output, "enrollyrINFO.csv"))
 
 ## drop subjects whose firstADRDyr <= 2006
@@ -91,9 +91,9 @@ ADRDmort <- ADRDdenom[year_admit>=firstADRDyr]
 ## get death info as mortINFO
 ADRDmort$bene_dod <- as.Date(ADRDmort$bene_dod, format = "%Y-%m-%d") # convert format
 mortINFO <- ADRDmort[,.(QID, bene_dod)][!is.na(bene_dod)]
-mortINFO[, mort_yr := as.numeric(format(bene_dod, "%Y"))] #get death year for each ID
+mortINFO[, mort_yr := as.numeric(format(bene_dod, "%Y"))][] #get death year for each ID
 mortINFO[!duplicated(mortINFO)][duplicated(QID)]
-mortINFO[!duplicated(mortINFO)][, ':=' (bene_dod = NULL, death = 1)][]
+mortINFO <- mortINFO[!duplicated(mortINFO)][, ':=' (bene_dod = NULL, death = 1)]
 
 ## add "mort_year" and "death" status into ADRDmort
 ADRDmort <- merge(ADRDmort, mortINFO, by = "QID", all.x = TRUE)
@@ -103,23 +103,29 @@ summary(ADRDmort$death)
 ## Drop years after death
 ADRDmort <- subset(ADRDmort, death==0|(death==1 & year_admit <= mort_yr))
 fwrite(ADRDmort, paste0(dir_output, "ADRDmort_all.csv"))
+
 ##################### 3. check completeness of follow-up ######################
 ADRDmort <- fread(paste0(dir_output, "ADRDmort_all.csv"))
 
-## drop info of admission dates, diagnoses, diabetes
-check <- ADRDmort[, !c("bene_dod", "ADATE", "DDATE", "year", "DIAG1", "DIAG2"), with=FALSE]
-
-## remove duplication
-check <- check[!duplicated(ADRDmort)]
+## remove duplication for several admissions in one year
+check_dup <- ADRDmort[,.(QID, year_admit)]
+check_dup$remove <- duplicated(check) # check duplication
+summary(check_dup$remove)
+ADRDmort <- cbind(ADRDmort, check_dup$remove)
+names(ADRDmort)
+ADRDmort_nodup <- ADRDmort[V2==FALSE]
 
 ## detect follow-up info problems
-temp <- check[,.(QID, year_admit, firstADRDyr, mort_yr, death)]
+temp <- ADRDmort_nodup[,.(QID, year_admit, firstADRDyr, mort_yr, death)]
 temp[,followyr := year_admit-firstADRDyr]
 temp[,.(min.followyr = min(followyr)), by=QID][, min.followyr] %>% table() #detect problems
 
-## for those alive 
-alive <- temp[death==0]
-ideal_alive <- merge(alive[,.(max.year_admit = max(year_admit)), by = QID], enrollyr, by = "QID")[,.(idealN = max.year_admit-firstADRDyr + 1)]
+## for those dead during follow-up
+dead <- check[death==1]
+
+
+
+ideal_alive <- merge(alive[,.(max.year_admit = max(year_admit)), by = QID], enrolledINFO, by = "QID")[,.(idealN = max.year_admit-firstADRDyr + 1)]
 
 temp[deaht==0][,.(max.year_admit = max(year_admit)), by = QID]
 
