@@ -4,7 +4,9 @@
 # Input: "national_exp.fst", "hospital_total.rds"                             #
 # Output: "enrolledINFO.csv" - IDs and  the year of enrollment                #
 # Output: "ADRDnational_exp.csv" as retricted "national_exp.fst"              #
-# Output: "ADRDmort_all.csv" as data added death info but not checking dups   #
+# Output: "mortINFO.csv" as death year and IDs                                #
+# Output: "ADRDmort_all.csv" as data added death info but not checking dup    #
+# Output: "ADRDmort_cplt.csv" as the clean, final dataset                     #
 # Author: Shuxin Dong                                                         #
 # Date: Nov 30, 2020                                                          #
 ###############################################################################
@@ -94,6 +96,7 @@ mortINFO <- ADRDmort[,.(QID, bene_dod)][!is.na(bene_dod)]
 mortINFO[, mort_yr := as.numeric(format(bene_dod, "%Y"))][] #get death year for each ID
 mortINFO[!duplicated(mortINFO)][duplicated(QID)]
 mortINFO <- mortINFO[!duplicated(mortINFO)][, ':=' (bene_dod = NULL, death = 1)]
+fwrite(mortINFO, paste0(dir_output, "mortINFO.csv"))
 
 ## add "mort_year" and "death" status into ADRDmort
 ADRDmort <- merge(ADRDmort, mortINFO, by = "QID", all.x = TRUE)
@@ -106,27 +109,75 @@ fwrite(ADRDmort, paste0(dir_output, "ADRDmort_all.csv"))
 
 ##################### 3. check completeness of follow-up ######################
 ADRDmort <- fread(paste0(dir_output, "ADRDmort_all.csv"))
+enrolledINFO <- fread(paste0(dir_output, "enrolledINFO.csv"))
+mortINFO <- fread(paste0(dir_output, "mortINFO.csv"))
 
 ## remove duplication for several admissions in one year
-check_dup <- ADRDmort[,.(QID, year_admit)]
-check_dup$remove <- duplicated(check) # check duplication
-summary(check_dup$remove)
-ADRDmort <- cbind(ADRDmort, check_dup$remove)
+## get "ADRDmort_ndup" dataset
+check <- ADRDmort[,.(QID, year_admit)]
+check$remove <- duplicated(check) # check duplication
+summary(check$remove)
+ADRDmort <- cbind(ADRDmort, check$remove)
 names(ADRDmort)
-ADRDmort_nodup <- ADRDmort[V2==FALSE]
+ADRDmort_ndup <- ADRDmort[V2==FALSE]
+ADRDmort_ndup[, V2 := NULL]
+dim(ADRDmort_ndup)
+# > dim(ADRDmort_ndup)
+# [1] 6093894      39
+remove(check)
 
 ## detect follow-up info problems
-temp <- ADRDmort_nodup[,.(QID, year_admit, firstADRDyr, mort_yr, death)]
-temp[,followyr := year_admit-firstADRDyr]
+temp <- ADRDmort_ndup[,.(QID, year_admit, firstADRDyr, mort_yr, death)]
+temp[, followyr := year_admit - firstADRDyr]
 temp[,.(min.followyr = min(followyr)), by=QID][, min.followyr] %>% table() #detect problems
+# > temp[,.(min.followyr = min(followyr)), by=QID][, min.followyr] %>% table() #detect problems
+# .
+# 0       1       2       3       4       5       6       7       8       9 
+# 2193529   26057    3064     921     462     192     101      63      59      21
 
-## for those dead during follow-up
-dead <- check[death==1]
+## omit those without firstADRDyr details info
+## get "ADRDmort_ndup.c" dataset
+omit.QID <- temp[,.(min.followyr = min(followyr)), by=QID][min.followyr>0][,QID]
+ADRDmort_ndup.c <- ADRDmort_ndup[!(QID %in% omit.QID)]
+length(omit.QID)
+# > length(omit.QID)
+# [1] 30940
+dim(ADRDmort_ndup.c)
+# > dim(ADRDmort_ndup.c)
+# [1] 6014808      39
+remove(omit.QID)
 
+## omit those alive max.year_admit!=2016, those dead max.year != mort_year
+## get "ADRDmort_ndup.cc" dataset
+checkEND <- ADRDmort_ndup.c[,.(max.year_admit = max(year_admit),
+                               max.year = max(year)), by = QID]
+checkEND <- merge(checkEND, mortINFO, by = "QID", all.x = TRUE) # add death year
+checkEND <- rbind(checkEND[is.na(death)][max.year_admit==2016], 
+                  checkEND[death==1][max.year==mort_yr|max.year==(mort_yr-1)])
+keep.QID <- checkEND[,QID]
+ADRDmort_ndup.cc <- ADRDmort_ndup.c[QID %in% keep.QID]
+length(keep.QID)
+# > length(keep.QID)
+# [1] 2097337
+dim(ADRDmort_ndup.cc)
+# > dim(ADRDmort_ndup.cc)
+# [1] 5767370      39
+remove(keep.QID)
+remove(checkEND)
 
+## omit those do not have follow-up for each year
+checkEACH <- ADRDmort_ndup.cc[,.(max.year_admit = max(year_admit)), by = QID]
+checkEACH <- merge(checkEACH, enrolledINFO, by = "QID", all.x = TRUE)[, idealN := max.year_admit - firstADRDyr + 1]
+checkEACH <- merge(checkEACH, ADRDmort_ndup.cc[,.N, by = QID], by = "QID", all.x = TRUE)
+omit.QID <- checkEACH[idealN!=N][,QID]
+ADRDmort_cplt <- ADRDmort_ndup.cc[!(QID %in% omit.QID)]
+length(omit.QID)
+# > length(omit.QID)
+# [1] 36726
+dim(ADRDmort_cplt)
+# > dim(ADRDmort_cplt)
+# [1] 5609118      39
+remove(omit.QID)
 
-ideal_alive <- merge(alive[,.(max.year_admit = max(year_admit)), by = QID], enrolledINFO, by = "QID")[,.(idealN = max.year_admit-firstADRDyr + 1)]
-
-temp[deaht==0][,.(max.year_admit = max(year_admit)), by = QID]
-
-merge(temp[,.(max.year_admit = max(year_admit)), by = QID], enrollyr, by = "QID")[max.year_admit == mort_yr]
+head(ADRDmort_cplt)
+fwrite(ADRDmort_cplt, paste0(dir_output, "ADRDmort_cplt.csv"))
