@@ -120,6 +120,8 @@ mortINFO <- fread(paste0(dir_output, "mortINFO.csv"))
 dim(ADRDmort)
 # > dim(ADRDmort)
 # [1] 9534576      40
+# > length(ADRDmort[,QID] %>% unique())
+# [1] 2224469
 
 ## remove duplication for several admissions in one year
 ## get "ADRDmort_ndup" dataset
