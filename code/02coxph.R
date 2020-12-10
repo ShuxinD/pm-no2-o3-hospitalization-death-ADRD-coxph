@@ -38,6 +38,8 @@ dt[, followupyr := year_admit - firstADRDyr]
 dt[, followupyr_plusone := followupyr +1][]
 dt
 
+dt <- dt[!followupyr==0] # drop the first year
+
 ############################# 1. coxph model ##################################
 library(survival)
 cox_all <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead_peryear) ~ 
@@ -50,5 +52,46 @@ cox_all <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dea
                    strata(as.factor(race)) + strata(as.factor(Dual_gp)),
                  data = dt,
                  tie = c("efron"), na.action = na.omit)
-s <- summary(cox_all)
-write.csv(s$coefficients, paste0(dir_output, "cox_all.csv"))
+temp <- summary(cox_all)
+write.csv(temp$coefficients, paste0(dir_output, "cox_all.csv"))
+
+cox_pm25 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead_peryear) ~ 
+                   pm25 + 
+                   mean_bmi + smoke_rate + hispanic + pct_blk + 
+                   medhouseholdincome + medianhousevalue + poverty + 
+                   education + popdensity + pct_owner_occ +
+                   as.factor(year_admit) +  
+                   strata(as.factor(age_gp)) + strata(as.factor(Sex_gp)) + 
+                   strata(as.factor(race)) + strata(as.factor(Dual_gp)),
+                 data = dt,
+                 tie = c("efron"), na.action = na.omit)
+temp <- summary(cox_pm25)
+write.csv(temp$coefficients, paste0(dir_output, "cox_pm25.csv"))
+
+cox_no2 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead_peryear) ~ 
+                    no2 + 
+                    mean_bmi + smoke_rate + hispanic + pct_blk + 
+                    medhouseholdincome + medianhousevalue + poverty + 
+                    education + popdensity + pct_owner_occ +
+                    as.factor(year_admit) +  
+                    strata(as.factor(age_gp)) + strata(as.factor(Sex_gp)) + 
+                    strata(as.factor(race)) + strata(as.factor(Dual_gp)),
+                  data = dt,
+                  tie = c("efron"), na.action = na.omit)
+temp <- summary(cox_no2)
+write.csv(temp$coefficients, paste0(dir_output, "cox_no2.csv"))
+
+cox_ozone <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead_peryear) ~ 
+                   ozone + 
+                   mean_bmi + smoke_rate + hispanic + pct_blk + 
+                   medhouseholdincome + medianhousevalue + poverty + 
+                   education + popdensity + pct_owner_occ +
+                   as.factor(year_admit) +  
+                   strata(as.factor(age_gp)) + strata(as.factor(Sex_gp)) + 
+                   strata(as.factor(race)) + strata(as.factor(Dual_gp)),
+                 data = dt,
+                 tie = c("efron"), na.action = na.omit)
+temp <- summary(cox_ozone)
+write.csv(temp$coefficients, paste0(dir_output, "cox_ozone.csv"))
+
+
