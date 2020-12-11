@@ -63,40 +63,75 @@ cl <- makeCluster(numCores-1)
 
 s.P_all <- bam(dead_peryear ~ s(pm25) + s(ozone) + s(no2) + 
                  as.factor(year_admit) + AGE + Sex_gp + as.factor(race) + Dual_gp +
-                 poverty + popdensity + medhouseholdincome + 
-                 education + pct_blk + s(zip_num,bs="re"),
+                 s(poverty) + s(popdensity) + s(medhouseholdincome) + 
+                 s(education) + s(pct_blk) + s(zip_num,bs="re"),
                family="poisson", data = dt,
                cluster = cl, nthreads = NA)
 
 pdf(paste0(dir_output, "splines_pollutants.pdf"))
 par(mfrow=c(2,2))
-plot(s.P_all,select=1,shade=T,rug=TRUE,ylim=c(-0.2,0.2),xlab=expression(PM_{2.5}))
-plot(s.P_all,select=2,shade=T,rug=TRUE,ylim=c(-0.2,0.2),xlab=expression(NO_2))
+plot(s.P_all,select=1,shade=T,rug=TRUE,ylim=c(-0.2,0.2),xlab=expression(PM[2.5]))
+plot(s.P_all,select=2,shade=T,rug=TRUE,ylim=c(-0.2,0.2),xlab=expression(NO[2]))
 plot(s.P_all,select=3,shade=T,rug=TRUE,ylim=c(-0.2,0.2),xlab="Ozone")
 dev.off()
 
 pdf(paste0(dir_output, "splines_covariates.pdf"))
-par(mfrow=c(2,4))
-plot(s.P_all,select=4,shade=T,rug=TRUE,ylim=c(-0.2,0.2),xlab="year_admit")
-plot(s.P_all,select=5,shade=T,rug=TRUE,ylim=c(-0.2,0.2),xlab="AGE")
-plot(s.P_all,select=6,shade=T,rug=TRUE,ylim=c(-0.2,0.2),xlab="poverty")
-plot(s.P_all,select=7,shade=T,rug=TRUE,ylim=c(-0.2,0.2),xlab="popdensity")
-plot(s.P_all,select=8,shade=T,rug=TRUE,ylim=c(-0.2,0.2),xlab="medhouseholdincome")
-plot(s.P_all,select=9,shade=T,rug=TRUE,ylim=c(-0.2,0.2),xlab="education")
-plot(s.P_all,select=10,shade=T,rug=TRUE,ylim=c(-0.2,0.2),xlab="pct_blk")
+par(mfrow=c(2,3))
+plot(s.P_all,select=4,shade=T,rug=F,ylim=c(-0.2,0.2),xlab="poverty")
+plot(s.P_all,select=5,shade=T,rug=F,ylim=c(-0.2,0.2),xlab="popdensity")
+plot(s.P_all,select=6,shade=T,rug=F,ylim=c(-0.2,0.2),xlab="medhouseholdincome")
+plot(s.P_all,select=7,shade=T,rug=F,ylim=c(-0.2,0.2),xlab="education")
+plot(s.P_all,select=8,shade=T,rug=F,ylim=c(-0.2,0.2),xlab="pct_blk")
 dev.off()
+
 stopCluster(cl)
 
 ##################### 3. cox-equivalent Poisson model #########################
-gnm <- gnm(dead~ pm25 + no2 + ozone +
-             mean_bmi + smoke_rate + hispanic + pct_blk + 
-             medhouseholdincome + medianhousevalue + poverty + education + 
-             popdensity + pct_owner_occ +
-             as.factor(year_admit) + offset(log(time_count)), 
-           eliminate = (as.factor(Sex_gp):as.factor(race):as.factor(Dual_gp):as.factor(age_gp):as.factor(followupyr)),
-           data=aggregate_dt,
-           family=poisson(link="log"))
-P_all <- summary(gnm)
+library(gnm)
+gnm_all <- gnm(dead~ pm25 + no2 + ozone +
+                 mean_bmi + smoke_rate + hispanic + pct_blk + 
+                 medhouseholdincome + medianhousevalue + poverty + education + 
+                 popdensity + pct_owner_occ +
+                 as.factor(year_admit) + offset(log(time_count)), 
+               eliminate = (as.factor(Sex_gp):as.factor(race):as.factor(Dual_gp):
+                              as.factor(age_gp):as.factor(followupyr)),
+               data=aggregate_dt,
+               family=poisson(link="log"))
+temp <- summary(gnm_all)
+write.csv(temp$coefficients, paste0(dir_output, "gnm_all.csv"))
 
+gnm_pm25 <- gnm(dead~ pm25 + 
+                  mean_bmi + smoke_rate + hispanic + pct_blk + 
+                  medhouseholdincome + medianhousevalue + poverty + education + 
+                  popdensity + pct_owner_occ +
+                  as.factor(year_admit) + offset(log(time_count)), 
+                eliminate = (as.factor(Sex_gp):as.factor(race):as.factor(Dual_gp):
+                               as.factor(age_gp):as.factor(followupyr)),
+                data=aggregate_dt,
+                family=poisson(link="log"))
+temp <- summary(gnm_pm25)
+write.csv(temp$coefficients, paste0(dir_output, "gnm_pm25.csv"))
 
+gnm_no2 <- gnm(dead~ no2 + 
+                  mean_bmi + smoke_rate + hispanic + pct_blk + 
+                  medhouseholdincome + medianhousevalue + poverty + education + 
+                  popdensity + pct_owner_occ +
+                  as.factor(year_admit) + offset(log(time_count)), 
+                eliminate = (as.factor(Sex_gp):as.factor(race):as.factor(Dual_gp):
+                               as.factor(age_gp):as.factor(followupyr)),
+                data=aggregate_dt,
+                family=poisson(link="log"))
+temp <- summary(gnm_no2)
+write.csv(temp$coefficients, paste0(dir_output, "gnm_no2.csv"))
 
+gnm_ozone <- gnm(dead~ ozone + 
+                  mean_bmi + smoke_rate + hispanic + pct_blk + 
+                  medhouseholdincome + medianhousevalue + poverty + education + 
+                  popdensity + pct_owner_occ +
+                  as.factor(year_admit) + offset(log(time_count)), 
+                eliminate = (as.factor(Sex_gp):as.factor(race):as.factor(Dual_gp):
+                               as.factor(age_gp):as.factor(followupyr)),
+                data=aggregate_dt,
+                family=poisson(link="log"))
+temp <- summary(gnm_ozone)
+write.csv(temp$coefficients, paste0(dir_output, "gnm_ozone.csv"))
