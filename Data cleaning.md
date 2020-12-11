@@ -105,3 +105,69 @@ fwrite(ADRDmort, paste0(dir_output, "ADRDmort_all.csv"))
 
 ### Check the completeness of follow-up
 
+#### [1] change one row per admission to one row per p-y
+
+```R
+## remove duplication for several admissions in one year, get "ADRDmort_ndup" dataset
+check <- ADRDmort[,.(QID, year_admit)]
+check$remove <- duplicated(check) # check duplication
+summary(check$remove)
+ADRDmort <- cbind(ADRDmort, check$remove)
+names(ADRDmort)
+ADRDmort_ndup <- ADRDmort[V2==FALSE]
+ADRDmort_ndup[, V2 := NULL]
+```
+
+#### [2] detect problems
+
+```R
+temp <- ADRDmort_ndup[,.(QID, year_admit, firstADRDyr)]
+temp[, followyr := year_admit - firstADRDyr]
+temp[,.(min.followyr = min(followyr)), by=QID][, min.followyr] %>% table() #detect problems
+# 0       1       2       3       4       5       6       7       8       9 
+# 2193529   26057    3064     921     462     192     101      63      59      21 
+```
+
+Ideally, the results should be all zeros, which means every one has the follow-up info starting from first ADRD year. Though we used the dataset omit the firstADRDyr to ensure a complete exposure history, we want to have firstADRDyr info to get the principal diagnosis for future analyses.
+
+#### [3] omit those without firstADRDyr info
+
+```R
+## get "ADRDmort_ndup.c" dataset
+omit.QID <- temp[,.(min.followyr = min(followyr)), by=QID][min.followyr>0][,QID]
+ADRDmort_ndup.c <- ADRDmort_ndup[!(QID %in% omit.QID)]
+```
+
+#### [4] omit those not followed-up till the end
+
+```R
+## omit those alive max.year_admit!=2016, those dead max.year_admit!=mort_year_admit, get "ADRDmort_ndup.cc" dataset
+checkEND <- ADRDmort_ndup.c[,.(max.year_admit = max(year_admit)), by = QID]
+checkEND <- merge(checkEND, mortINFO, by = "QID", all.x = TRUE) # add death year
+checkEND <- rbind(checkEND[is.na(death)][max.year_admit==2016], 
+                  checkEND[death==1][max.year_admit==mort_yr_admit])
+keep.QID <- checkEND[,QID]
+ADRDmort_ndup.cc <- ADRDmort_ndup.c[QID %in% keep.QID]
+```
+
+#### [5] omit those missing years during follow-up
+
+```R
+## omit those do not have follow-up for each year
+checkEACH <- ADRDmort_ndup.cc[,.(max.year_admit = max(year_admit)), by = QID]
+checkEACH <- merge(checkEACH, enrolledINFO, by = "QID", all.x = TRUE)[, idealN := max.year_admit - firstADRDyr + 1]
+checkEACH <- merge(checkEACH, ADRDmort_ndup.cc[,.N, by = QID], by = "QID", all.x = TRUE)
+omit.QID <- checkEACH[idealN!=N][,QID]
+ADRDmort_cplt <- ADRDmort_ndup.cc[!(QID %in% omit.QID)]
+```
+
+
+
+|                               | Number of person-yrs                               | Number of subjects |
+| ----------------------------- | -------------------------------------------------- | ------------------ |
+| Initial `ADRDmort`            | 9,534,576 (rows not person-year, have duplication) | 2,224,469          |
+| After [1]: `ADRDmort_ndup`    | 6,093,887                                          | same as above      |
+| After [3]: `ADRDmort_ndup.c`  | 6,014,801                                          | 2,193,529          |
+| After [4]: `ADRDmort_ndup.cc` | 5,766,810                                          | 2,096,862          |
+| After [5]: `ADRDmort_cplt`    | 5,608,558                                          | 2,060,136          |
+
