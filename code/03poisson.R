@@ -41,40 +41,19 @@ dt$zip_num <- as.numeric(dt$zip)
 ############################# 1. aggregate dataset ############################
 ## Create aggregated data for Poisson regression
 dt$time_count <- dt$followupyr_plusone - dt$followupyr
-dead_personyear <- aggregate(cbind(dt$dead_peryear, dt$time_count),
-                             by = list(dt$zip, dt$year_admit, dt$Sex_gp, 
-                                       dt$race, dt$Dual_gp, dt$age_gp,
-                                       dt$followupyr),
-                             FUN = sum)
-setDT(dead_personyear)
-confounders <- aggregate(dt[,.(pm25, no2, ozone,
-                               mean_bmi, smoke_rate, hispanic, pct_blk, 
-                               medhouseholdincome, medianhousevalue, poverty,
-                               education, popdensity, pct_owner_occ, year_admit)],
-                         by = list(dt$zip, dt$year_admit, dt$Sex_gp, 
-                                   dt$race, dt$Dual_gp, dt$age_gp,
-                                   dt$followupyr),
-                         FUN = min) # why use minimum?
-setDT(confounders)
-aggregate_dt<-merge(dead_personyear, confounders,
-                    by=c("Group.1", "Group.2", "Group.3", "Group.4", "Group.5",
-                         "Group.6", "Group.7"))
-colnames(aggregate_dt)[8:9] <- c("dead","time_count")
-colnames(aggregate_dt)[1:7]<-c("zip","year_admit","Sex_gp","race","Dual_gp",
-                               "age_gp","followupyr")
-aggregate_dt <- subset(aggregate_dt[complete.cases(aggregate_dt),])
-
-covariates <- aggregate(dt[,.(pm25, no2, ozone,
-                              mean_bmi, smoke_rate, hispanic, pct_blk, 
-                              medhouseholdincome, medianhousevalue, poverty,
-                              education, popdensity, pct_owner_occ, year_admit)], 
-                        by = list(dt$zip,dt$year_admit),
-                        FUN=min)
-setDT(covariates)
-colnames(covariates)[1:2]<-c("zip","year")
-covariates<-subset(covariates[complete.cases(covariates),])
-
-aggregate_dt <- merge(aggregate_dt, covariates, by=c("zip","year"), all.x=T)
+dead_personyear <- dt[, list(dead = sum(dead_peryear), time_count = sum(time_count)), 
+           by = .(zip, year_admit, Sex_gp, race, Dual_gp, age_gp, followupyr)]
+covariates <- dt[, list(pm25 = min(pm25), no2 = min(no2), ozone = min(ozone),
+                        mean_bmi = min(mean_bmi), smoke_rate = min(smoke_rate), 
+                        hispanic = min(hispanic), pct_blk = min(pct_blk), 
+                        medhouseholdincome = min(medhouseholdincome), 
+                        medianhousevalue = min(medianhousevalue),
+                        poverty = min(poverty), education = min(education), 
+                        popdensity = min(popdensity), 
+                        pct_owner_occ = min(pct_owner_occ)),
+                 by = .(zip, year_admit)]
+aggregate_dt <- merge(dead_personyear, covariates, 
+                      by=c("zip","year_admit"), all.x =T)
                               
 ############################# 2. spline Poisson model #########################
 library(parallel)
@@ -83,9 +62,9 @@ numCores <- detectCores()
 cl <- makeCluster(numCores-1)
 
 s.P_all <- bam(dead_peryear ~ s(pm25) + s(ozone) + s(no2) + 
-                 s(year_admit) + s(AGE) + Sex_gp + as.factor(race) + Dual_gp +
-                 s(poverty) + s(popdensity) + s(medhouseholdincome) + 
-                 s(education) + s(pct_blk) + s(zip_num,bs="re"),
+                 as.factor(year_admit) + AGE + Sex_gp + as.factor(race) + Dual_gp +
+                 poverty + popdensity + medhouseholdincome + 
+                 education + pct_blk + s(zip_num,bs="re"),
                family="poisson", data = dt,
                cluster = cl, nthreads = NA)
 
