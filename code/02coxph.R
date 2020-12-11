@@ -2,8 +2,8 @@
 # Project: Medicare Mortality and Air Pollution in AD/ADRD                    #
 # Code: covariates correlations, create table one                             #
 # Input: "ADRDmort_cplt.csv"                                                  #
-# Output: "corr.csv" as correlations between covariates                       #
-# Output: "table1.doc"                                                        #
+# Output: "cox_all.csv", "cox_pm25.csv", "cox_no2.csv", "cox_ozone.csv" for   #
+# regression outputs
 # Author: Shuxin Dong                                                         #
 # Date: Dec 9, 2020                                                           #
 ###############################################################################
@@ -93,5 +93,3 @@ cox_ozone <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = d
                  tie = c("efron"), na.action = na.omit)
 temp <- summary(cox_ozone)
 write.csv(temp$coefficients, paste0(dir_output, "cox_ozone.csv"))
-
-
