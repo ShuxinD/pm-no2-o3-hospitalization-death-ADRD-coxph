@@ -84,6 +84,41 @@ plot(s.P_all,select=7,shade=T,rug=F,ylim=c(-0.2,0.2),xlab="education")
 plot(s.P_all,select=8,shade=T,rug=F,ylim=c(-0.2,0.2),xlab="pct_blk")
 dev.off()
 
+P_all <- bam(dead_peryear ~ pm25 + ozone + no2 + 
+               as.factor(year_admit) + AGE + Sex_gp + as.factor(race) + Dual_gp +
+               poverty + popdensity + medhouseholdincome + 
+               education + pct_blk + s(zip_num,bs="re"),
+             family="poisson", data = dt,
+             cluster = cl, nthreads = NA)
+temp <- summary(P_all)
+write.csv(temp$p.table, paste0(dir_output, "P_all.csv"))
+
+P_pm25 <- bam(dead_peryear ~ pm25 + 
+               as.factor(year_admit) + AGE + Sex_gp + as.factor(race) + Dual_gp +
+               poverty + popdensity + medhouseholdincome + 
+               education + pct_blk + s(zip_num,bs="re"),
+             family="poisson", data = dt,
+             cluster = cl, nthreads = NA)
+temp <- summary(P_pm25)
+write.csv(temp$p.table, paste0(dir_output, "P_pm25.csv"))
+
+P_no2 <- bam(dead_peryear ~ no2 + 
+               as.factor(year_admit) + AGE + Sex_gp + as.factor(race) + Dual_gp +
+               poverty + popdensity + medhouseholdincome + 
+               education + pct_blk + s(zip_num,bs="re"),
+             family="poisson", data = dt,
+             cluster = cl, nthreads = NA)
+temp <- summary(P_no2)
+write.csv(temp$p.table, paste0(dir_output, "P_no2.csv"))
+
+P_ozone <- bam(dead_peryear ~ ozone + 
+               as.factor(year_admit) + AGE + Sex_gp + as.factor(race) + Dual_gp +
+               poverty + popdensity + medhouseholdincome + 
+               education + pct_blk + s(zip_num,bs="re"),
+             family="poisson", data = dt,
+             cluster = cl, nthreads = NA)
+temp <- summary(P_ozone)
+write.csv(temp$p.table, paste0(dir_output, "P_ozone.csv"))
 stopCluster(cl)
 
 ##################### 3. cox-equivalent Poisson model #########################
