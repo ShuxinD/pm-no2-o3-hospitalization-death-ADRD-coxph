@@ -1,6 +1,6 @@
 ###############################################################################
 # Project: Air Pollution on mortality and readmission in Medicare AD/ADRD     #
-# Code: get ADRD study population, exclude problematic ID                     #
+# Code: get ADRD study population IDs, exclude problematic ones               #
 # Input: "hospital_total.rds", "no_crosswalk_no_death_ids.fst"                #
 # Output: "enrolledINFO.csv" - IDs and first year of ADRD admission           #
 # Author: Shuxin Dong                                                         #
