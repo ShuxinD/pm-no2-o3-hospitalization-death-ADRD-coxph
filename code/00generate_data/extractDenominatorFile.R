@@ -44,13 +44,17 @@ ADRDpeople <- ADRDpeople[year >= firstADRDyr, ]
 setorder(ADRDpeople, qid, year)
 
 ##################### 2. check completeness of follow-up ######################
+temp <- ADRDpeople[, .(start_yr = min(year),
+                       end_yr = max(year),
+                       count = uniqueN(year)), by = qid]
 ## check all people were followed-up from the firstADRDyr
-temp <- ADRDpeople[, .(start_yr = min(year)), by = qid]
-temp <- merge(temp, enrolledInfo, by.x = "qid", by.y = "QID")
-temp[start_yr != firstADRDyr]
+temp1 <- merge(temp, enrolledInfo, by.x = "qid", by.y = "QID")
+temp1[start_yr != firstADRDyr]
 
 ## check all alive people were followed-up till the end of study period (2016)
-ADRDpeople[qid %in% ADRDpeople[!dead,qid], .(end_yr = max(year)), by = qid][, end_yr] %>% table()
+temp[qid %in% ADRDpeople[!dead,qid], ][, end_yr] %>% table()
 
+## check whether there is duplication for qid and year
+any(duplicated(ADRDpeople[,.(qid, year)]))
 ## check all people have each year's info during follow-up
-
+temp[(end_yr-start_yr+1) != count,]
