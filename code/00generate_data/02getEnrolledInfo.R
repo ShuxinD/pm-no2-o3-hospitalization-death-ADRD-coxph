@@ -41,14 +41,14 @@ any(duplicated(ADRDhosp))  # TRUE
 ADRDhosp <- unique(ADRDhosp)
 gc()
 
-ADRDhosp <- ADRDhosp[,.(QID, ADATE)][, year_admit := as.numeric(format(ADATE, "%Y"))][]
+ADRDhosp <- ADRDhosp[,.(QID, ADATE, year)]
+head(ADRDhosp)
 gc()
 
-enrolledInfo <- ADRDhosp[, list(firstADRDyr = min(year_admit)), by = .(QID)]
+enrolledInfo <- ADRDhosp[, list(firstADRDyr = min(year)), by = .(QID)]
 setDT(enrolledInfo)
 
 table(enrolledInfo$firstADRDyr)
-
 
 
 ######################### 2. exclude problematic IDs ##########################
