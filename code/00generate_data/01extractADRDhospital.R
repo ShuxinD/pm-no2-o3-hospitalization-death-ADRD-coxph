@@ -25,21 +25,16 @@ dir_output <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/ADRDhospitali
 ######################## 1. ICD code info #####################################
 outcomes <- list()
 outcomes[["ADRD"]] <- list()
-outcomes[["ADRD"]][["icd9"]] <- c("3310",expand_range("290","290"), expand_range("294", "294"), "794")
+outcomes[["ADRD"]][["icd9"]] <- c("3310", children("290"), children("294"), "794")
 outcomes[["ADRD"]][["icd9"]] <- outcomes[["ADRD"]][["icd9"]][outcomes[["ADRD"]][["icd9"]]!="2949"]
-outcomes[["ADRD"]][["icd10"]] <- c(expand_range("G30","G30"), expand_range("F015", "F015"), 
-                                   expand_range("F028", "F028"), expand_range("F039", "F039"),
+outcomes[["ADRD"]][["icd10"]] <- c(children("G30"), children("F015"), children("F028"), children("F039"),
                                    "F04", "R4181")
 
 ##################### 2. extract hospitalization info #########################
 ## clear out old data in case of re-run
-for (outcome in names(outcomes)) {
-  for (diag_type in c("primary", "secondary")) {
-    file.remove(list.files(dir_output, 
-                           pattern = ".fst",
-                           full.names = T))
-  }
-}
+file.remove(list.files(dir_output, 
+                       pattern = ".fst",
+                       full.names = T))
 
 for (year_ in 2000:2016) {
   admissions <- read_data(dir_hospital, years = year_,
@@ -60,6 +55,7 @@ for (year_ in 2000:2016) {
   admissions[, DDATE := dmy(DDATE)]
   admissions[, year := year(ADATE)]
   admissions <- admissions[year %in% 2000:2016]
+  cat("Loading", year_, "hospitalization file... \n")
 
   for (outcome in names(outcomes)) {
     admissions[DDATE < "2015-10-01", (paste0(outcome, "_primary")) := DIAG1 %in% outcomes[[outcome]][["icd9"]]]
@@ -89,18 +85,14 @@ for (year_ in 2000:2016) {
     for (outcome in names(outcomes)) {
       for (type in c("primary", "secondary")) {
         varname <- paste0(outcome, "_", type)
-        if (file.exists(paste0(dir_output, outcome, type,
-                               "_", varname, "_", i, ".fst"))) {
-          year_admissions <- read_fst(paste0(dir_output, outcome, type,
-                                             "_", varname, "_", i, ".fst"))
+        if (file.exists(paste0(dir_output, outcome, type, "_", i, ".fst"))) {
+          year_admissions <- read_fst(paste0(dir_output, outcome, type, "_", i, ".fst"))
         } else {
           year_admissions <- NULL
         }
         year_admissions <- rbind(year_admissions, admissions[year == i & get(varname) == T])
-        
         if (nrow(year_admissions) != 0) {
-          write_fst(year_admissions,paste0(dir_output, outcome, type,
-                                           "_", i, ".fst"))
+          write_fst(year_admissions, paste0(dir_output, outcome, type, "_", i, ".fst"))
         }
       }
     }
