@@ -20,8 +20,14 @@
 
 - Subset the denominator files to those with `QID` which appeared in `EnrolledInfo.csv`
 
-- For each `QID`, subset the person-year row data to those after `firstADRDyr ` (`year>=firstADRDyr`), based on `EnrolledInfo.csv`
-- Remove duplicates, export `ADRDpopulation.csv`
+- Subset the person-year row data to those after `firstADRDyr ` (`year>=firstADRDyr`), based on `EnrolledInfo.csv`, for each subject
+- Remove duplicates, export `ADRDpeople_denom.csv`
+
+## Merge exposure (NO2 and ozone)
+
+[`04mergeExposure.R`]()
+
+- Merge NO2 and ozone into `ADRDpeople_denom.csv` by zipcode and year (admission year)
 
 ## Check the completeness of follow-up
 
