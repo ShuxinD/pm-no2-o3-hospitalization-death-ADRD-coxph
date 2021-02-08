@@ -16,7 +16,7 @@
 
 ## Extract the denominator files for ADRD population 
 
-[`03extractDenominatorFile.R`]()
+[`03extractDenominatorFile.R`](https://github.com/ShuxinD/airPollution_ADRD/blob/main/code/00generate_data/03extractDenominatorFile.R)
 
 - Subset the denominator files to those with `QID` which appeared in `EnrolledInfo.csv`
 
@@ -25,13 +25,21 @@
 
 ## Merge exposure (NO2 and ozone)
 
-[`04mergeExposure.R`]()
+[`04mergeExposure.R`](https://github.com/ShuxinD/airPollution_ADRD/blob/main/code/00generate_data/04mergeExposure.R)
 
 - Merge NO2 and ozone into `ADRDpeople_denom.csv` by zipcode and year (admission year)
+- Export `ADRDpeople.csv`
 
 ## Check the completeness of follow-up
 
-[`04checkFollowupCompleteness.Rmd`]()
+[`05checkFollowupCompleteness.Rmd`](https://github.com/ShuxinD/airPollution_ADRD/blob/main/code/00generate_data/05checkFollowupCompleteness.Rmd)
 
-[`04checkFollowupCompleteness.md`]()
+[`05checkFollowupCompleteness.md`](https://github.com/ShuxinD/airPollution_ADRD/blob/main/code/00generate_data/05checkFollowupCompleteness.md)
+
+## Clean data for next step analyses
+
+[`06cleanData.R`]()
+
+- Clean `ADRDpeople.csv`: remove NAs, remove those with discontinuous follow-up record.
+- Export `ADRD_mortality.csv`
 
