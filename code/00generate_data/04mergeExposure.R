@@ -40,7 +40,6 @@ names(ADRDpeople)
 ADRDpeople[,zip]
 
 # ADRDpeople[exposure, on = .(zip = ZIP, year = year)]
+combined <- merge(ADRDpeople, exposure, by.x = c("zip", "year"), by.y = c("ZIP", "year"), all.x = TRUE)
 
-for (year_ in 2000:2016) {
-  write_fst(out[year == year_], paste0("../data/cache_dir/exposure_data/merged_exposure_", year_, ".fst"))
-}
+fwrite(combined, paste0(dir_out, "ADRDpeople.csv"))
