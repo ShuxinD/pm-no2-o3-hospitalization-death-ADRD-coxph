@@ -38,8 +38,7 @@
 
 ## Clean data for next step analyses
 
-[`06cleanData.R`]()
+[`06cleanData.R`](https://github.com/ShuxinD/airPollution_ADRD/blob/main/code/00generate_data/06cleanData.R)
 
-- Clean `ADRDpeople.csv`: remove NAs, remove those with discontinuous follow-up record.
+- Clean `ADRDpeople.csv`: remove NAs; remove those not followed-up from the year after `firstADRDyr`; remove those with discontinuous follow-up record.
 - Export `ADRD_mortality.csv`
-
