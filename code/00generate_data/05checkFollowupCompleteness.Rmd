@@ -11,7 +11,7 @@ The dataset `ADRDpeople.csv` was directly generated from the denominator files.
 
 ## Setup and read in data
 
-```{r}
+```{r echo=FALSE}
 rm(list = ls())
 gc()
 
@@ -55,7 +55,7 @@ We also merged the enroll information (`firstADRDyear`) to `temp`. (`firstADRDyr
 head(temp)
 ```
 
-```{r}
+```{r echo=FALSE}
 cat("the number of subjects in ADRDpeople(removed NAs) is", dim(temp)[1], "\n")
 cat("the number of person-years in ADRDpeople(removed NAs) is", dim(ADRDpeople)[1], "\n")
 cat("is there any duplication of the combination of `qid` and calendar year: ", any(duplicated(ADRDpeople[,.(qid,year)])), "\n")
@@ -69,12 +69,12 @@ temp[start_yr != (firstADRDyr+1)]
 The above subject (`r dim(temp[start_yr != (firstADRDyr+1)])[1]` subjects in total), were not followed-up from the year following firstADRDyr. **Consider deleting them**
 
 Their info in denominator files:
-```{r}
+```{r echo=FALSE}
 ADRDpeople[qid %in% temp[start_yr != (firstADRDyr+1)][, qid], ]
 ```
 
-```{r}
-dim(ADRDpeople[qid %in% temp[start_yr != (firstADRDyr+1)][, qid], ])[1]
+```{r echo=FALSE}
+cat("the number of person-years of related subjects is", dim(ADRDpeople[qid %in% temp[start_yr != (firstADRDyr+1)][, qid], ])[1], "\n")
 ```
 
 ### 3. check whether alive people were followed-up till the end of study period (2016)
@@ -92,7 +92,7 @@ temp[(end_yr-start_yr+1) != count,]
 The above subject (`r dim(temp[(end_yr-start_yr+1) != count,])[1]` subjects in total) do not have each year's info during follow-up. **Consider deleting them**
 
 Their info in denominator files:
-```{r}
+```{r echo=FALSE}
 ADRDpeople[qid %in% temp[(end_yr-start_yr+1) != count,][,qid],]
 ```
 
