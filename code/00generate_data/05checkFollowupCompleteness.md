@@ -7,19 +7,9 @@ files.
 Setup and read in data
 ----------------------
 
-``` r
-rm(list = ls())
-gc()
-```
-
     ##          used (Mb) gc trigger (Mb) max used (Mb)
-    ## Ncells 445128 23.8     950475 50.8   642637 34.4
-    ## Vcells 864337  6.6    8388608 64.0  1825873 14.0
-
-``` r
-library(data.table)
-library(dplyr)
-```
+    ## Ncells 454699 24.3     977821 52.3   642637 34.4
+    ## Vcells 885307  6.8    8388608 64.0  1825873 14.0
 
     ## Warning: As of rlang 0.4.0, dplyr must be at least version 0.8.0.
     ## * dplyr 0.7.6 is too old for rlang 0.4.6.
@@ -39,16 +29,6 @@ library(dplyr)
     ## The following objects are masked from 'package:base':
     ## 
     ##     intersect, setdiff, setequal, union
-
-``` r
-setDTthreads(threads = 0)
-setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia")
-dir_ADRDpeople <-  "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
-dir_enrolledInfo <-  "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
-
-ADRDpeople <- fread(paste0(dir_ADRDpeople, "ADRDpeople.csv"))
-enrolledInfo <- fread(paste0(dir_enrolledInfo, "EnrolledInfo.csv"))
-```
 
 Check the completeness of follow-up
 -----------------------------------
@@ -93,21 +73,9 @@ followed-up.
     ## 5: 012472193     2001   2004     4        2000
     ## 6: 014929014     2006   2006     1        2005
 
-``` r
-cat("the number of subjects in ADRDpeople(removed NAs) is", dim(temp)[1], "\n")
-```
-
     ## the number of subjects in ADRDpeople(removed NAs) is 5162518
 
-``` r
-cat("the number of person-years in ADRDpeople(removed NAs) is", dim(ADRDpeople)[1], "\n")
-```
-
     ## the number of person-years in ADRDpeople(removed NAs) is 27049496
-
-``` r
-cat("is there any duplication of the combination of `qid` and calendar year: ", any(duplicated(ADRDpeople[,.(qid,year)])), "\n")
-```
 
     ## is there any duplication of the combination of `qid` and calendar year:  FALSE
 
@@ -134,10 +102,6 @@ The above subject (65290 subjects in total), were not followed-up from
 the year following firstADRDyr. **Consider deleting them**
 
 Their info in denominator files:
-
-``` r
-ADRDpeople[qid %in% temp[start_yr != (firstADRDyr+1)][, qid], ]
-```
 
     ##           zip year             qid  dead sex race age dual statecode
     ##      1:     0 2000       A07897374 FALSE   1    2  79    1          
@@ -188,11 +152,7 @@ ADRDpeople[qid %in% temp[start_yr != (firstADRDyr+1)][, qid], ]
     ## 452372:            NA        2007  NA    NA
     ## 452373:            NA        2002  NA    NA
 
-``` r
-dim(ADRDpeople[qid %in% temp[start_yr != (firstADRDyr+1)][, qid], ])[1]
-```
-
-    ## [1] 452373
+    ## the number of person-years of related subjects is 452373
 
 ### 3. check whether alive people were followed-up till the end of study period (2016)
 
@@ -232,10 +192,6 @@ The above subject (14804 subjects in total) do not have each year’s info
 during follow-up. **Consider deleting them**
 
 Their info in denominator files:
-
-``` r
-ADRDpeople[qid %in% temp[(end_yr-start_yr+1) != count,][,qid],]
-```
 
     ##           zip year             qid  dead sex race age dual statecode
     ##      1:     0 2002 llllllll0OXo77l FALSE   2    1  85    0          
