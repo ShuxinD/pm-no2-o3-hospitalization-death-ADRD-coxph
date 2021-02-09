@@ -36,7 +36,17 @@ corr_data <- dt[,.(race, dual, mean_bmi, smoke_rate, hispanic,
 corr <- cor(corr_data)
 write.csv(corr, file = paste0(dir_out, "corr.csv"))
 
-############################# 2. create table one #############################
+####################### 2. create death end var ###############################
+event <- dt[(dead),.(qid,dead)]
+names(event)[2] <- "dead_end"
+names(event)
+
+dt <- merge(dt, event, by = "qid", all.x = TRUE)
+dt$dead_end[is.na(dt$dead_end)] <- FALSE
+summary(dt$dead_end)
+gc()
+
+############################# 3. create table one #############################
 listVars <- c("pm25", "no2", "ozone", 
               "mean_bmi", "smoke_rate", "hispanic", "pct_blk",
               "medhouseholdincome", "medianhousevalue", "poverty",
@@ -50,9 +60,9 @@ head(dt)
 setorder(dt, qid, year)
 dt_ind <- dt[,.SD[1], by=qid]
 head(dt_ind)
-dt_ind <- dt_ind[,.(qid, sex, race, age, entry_age_break, dual, year)]
+dt_ind <- dt_ind[,.(qid, sex, race, age, entry_age_break, dual, year, dead_end)]
 
-listVars <- c("sex", "race", "age", "entry_age_break", "dual", "year")
+listVars <- c("sex", "race", "age", "entry_age_break", "dual", "year", "dead_end")
 catVars <- c("sex", "race", "entry_age_break", "dual", "year")
 table1.individual <- tableone::CreateTableOne(vars = listVars, 
                                               data = dt_ind, 
