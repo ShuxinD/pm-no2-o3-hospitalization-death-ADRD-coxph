@@ -20,6 +20,11 @@ dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
 ########################### 1. Load data ######################################
 ADRDpeople <- fread(paste0(dir_in, "ADRDpeople.csv"))
 names(ADRDpeople)
+# [1] "zip"                "year"               "qid"                "dead"               "sex"               
+# [6] "race"               "age"                "dual"               "statecode"          "entry_age_break"   
+# [11] "mean_bmi"           "smoke_rate"         "hispanic"           "pct_blk"            "medhouseholdincome"
+# [16] "medianhousevalue"   "poverty"            "education"          "popdensity"         "pct_owner_occ"     
+# [21] "firstADRDyr"        "pm25"               "no2"                "ozone"    
 dt <- na.omit(ADRDpeople)[year!=firstADRDyr, ] # remove NAs and firstADRDyr
 
 ########################### 2. Clean data #####################################
@@ -45,6 +50,8 @@ gc()
 
 dim(temp)[1] - dim(dt)[1]
 # [1] 297473
+
+head(dt)
 
 fwrite(dt, paste0(dir_out, "ADRD_mortality.csv"))
 
