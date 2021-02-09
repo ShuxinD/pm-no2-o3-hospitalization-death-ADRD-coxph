@@ -8,8 +8,8 @@ Setup and read in data
 ----------------------
 
     ##          used (Mb) gc trigger (Mb) max used (Mb)
-    ## Ncells 454699 24.3     977821 52.3   642637 34.4
-    ## Vcells 885307  6.8    8388608 64.0  1825873 14.0
+    ## Ncells 454698 24.3     977818 52.3   642637 34.4
+    ## Vcells 885291  6.8    8388608 64.0  1825873 14.0
 
     ## Warning: As of rlang 0.4.0, dplyr must be at least version 0.8.0.
     ## * dplyr 0.7.6 is too old for rlang 0.4.6.
@@ -139,18 +139,18 @@ Their info in denominator files:
     ## 452371:                 NA               NA      NA        NA         NA
     ## 452372:                 NA               NA      NA        NA         NA
     ## 452373:                 NA               NA      NA        NA         NA
-    ##         pct_owner_occ firstADRDyr no2 ozone
-    ##      1:            NA        2000  NA    NA
-    ##      2:            NA        2000  NA    NA
-    ##      3:            NA        2000  NA    NA
-    ##      4:            NA        2000  NA    NA
-    ##      5:            NA        2000  NA    NA
-    ##     ---                                    
-    ## 452369:            NA        2007  NA    NA
-    ## 452370:            NA        2011  NA    NA
-    ## 452371:            NA        2010  NA    NA
-    ## 452372:            NA        2007  NA    NA
-    ## 452373:            NA        2002  NA    NA
+    ##         pct_owner_occ firstADRDyr pm25 no2 ozone
+    ##      1:            NA        2000   NA  NA    NA
+    ##      2:            NA        2000   NA  NA    NA
+    ##      3:            NA        2000   NA  NA    NA
+    ##      4:            NA        2000   NA  NA    NA
+    ##      5:            NA        2000   NA  NA    NA
+    ##     ---                                         
+    ## 452369:            NA        2007   NA  NA    NA
+    ## 452370:            NA        2011   NA  NA    NA
+    ## 452371:            NA        2010   NA  NA    NA
+    ## 452372:            NA        2007   NA  NA    NA
+    ## 452373:            NA        2002   NA  NA    NA
 
     ## the number of person-years of related subjects is 452373
 
@@ -229,15 +229,15 @@ Their info in denominator files:
     ## 129109:                 NA               NA      NA        NA         NA
     ## 129110:                 NA               NA      NA        NA         NA
     ## 129111:                 NA               NA      NA        NA         NA
-    ##         pct_owner_occ firstADRDyr no2 ozone
-    ##      1:            NA        2000  NA    NA
-    ##      2:            NA        2000  NA    NA
-    ##      3:            NA        2000  NA    NA
-    ##      4:            NA        2000  NA    NA
-    ##      5:            NA        2000  NA    NA
-    ##     ---                                    
-    ## 129107:            NA        2010  NA    NA
-    ## 129108:            NA        2006  NA    NA
-    ## 129109:            NA        2006  NA    NA
-    ## 129110:            NA        2010  NA    NA
-    ## 129111:            NA        2006  NA    NA
+    ##         pct_owner_occ firstADRDyr pm25 no2 ozone
+    ##      1:            NA        2000   NA  NA    NA
+    ##      2:            NA        2000   NA  NA    NA
+    ##      3:            NA        2000   NA  NA    NA
+    ##      4:            NA        2000   NA  NA    NA
+    ##      5:            NA        2000   NA  NA    NA
+    ##     ---                                         
+    ## 129107:            NA        2010   NA  NA    NA
+    ## 129108:            NA        2006   NA  NA    NA
+    ## 129109:            NA        2006   NA  NA    NA
+    ## 129110:            NA        2010   NA  NA    NA
+    ## 129111:            NA        2006   NA  NA    NA
