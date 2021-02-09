@@ -16,9 +16,8 @@ rm(list = ls())
 gc()
 
 library(data.table)
-library(dplyr)
-
 setDTthreads(threads = 0)
+
 setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia")
 dir_ADRDpeople <-  "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
 dir_enrolledInfo <-  "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
@@ -39,13 +38,14 @@ Our final dataset should:
 temp <- na.omit(ADRDpeople)
 temp <- temp[year!=firstADRDyr, ][, .(start_yr = min(year),
                                            end_yr = max(year),
-                                           count = uniqueN(year)), by = qid]
-temp <- merge(temp, enrolledInfo, by.x = "qid", by.y = "QID")
+                                           count = uniqueN(year)), by = .(qid)]
+temp <- merge(temp, enrolledInfo, by.x = "qid", by.y = "QID", all.x = TRUE)
 ```
 
-We constructed a temporary dataset named `temp` which is a subset of `ADRDpeople` after removing NA and removing rows whose `year==firstADRDyr`.
-
-We generated `start_yr` as the minimum of calendar year and `end_yr` as the maximum of calendar year, also, `count` as the count number of unique calendar year for each subject. All these variables will be used for following checking.
+We constructed a temporary dataset named `temp` which is a subset of `ADRDpeople` after removing NA and removing rows whose `year==firstADRDyr`, and summarize each person as one row (the number of unique subjects) with `r dim(temp)[1]` subjects:
+- generated `start_yr` as the minimum of calendar year
+- `end_yr` as the maximum of calendar year
+- `count` as the count number of unique calendar year for each subject. 
 
 We also merged the enroll information (`firstADRDyear`) to `temp`. (`firstADRDyr`+1) indicates the year that subjects should start to be followed-up.
 
