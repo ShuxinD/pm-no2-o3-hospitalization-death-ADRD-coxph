@@ -17,8 +17,9 @@ gc()
 
 library(data.table)
 setDTthreads(threads = 0)
+library(dplyr)
 
-setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia")
+# setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia")
 dir_ADRDpeople <-  "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
 dir_enrolledInfo <-  "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
 
@@ -79,7 +80,7 @@ cat("the number of person-years of related subjects is", dim(ADRDpeople[qid %in%
 
 ### 3. check whether alive people were followed-up till the end of study period (2016)
 ```{r}
-temp[qid %in% ADRDpeople[!(dead),qid], ][, end_yr] %>% table()
+temp[!(qid %in% ADRDpeople[(dead),qid]), end_yr] %>% table()
 ```
 
 We could see loads of alive subjects weren't followed-up till 2016. This should be considered as right-censored subjects during the analyses.
