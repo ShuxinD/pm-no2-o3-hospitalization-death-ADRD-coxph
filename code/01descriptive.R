@@ -46,6 +46,8 @@ dt$dead_end[is.na(dt$dead_end)] <- FALSE
 summary(dt$dead_end)
 gc()
 
+
+
 ############################# 3. create table one #############################
 listVars <- c("pm25", "no2", "ozone", 
               "mean_bmi", "smoke_rate", "hispanic", "pct_blk",
