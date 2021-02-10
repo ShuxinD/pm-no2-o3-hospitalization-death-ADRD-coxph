@@ -8,8 +8,8 @@ Setup and read in data
 ----------------------
 
     ##          used (Mb) gc trigger (Mb) max used (Mb)
-    ## Ncells 454698 24.3     977818 52.3   642637 34.4
-    ## Vcells 885291  6.8    8388608 64.0  1825873 14.0
+    ## Ncells 454688 24.3     977790 52.3   642637 34.4
+    ## Vcells 885264  6.8    8388608 64.0  1825873 14.0
 
     ## Warning: As of rlang 0.4.0, dplyr must be at least version 0.8.0.
     ## * dplyr 0.7.6 is too old for rlang 0.4.6.
@@ -46,18 +46,16 @@ Our final dataset should:
 temp <- na.omit(ADRDpeople)
 temp <- temp[year!=firstADRDyr, ][, .(start_yr = min(year),
                                            end_yr = max(year),
-                                           count = uniqueN(year)), by = qid]
-temp <- merge(temp, enrolledInfo, by.x = "qid", by.y = "QID")
+                                           count = uniqueN(year)), by = .(qid)]
+temp <- merge(temp, enrolledInfo, by.x = "qid", by.y = "QID", all.x = TRUE)
 ```
 
 We constructed a temporary dataset named `temp` which is a subset of
 `ADRDpeople` after removing NA and removing rows whose
-`year==firstADRDyr`.
-
-We generated `start_yr` as the minimum of calendar year and `end_yr` as
-the maximum of calendar year, also, `count` as the count number of
-unique calendar year for each subject. All these variables will be used
-for following checking.
+`year==firstADRDyr`, and summarize each person as one row (the number of
+unique subjects) with 5162518 subjects: - generated `start_yr` as the
+minimum of calendar year - `end_yr` as the maximum of calendar year -
+`count` as the count number of unique calendar year for each subject.
 
 We also merged the enroll information (`firstADRDyear`) to `temp`.
 (`firstADRDyr`+1) indicates the year that subjects should start to be
@@ -157,14 +155,14 @@ Their info in denominator files:
 ### 3. check whether alive people were followed-up till the end of study period (2016)
 
 ``` r
-temp[qid %in% ADRDpeople[!(dead),qid], ][, end_yr] %>% table()
+temp[!(qid %in% ADRDpeople[(dead),qid]), end_yr] %>% table()
 ```
 
     ## .
-    ##    2001    2002    2003    2004    2005    2006    2007    2008    2009 
-    ##  126661  186690  224320  244555  269679  275197  279490  293553  284124 
-    ##    2010    2011    2012    2013    2014    2015    2016 
-    ##  291806  299587  302464  303075  295508  301736 1183707
+    ##   2001   2002   2003   2004   2005   2006   2007   2008   2009   2010 
+    ##     47     70    678   1026   1055   1033    844    957    761   1006 
+    ##   2011   2012   2013   2014   2015   2016 
+    ##   1356   2026   2582   3940   4815 892471
 
 We could see loads of alive subjects weren’t followed-up till 2016. This
 should be considered as right-censored subjects during the analyses.
