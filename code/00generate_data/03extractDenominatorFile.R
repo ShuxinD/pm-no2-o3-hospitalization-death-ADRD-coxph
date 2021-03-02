@@ -27,11 +27,11 @@ f <- list.files(dir_denominator, pattern = "\\.fst", full.names = TRUE)
 ## example to read fst file
 # example <- read_fst(f[1])
 # names(example)
-myvars <- c("qid", "year", "zip", "dead", "sex", "race", "age", "dual", "statecode", 
-            "entry_age_break",
-            "mean_bmi", "smoke_rate",
-            "hispanic", "pct_blk", "medhouseholdincome", "medianhousevalue",
-            "poverty","education", "popdensity", "pct_owner_occ")
+myvars <- c("year", "zip", "sex", "race", "age", "dual", "entry_age_break", "statecode",
+            "dead",
+            "mean_bmi", "smoke_rate", "hispanic", "pct_blk", "medhouseholdincome", "medianhousevalue",
+            "poverty", "education", "popdensity", "pct_owner_occ",
+            "summer_tmmx", "winter_tmmx", "summer_rmax", "winter_rmax")
 dt <- rbindlist(lapply(f,
                        read_fst,
                        columns = myvars,
