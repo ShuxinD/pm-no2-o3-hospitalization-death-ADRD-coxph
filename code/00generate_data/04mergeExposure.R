@@ -44,16 +44,20 @@ gc()
 head(exposure[, ZIP])
 
 names(ADRDpeople)
-# [1] "qid"                "year"               "zip"                "dead"               "sex"               
-# [6] "race"               "age"                "dual"               "statecode"          "entry_age_break"   
-# [11] "mean_bmi"           "smoke_rate"         "hispanic"           "pct_blk"            "medhouseholdincome"
-# [16] "medianhousevalue"   "poverty"            "education"          "popdensity"         "pct_owner_occ"     
-# [21] "firstADRDyr"  
+# [1] "qid"                "year"               "summer_tmmx"        "winter_tmmx"        "summer_rmax"        "winter_rmax"       
+# [7] "zip"                "dead"               "sex"                "race"               "age"                "dual"              
+# [13] "statecode"          "entry_age_break"    "mean_bmi"           "smoke_rate"         "hispanic"           "pct_blk"           
+# [19] "medhouseholdincome" "medianhousevalue"   "poverty"            "education"          "popdensity"         "pct_owner_occ"     
+# [25] "firstADRDyr"    
 
-head(ADRDpeople[,zip])
+head(ADRDpeople)
+setorder(ADRDpeople, zip, year)
+ADRDpeople[1000:2000,]
 
 # ADRDpeople[exposure, on = .(zip = ZIP, year = year)]
 combined <- merge(ADRDpeople, exposure, by.x = c("zip", "year"), by.y = c("ZIP", "year"), all.x = TRUE)
-head(combined)
+combined
+head(combined,100)
+tail(combined)
 
 fwrite(combined, paste0(dir_out, "ADRDpeople.csv"))
