@@ -15,7 +15,7 @@ gc()
 library(data.table)
 setDTthreads(threads = 0)
 
-setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia")
+setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/")
 
 dir_in <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
 dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
@@ -23,11 +23,11 @@ dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
 dt <- fread(paste0(dir_in, "ADRD_mortality.csv"))
 names(dt)
 # > names(dt)
-# [1] "zip"                "year"               "qid"                "dead"               "sex"               
-# [6] "race"               "age"                "dual"               "statecode"          "entry_age_break"   
-# [11] "mean_bmi"           "smoke_rate"         "hispanic"           "pct_blk"            "medhouseholdincome"
-# [16] "medianhousevalue"   "poverty"            "education"          "popdensity"         "pct_owner_occ"     
-# [21] "firstADRDyr"        "pm25"               "no2"                "ozone"   
+# [1] "zip"                "year"               "qid"                "summer_tmmx"        "winter_tmmx"        "summer_rmax"       
+# [7] "winter_rmax"        "dead"               "sex"                "race"               "age"                "dual"              
+# [13] "statecode"          "entry_age_break"    "mean_bmi"           "smoke_rate"         "hispanic"           "pct_blk"           
+# [19] "medhouseholdincome" "medianhousevalue"   "poverty"            "education"          "popdensity"         "pct_owner_occ"     
+# [25] "firstADRDyr"        "pm25"               "no2"                "ozone"      
 
 ########################## 1. calculate corr ##################################
 corr_data <- dt[,.(race, dual, mean_bmi, smoke_rate, hispanic,
@@ -46,11 +46,14 @@ dt$dead_end[is.na(dt$dead_end)] <- FALSE
 summary(dt$dead_end)
 gc()
 
+
+
 ############################# 3. create table one #############################
 listVars <- c("pm25", "no2", "ozone", 
               "mean_bmi", "smoke_rate", "hispanic", "pct_blk",
               "medhouseholdincome", "medianhousevalue", "poverty",
-              "education", "popdensity", "pct_owner_occ")
+              "education", "popdensity", "pct_owner_occ",
+              "summer_tmmx", "winter_tmmx", "summer_rmax", "winter_rmax")
 table1.personyr <- tableone::CreateTableOne(vars = listVars, 
                                             data = dt)
 table1.personyr <- print(table1.personyr)
