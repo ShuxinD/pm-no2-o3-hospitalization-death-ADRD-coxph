@@ -33,6 +33,7 @@ dim(ADRDpeople)[1] - dim(dt)[1] # number of person-years to be removed due to NA
 # [1] 9967865
 uniqueN(dt, by = "qid")
 # [1] 5154447
+dt[, entry_age_break:=NULL] # remove entry_age_break from the denominator file
 
 ########################### 2. Clean data #####################################
 temp <- dt[, .(start_yr = min(year),
@@ -42,7 +43,7 @@ dim(temp)
 head(temp)
 temp <- merge(temp, unique(dt[,.(qid,firstADRDyr)]), by = "qid", all.x = TRUE)
 dim(temp)
-
+head(temp)
 gc()
 
 ## remove those not followed-up from the year following firstADRDyr
@@ -66,6 +67,30 @@ dim(ADRDpeople)[1] - dim(dt)[1]
 
 head(dt)
 
+## create entry_age variable
+tempAge <- dt[, .(entry_age = min(age)), by = .(qid)]
+head(tempAge)
+min(tempAge[,entry_age])
+max(tempAge[,entry_age])
+seq(65, 115, 2)
+tempAge[, entry_age_break := cut(entry_age, breaks = seq(65, 115, 2), right = FALSE)][]
+summary(tempAge[,entry_age_break])
+head(tempAge)
+dt <- merge(dt, tempAge, by = "qid") ## add entry_age and entry_age_break
+
+## merge different race categories and create race_collapsed
+dt[,race:=as.factor(race)]
+table(dt[,race])
+dt$race_collapsed <- "Others"
+dt$race_collapsed[dt$race==1] <- "White"
+dt$race_collapsed[dt$race==2] <- "Black"
+dt[, race_collapsed:=as.factor(race_collapsed)]
+
+## generate Ox based on no2 and ozone
+dt[, ox := (1.07*no2 + 2.075*ozone)/3.14]
+head(dt)
+
 fwrite(dt, paste0(dir_out, "ADRD_mortality.csv"))
+
 
 
