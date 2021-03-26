@@ -44,10 +44,10 @@ f <- list.files(dir_denominator, pattern = "\\.fst", full.names = TRUE)
 # [53] "amb_visit_pct_no_interp"      "a1c_exm_pct_no_interp"        "tmmx"                         "rmax"                        
 # [57] "pr"                           "cluster_cat"                  "fips_no_interp"               "fips"                        
 # [61] "summer_tmmx"                  "summer_rmax"                  "winter_tmmx"                  "winter_rmax" 
-myvars <- c("qid", "year", #"zip", "sex", "race", "age", "dual", "entry_age_break", "statecode",
-            #"dead",
-            #"mean_bmi", "smoke_rate", "hispanic", "pct_blk", "medhouseholdincome", "medianhousevalue",
-            #"poverty", "education", "popdensity", "pct_owner_occ",
+myvars <- c("qid", "year", "zip", "sex", "race", "age", "dual", "entry_age_break", "statecode",
+            "dead",
+            "mean_bmi", "smoke_rate", "hispanic", "pct_blk", "medhouseholdincome", "medianhousevalue",
+            "poverty", "education", "popdensity", "pct_owner_occ",
             "summer_tmmx", "winter_tmmx", "summer_rmax", "winter_rmax")
 dt <- rbindlist(lapply(f,
                        read_fst,
