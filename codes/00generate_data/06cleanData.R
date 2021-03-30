@@ -25,15 +25,28 @@ names(ADRDpeople)
 # [13] "statecode"          "entry_age_break"    "mean_bmi"           "smoke_rate"         "hispanic"           "pct_blk"           
 # [19] "medhouseholdincome" "medianhousevalue"   "poverty"            "education"          "popdensity"         "pct_owner_occ"     
 # [25] "firstADRDyr"        "pm25"               "no2"                "ozone"  
-dt <- na.omit(ADRDpeople)[year!=firstADRDyr, ] # remove NAs and firstADRDyr
+dim(ADRDpeople)
+# [1] 27049496       28
+ADRDpeople <- ADRDpeople[year!=firstADRDyr, ] # remove firstADRDyr
+dim(ADRDpeople) # study population personyrs
+# [1] 19014337       28
+uniqueN(ADRDpeople, by = "qid") # study population individuals
+# [1] 5664786
+dt <- na.omit(ADRDpeople) # remove NAs
 dim(dt)
 # [1] 17081631       28
-dim(ADRDpeople)[1] - dim(dt)[1] # number of person-years to be removed due to NAs
-# > dim(ADRDpeople)[1] - dim(dt)[1]
-# [1] 9967865
 uniqueN(dt, by = "qid")
 # [1] 5154447
+dim(ADRDpeople)[1] - dim(dt)[1] # number of person-years to be removed due to NAs
+# [1] 1932706
+uniqueN(ADRDpeople, by = "qid") - uniqueN(dt, by = "qid") # number of indivuals removed due to NAs
+# [1] 510339
 dt[, entry_age_break:=NULL] # remove entry_age_break from the denominator file
+dt <- dt[race!=0,] # remove those with race==0 (unknown)
+dim(dt) # final
+# [1] 17043989       27
+uniqueN(dt, by = "qid") #final # of subjects
+# [1] 5141820
 
 ########################### 2. Clean data #####################################
 temp <- dt[, .(start_yr = min(year),
@@ -48,22 +61,22 @@ gc()
 
 ## remove those not followed-up from the year following firstADRDyr
 dim(temp[start_yr > (firstADRDyr+1)]) # number of subjects to remove
-# [1] 64530     5
+# [1] 64461     5
 dt[!(qid %in% temp[start_yr != (firstADRDyr+1)][, qid]), ]
 dt <- dt[!(qid %in% temp[start_yr != (firstADRDyr+1)][, qid]), ]
 gc()
 
 dim(ADRDpeople)[1] - dim(dt)[1] # number of person-years to removed
-# [1] 10183511
+# [1] 2185897
 
 ## remove those not having each year’s info during follow-up
 dim(temp[(end_yr-start_yr+1) != count,]) # number of subjects to remove
-# [1] 13669     5
+# [1] 13646     5
 dt <- dt[qid %in% temp[(end_yr-start_yr+1) == count, qid],]
 gc()
 
 dim(ADRDpeople)[1] - dim(dt)[1]
-# [1] 10258411
+# [1] 2260689
 
 head(dt)
 
@@ -91,6 +104,3 @@ dt[, ox := (1.07*no2 + 2.075*ozone)/3.14]
 head(dt)
 
 fwrite(dt, paste0(dir_out, "ADRD_mortality.csv"))
-
-
-
