@@ -78,9 +78,9 @@ dt_ind <- dt[,.SD[1], by=qid]
 head(dt_ind)
 dt_ind <- dt_ind[,.(qid, sex, race_collapsed, age, entry_age_break, dual, year, dead_end)]
 
-listVars <- c("sex", "race_collaped", "age", "entry_age_break", "dual", 
+listVars <- c("sex", "race_collapsed", "age", "entry_age_break", "dual", 
               "year", "followup_duration","dead_end")
-catVars <- c("sex", "race", "entry_age_break", "dual", "year")
+catVars <- c("sex", "race_collapsed", "entry_age_break", "dual", "year")
 table1.individual <- tableone::CreateTableOne(vars = listVars, 
                                               data = dt_ind, 
                                               factorVars = catVars)
