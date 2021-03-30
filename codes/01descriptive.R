@@ -33,7 +33,18 @@ names(dt)
 # [29] "entry_age_break"    "race_collapsed"     "ox" 
 dt[, race_collapsed:=as.factor(race_collapsed)]
 dt[, entry_age_break := as.factor(entry_age_break)]
-
+NORTHEAST <- c("NY", "MA", "PA", "RI", "NH", "ME", "VT", "CT", "NJ")  
+SOUTH <- c("DC", "VA", "NC", "WV", "KY", "SC", "GA", "FL", "AL", "TN", "MS", 
+           "AR", "MD", "DE", "OK", "TX", "LA")
+MIDWEST <- c("OH", "IN", "MI", "IA", "MO", "WI", "MN", "SD", "ND", "IL", "KS", "NE")
+WEST <- c("MT", "CO", "WY", "ID", "UT", "NV", "CA", "OR", "WA", "AZ", "NM")
+dt$region <- ifelse(dt$statecode %in% NORTHEAST, "NORTHEAST",
+                    ifelse(dt$statecode %in% SOUTH, "SOUTH",
+                           ifelse(dt$statecode  %in% MIDWEST, "MIDWEST",
+                                  ifelse(dt$statecode  %in% WEST, "WEST",
+                                         NA))))
+dt[, region := as.factor(region)]
+summary(dt$region)
 
 ########################## 1. calculate corr ##################################
 corr_data <- dt[,.(dual, mean_bmi, smoke_rate, hispanic,
@@ -76,11 +87,12 @@ head(dt)
 setorder(dt, qid, year)
 dt_ind <- dt[,.SD[1], by=qid]
 head(dt_ind)
-dt_ind <- dt_ind[,.(qid, sex, race_collapsed, age, entry_age_break, dual, year, dead_end)]
+dt_ind <- dt_ind[,.(qid, dead_end, sex, race_collapsed, age, entry_age_break, 
+                    region, dual, year, followup_duration)]
 
-listVars <- c("sex", "race_collapsed", "age", "entry_age_break", "dual", 
+listVars <- c("sex", "race_collapsed", "age", "entry_age_break", "dual", "region",
               "year", "followup_duration","dead_end")
-catVars <- c("sex", "race_collapsed", "entry_age_break", "dual", "year")
+catVars <- c("sex", "race_collapsed", "entry_age_break", "dual", "region", "year")
 table1.individual <- tableone::CreateTableOne(vars = listVars, 
                                               data = dt_ind, 
                                               factorVars = catVars)
