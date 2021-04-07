@@ -63,7 +63,7 @@ cox_1_pm25 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = 
                       summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                       as.factor(year) +  as.factor(region) +
                       strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-                      strata(as.factor(race)) + strata(as.factor(dual)),
+                      strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
                     data = dt,
                     tie = c("efron"), 
                     na.action = na.omit)
@@ -90,7 +90,7 @@ cox_1_no2 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = d
                      summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                      as.factor(year) +  as.factor(region) +
                      strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-                     strata(as.factor(race)) + strata(as.factor(dual)),
+                     strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
                    data = dt,
                    tie = c("efron"), 
                    na.action = na.omit)
@@ -117,7 +117,7 @@ cox_1_ozone <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event =
                        summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                        as.factor(year) +  as.factor(region) +
                        strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-                       strata(as.factor(race)) + strata(as.factor(dual)),
+                       strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
                      data = dt,
                      tie = c("efron"), 
                      na.action = na.omit)
@@ -143,7 +143,7 @@ cox_1_ox <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = de
                        summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                        as.factor(year) +  as.factor(region) +
                        strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-                       strata(as.factor(race)) + strata(as.factor(dual)),
+                       strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
                      data = dt,
                      tie = c("efron"), 
                      na.action = na.omit)
@@ -171,7 +171,7 @@ cox_1_all3 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = 
                  summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                  as.factor(year) +  as.factor(region) +
                  strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-                 strata(as.factor(race)) + strata(as.factor(dual)),
+                 strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
                data = dt,
                tie = c("efron"), 
                na.action = na.omit)
@@ -197,7 +197,7 @@ cox_1_all2 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = 
                  summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                  as.factor(year) +  as.factor(region) +
                  strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-                 strata(as.factor(race)) + strata(as.factor(dual)),
+                 strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
                data = dt,
                tie = c("efron"), 
                na.action = na.omit)
@@ -229,7 +229,7 @@ fwrite(HR, paste0(dir_results, "cox_1_all2_HR.csv"))
 #                    summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
 #                    as.factor(year) + as.factor(region) +
 #                    strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-#                    strata(as.factor(race)) + strata(as.factor(dual)),
+#                    strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
 #                  data = dt,
 #                  tie = c("efron"), na.action = na.omit)
 # saveRDS(cox_splines, paste0(dir_results, "cox_splines.rds"))
