@@ -54,7 +54,7 @@ cl <- makeCluster(23)
 
 p_1_pm25 <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) + 
                   s(followupyr, by = as.factor(sex)) +
-                  s(followupyr, by = as.factor(race)) + 
+                  s(followupyr, by = as.factor(race_collapsed)) + 
                   s(followupyr, by = as.factor(dual)) +
                   pm25 + 
                   mean_bmi + smoke_rate + hispanic + pct_blk +
@@ -83,7 +83,7 @@ gc()
 
 p_1_no2 <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) + 
                  s(followupyr, by = as.factor(sex)) +
-                 s(followupyr, by = as.factor(race)) + 
+                 s(followupyr, by = as.factor(race_collapsed)) + 
                  s(followupyr, by = as.factor(dual)) +
                  no2 + 
                  mean_bmi + smoke_rate + hispanic + pct_blk +
@@ -112,7 +112,7 @@ fwrite(HR, paste0(dir_results, "poisson_1_no2_HR.csv"))
 
 p_1_ozone <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) + 
                    s(followupyr, by = as.factor(sex)) +
-                   s(followupyr, by = as.factor(race)) + 
+                   s(followupyr, by = as.factor(race_collapsed)) + 
                    s(followupyr, by = as.factor(dual)) +
                    ozone + 
                    mean_bmi + smoke_rate + hispanic + pct_blk +
@@ -140,7 +140,7 @@ fwrite(HR, paste0(dir_results, "poisson_1_ozone_HR.csv"))
 
 p_1_ox <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) + 
                    s(followupyr, by = as.factor(sex)) +
-                   s(followupyr, by = as.factor(race)) + 
+                   s(followupyr, by = as.factor(race_collapsed)) + 
                    s(followupyr, by = as.factor(dual)) +
                    ox + 
                    mean_bmi + smoke_rate + hispanic + pct_blk +
@@ -169,7 +169,7 @@ fwrite(HR, paste0(dir_results, "poisson_1_ox_HR.csv"))
 #################### 2. multi-pollutants models ###############################
 p_1_all3 <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) + 
              s(followupyr, by = as.factor(sex)) +
-             s(followupyr, by = as.factor(race)) + 
+             s(followupyr, by = as.factor(race_collapsed)) + 
              s(followupyr, by = as.factor(dual)) +
              pm25 + no2 + ozone + 
              mean_bmi + smoke_rate + hispanic + pct_blk +
@@ -198,7 +198,7 @@ gc()
 
 p_1_all2 <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) + 
                   s(followupyr, by = as.factor(sex)) +
-                  s(followupyr, by = as.factor(race)) + 
+                  s(followupyr, by = as.factor(race_collapsed)) + 
                   s(followupyr, by = as.factor(dual)) +
                   pm25 + ox +
                   mean_bmi + smoke_rate + hispanic + pct_blk +
@@ -237,7 +237,7 @@ stop(cl)
 
 # p_splines <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) + 
 #                    s(followupyr, by = as.factor(sex)) +
-#                    s(followupyr, by = as.factor(race)) + 
+#                    s(followupyr, by = as.factor(race_collapsed)) + 
 #                    s(followupyr, by = as.factor(dual)) +
 #                    s(pm25, bs="ps") + s(no2, bs="ps") + s(ozone, bs="ps") + 
 #                    mean_bmi + smoke_rate + hispanic + pct_blk +
