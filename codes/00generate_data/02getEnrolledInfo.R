@@ -19,9 +19,9 @@ library(NSAPHutils)
 setDTthreads(threads = 0)
 setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia")
 
-dir_input_hospital <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/ADRDhospitalization/"
+dir_input_hospital <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/ADRDhospitalization/"
 dir_input_crosswalk <- "/nfs/home/S/shd968/shared_space/ci3_health_data/medicare/id_crosswalk/"
-dir_output <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
+dir_output <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
 
 ################ 1. combine hospitalization files together ####################
 ADRDhosp <- NULL
