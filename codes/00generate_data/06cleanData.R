@@ -12,41 +12,42 @@ rm(list = ls())
 gc()
 
 library(data.table)
-setDTthreads(threads = 0)
+setDTthreads(threads = 15)
 
-dir_in <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
+dir_in <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
+dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
 
 ########################### 1. Load data ######################################
-ADRDpeople <- fread(paste0(dir_in, "ADRDpeople.csv"))
+ADRDpeople <- fread(paste0(dir_in, "ADRDpeople.csv"), colClasses = c("zip"="character"))
 names(ADRDpeople)
-# [1] "zip"                "year"               "qid"                "summer_tmmx"        "winter_tmmx"        "summer_rmax"       
-# [7] "winter_rmax"        "dead"               "sex"                "race"               "age"                "dual"              
-# [13] "statecode"          "entry_age_break"    "mean_bmi"           "smoke_rate"         "hispanic"           "pct_blk"           
-# [19] "medhouseholdincome" "medianhousevalue"   "poverty"            "education"          "popdensity"         "pct_owner_occ"     
-# [25] "firstADRDyr"        "pm25"               "no2"                "ozone"  
+# [1] "zip"                "year"               "qid"                "sex"               
+# [5] "race"               "age"                "dual"               "statecode"         
+# [9] "dead"               "mean_bmi"           "smoke_rate"         "hispanic"          
+# [13] "pct_blk"            "medhouseholdincome" "medianhousevalue"   "poverty"           
+# [17] "education"          "popdensity"         "pct_owner_occ"      "summer_tmmx"       
+# [21] "winter_tmmx"        "summer_rmax"        "winter_rmax"        "firstADRDyr"       
+# [25] "pm25"               "no2"                "ozone"              "ozone_summer"  
 dim(ADRDpeople)
-# [1] 27049496       28
+# [1] 25112131       28
 ADRDpeople <- ADRDpeople[year!=firstADRDyr, ] # remove firstADRDyr
 dim(ADRDpeople) # study population personyrs
-# [1] 19014337       28
+# [1] 17807821       28
 uniqueN(ADRDpeople, by = "qid") # study population individuals
-# [1] 5664786
+# [1] 5069279
 dt <- na.omit(ADRDpeople) # remove NAs
 dim(dt)
-# [1] 17081631       28
+# [1] 17376870       28
 uniqueN(dt, by = "qid")
-# [1] 5154447
+# [1] 4962098
 dim(ADRDpeople)[1] - dim(dt)[1] # number of person-years to be removed due to NAs
-# [1] 1932706
+# [1] 430951
 uniqueN(ADRDpeople, by = "qid") - uniqueN(dt, by = "qid") # number of indivuals removed due to NAs
-# [1] 510339
-dt[, entry_age_break:=NULL] # remove entry_age_break from the denominator file
+# [1] 107181
 dt <- dt[race!=0,] # remove those with race==0 (unknown)
 dim(dt) # final
-# [1] 17043989       27
+# [1] 17338260       27
 uniqueN(dt, by = "qid") #final # of subjects
-# [1] 5141820
+# [1] 4949616
 
 ########################### 2. Clean data #####################################
 temp <- dt[, .(start_yr = min(year),
@@ -61,22 +62,22 @@ gc()
 
 ## remove those not followed-up from the year following firstADRDyr
 dim(temp[start_yr > (firstADRDyr+1)]) # number of subjects to remove
-# [1] 64461     5
-dt[!(qid %in% temp[start_yr != (firstADRDyr+1)][, qid]), ]
+# [1] 15378     5
+# dt[!(qid %in% temp[start_yr != (firstADRDyr+1)][, qid]), ]
 dt <- dt[!(qid %in% temp[start_yr != (firstADRDyr+1)][, qid]), ]
 gc()
 
 dim(ADRDpeople)[1] - dim(dt)[1] # number of person-years to removed
-# [1] 2185897
+# [1] 524314
 
 ## remove those not having each year’s info during follow-up
 dim(temp[(end_yr-start_yr+1) != count,]) # number of subjects to remove
-# [1] 13646     5
+# [1] 5399     5
 dt <- dt[qid %in% temp[(end_yr-start_yr+1) == count, qid],]
 gc()
 
 dim(ADRDpeople)[1] - dim(dt)[1]
-# [1] 2260689
+# [1] 555521
 
 head(dt)
 
@@ -103,4 +104,4 @@ dt[, race_collapsed:=as.factor(race_collapsed)]
 dt[, ox := (1.07*no2 + 2.075*ozone)/3.14]
 head(dt)
 
-fwrite(dt, paste0(dir_out, "ADRD_mortality.csv"))
+fwrite(dt, paste0(dir_out, "ADRD_for_mortality.csv"))
