@@ -19,9 +19,9 @@ library(NSAPHutils)
 setDTthreads(threads = 0)
 setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia")
 
-dir_input_hospital <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/ADRDhospitalization/"
+dir_input_hospital <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/ADRDhospitalization/"
 dir_input_crosswalk <- "/nfs/home/S/shd968/shared_space/ci3_health_data/medicare/id_crosswalk/"
-dir_output <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
+dir_output <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
 
 ################ 1. combine hospitalization files together ####################
 ADRDhosp <- NULL
@@ -39,8 +39,9 @@ names(ADRDhosp)
 dim(ADRDhosp) # [1] 18823188       16
 
 any(duplicated(ADRDhosp))  # TRUE
-sum(duplicated(ADRDhosp)) # 1363406
+sum(duplicated(ADRDhosp)) # 1244244
 ADRDhosp <- unique(ADRDhosp)
+dim(ADRDhosp) # [1] 15238227       16
 gc()
 
 ADRDhosp <- ADRDhosp[,.(QID, ADATE, year)]
@@ -50,13 +51,13 @@ gc()
 enrolledInfo <- ADRDhosp[, list(firstADRDyr = min(year)), by = .(QID)]
 setDT(enrolledInfo)
 dim(enrolledInfo)
-# [1] 8048515       2
+# [1] 7317211       2
 
 table(enrolledInfo[,firstADRDyr])
 # 2000   2001   2002   2003   2004   2005   2006   2007   2008   2009   2010   2011   2012 
-# 693287 578738 540839 520162 494557 479842 456069 451934 440574 419484 436534 447404 424715 
+# 697399 582075 543621 522912 497055 482124 458507 454411 442956 422106 439424 404663 215713 
 # 2013   2014   2015   2016 
-# 410670 408980 434485 410241
+# 194621 187898 295714 476012 
 
 ######################### 2. exclude problematic IDs ##########################
 probIDs <- read_fst(paste0(dir_input_crosswalk, "no_crosswalk_no_death_ids.fst"), 
@@ -64,7 +65,7 @@ probIDs <- read_fst(paste0(dir_input_crosswalk, "no_crosswalk_no_death_ids.fst")
 probIDs[, old_id]
 enrolledInfo <- enrolledInfo[!(QID %in% probIDs[,old_id]),] # exclude problematic IDs
 dim(enrolledInfo)
-# [1] 8046408       2
+# [1] 7315095       2
 
 ######################### 3. save enrolled INFO ###############################
 fwrite(enrolledInfo, paste0(dir_output, "EnrolledInfo.csv"))
