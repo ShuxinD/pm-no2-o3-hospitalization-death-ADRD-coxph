@@ -18,17 +18,15 @@ library(lubridate)
 library(icd)
 
 setDTthreads(threads = 0)
-setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia")
+setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/")
 dir_hospital <- "/nfs/home/S/shd968/shared_space/ci3_health_data/medicare/gen_admission/1999_2016/targeted_conditions/cache_data/admissions_by_year/"
-dir_output <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/ADRDhospitalization/"
+dir_output <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/ADRDhospitalization/"
 
 ######################## 1. ICD code info #####################################
 outcomes <- list()
 outcomes[["ADRD"]] <- list()
-outcomes[["ADRD"]][["icd9"]] <- c("3310", children("290"), children("294"), "794")
-outcomes[["ADRD"]][["icd9"]] <- outcomes[["ADRD"]][["icd9"]][outcomes[["ADRD"]][["icd9"]]!="2949"]
-outcomes[["ADRD"]][["icd10"]] <- c(children("G30"), children("F015"), children("F028"), children("F039"),
-                                   "F04", "R4181")
+outcomes[["ADRD"]][["icd9"]] <- c("3310", "3311", "3312", "3317", "2900", children("2901"), children("2902"), "2903", children("2904"), "2940", children("2941"), "2948", "797")
+outcomes[["ADRD"]][["icd10"]] <- c(children("F01"), children("F02"), "F0390", children("G30"), children("G310"), "G311", "G312", "R4181")
 
 ##################### 2. extract hospitalization info #########################
 ## clear out old data in case of re-run
