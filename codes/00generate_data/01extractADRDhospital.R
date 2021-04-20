@@ -18,9 +18,9 @@ library(lubridate)
 library(icd)
 
 setDTthreads(threads = 0)
-setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/")
+setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia")
 dir_hospital <- "/nfs/home/S/shd968/shared_space/ci3_health_data/medicare/gen_admission/1999_2016/targeted_conditions/cache_data/admissions_by_year/"
-dir_output <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/ADRDhospitalization/"
+dir_output <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/ADRDhospitalization/"
 
 ######################## 1. ICD code info #####################################
 outcomes <- list()
