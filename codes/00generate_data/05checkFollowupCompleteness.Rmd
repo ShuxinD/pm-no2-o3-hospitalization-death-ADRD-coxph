@@ -1,15 +1,11 @@
 ---
-title: "checkFollowupCompleteness"
-output:
-  md_document:
-    variant: markdown_github
+title: "Check the completeness of follow-up in the ADRD population"
+output: github_document
 ---
 
-# Check the completeness of follow-up in the ADRD population
+The dataset `ADRDpeople.csv` was directly generated from the denominator files, which follow the ADRD people till their death or the end of 2016.
 
-The dataset `ADRDpeople.csv` was directly generated from the denominator files.
-
-## Setup and read in data
+## Setup and load data
 
 ```{r echo=FALSE}
 rm(list = ls())
@@ -18,12 +14,12 @@ gc()
 library(data.table)
 setDTthreads(threads = 0)
 library(dplyr)
-
+library(NSAPHutils)
 # setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia")
-dir_ADRDpeople <-  "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
-dir_enrolledInfo <-  "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
+dir_ADRDpeople <-  "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
+dir_enrolledInfo <-  "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
 
-ADRDpeople <- fread(paste0(dir_ADRDpeople, "ADRDpeople.csv"))
+ADRDpeople <- fread(paste0(dir_ADRDpeople, "ADRDpeople.csv"), colClasses = c("zip"="character"))
 enrolledInfo <- fread(paste0(dir_enrolledInfo, "EnrolledInfo.csv"))
 ```
 
