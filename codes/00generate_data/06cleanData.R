@@ -2,7 +2,7 @@
 # Project: Air Pollution on mortality and readmission in Medicare AD/ADRD     #
 # Code: clean dataset for mortality analyses
 # Input: "ADRDpeople.csv"
-# Output: "ADRD_mortality.csv" 
+# Output: "ADRD_for_mortality.csv" 
 # Author: Shuxin Dong                                                         #
 # Date: 2021-02-08                                                            #
 ###############################################################################
