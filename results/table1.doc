@@ -50,6 +50,11 @@ Table1_person year\par}
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
+\pard\ql\widctlpar\intbl\fi0\f2\fs20 ozone_summer (mean (sd))\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20     44.80 (5.68)\cell
+\widctlpar\intbl\row
+\trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
+\clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 mean_bmi (mean (sd))\cell
 \pard\ql\widctlpar\intbl\fi0\f2\fs20     27.51 (0.95)\cell
 \widctlpar\intbl\row
@@ -412,7 +417,7 @@ Table1_person year\par}
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 followup_duration (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20    4.50 (2.69)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20    3.50 (2.69)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\clbrdrb\brdrs\brdrw15\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\clbrdrb\brdrs\brdrw15\cellx2
