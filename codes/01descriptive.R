@@ -17,20 +17,19 @@ setDTthreads(threads = 0)
 
 setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/")
 
-dir_in <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
+dir_in <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
 dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/results/"
 
-dt <- fread(paste0(dir_in, "ADRD_mortality.csv"))
+dt <- fread(paste0(dir_in, "ADRD_for_mortality.csv"), colClasses = c("zip"="character"))
 names(dt)
-# > names(dt)
-# [1] "qid"                "zip"                "year"               "summer_tmmx"       
-# [5] "winter_tmmx"        "summer_rmax"        "winter_rmax"        "dead"              
-# [9] "sex"                "race"               "age"                "dual"              
-# [13] "statecode"          "mean_bmi"           "smoke_rate"         "hispanic"          
-# [17] "pct_blk"            "medhouseholdincome" "medianhousevalue"   "poverty"           
-# [21] "education"          "popdensity"         "pct_owner_occ"      "firstADRDyr"       
-# [25] "pm25"               "no2"                "ozone"              "entry_age"         
-# [29] "entry_age_break"    "race_collapsed"     "ox" 
+# [1] "qid"                "zip"                "year"               "sex"               
+# [5] "race"               "age"                "dual"               "statecode"         
+# [9] "dead"               "mean_bmi"           "smoke_rate"         "hispanic"          
+# [13] "pct_blk"            "medhouseholdincome" "medianhousevalue"   "poverty"           
+# [17] "education"          "popdensity"         "pct_owner_occ"      "summer_tmmx"       
+# [21] "winter_tmmx"        "summer_rmax"        "winter_rmax"        "firstADRDyr"       
+# [25] "pm25"               "no2"                "ozone"              "ozone_summer"      
+# [29] "entry_age"          "entry_age_break"    "race_collapsed"     "ox"
 dt[, race_collapsed:=as.factor(race_collapsed)]
 dt[, entry_age_break := as.factor(entry_age_break)]
 NORTHEAST <- c("NY", "MA", "PA", "RI", "NH", "ME", "VT", "CT", "NJ")  
