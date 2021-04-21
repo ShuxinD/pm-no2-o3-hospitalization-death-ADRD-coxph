@@ -16,7 +16,7 @@ library(data.table)
 library(fst)
 library(NSAPHutils)
 
-setDTthreads(threads = 0)
+setDTthreads(threads = 23)
 setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia")
 
 dir_input_hospital <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/ADRDhospitalization/"
@@ -51,6 +51,9 @@ gc()
 
 ADRDhosp <- ADRDhosp[,.(QID, ADATE, year)]
 head(ADRDhosp)
+ADRDhosp <- unique(ADRDhosp)
+ADRDhosp[, ADATE:=NULL]
+ADRDhosp <- unique(ADRDhosp)
 gc()
 
 enrolledInfo <- ADRDhosp[, list(firstADRDyr = min(year)), by = .(QID)]
@@ -67,7 +70,7 @@ table(enrolledInfo[,firstADRDyr])
 ######################### 2. exclude problematic IDs ##########################
 probIDs <- read_fst(paste0(dir_input_crosswalk, "no_crosswalk_no_death_ids.fst"), 
                     as.data.table = T)
-probIDs[, old_id]
+head(probIDs[, old_id])
 enrolledInfo <- enrolledInfo[!(QID %in% probIDs[,old_id]),] # exclude problematic IDs
 dim(enrolledInfo)
 # [1] 7315095       2
@@ -75,16 +78,16 @@ dim(enrolledInfo)
 ######################### 3. save enrolled INFO ###############################
 fwrite(enrolledInfo, paste0(dir_output, "EnrolledInfo.csv"))
 
-setorder(ADRDhosp, QID, year)
-ADRDhosp[, ADATE:=NULL]
-ADRDhosp <- unique(ADRDhosp)
 ADRDhosp <- ADRDhosp[!(QID %in% probIDs[,old_id]),]
 
 setorder(ADRDhosp, QID, year)
 head(ADRDhosp, 10)
-ADRDhosp[,count:=.N, by = .(QID)]
+
+ADRDhosp[, count:=.N, by = QID][]
 re_ADRDhosp <- ADRDhosp[count>1, ]
-re_ADRDhosp[, .SD[2], by = QID]
-re_ADRDhosp[, first_readmisson_yr := year][]
-re_ADRDhosp[, count := NULL][]
-fwrite(re_ADRDhosp, paste0(dir_output, "ReAdmissonInfo.csv"))
+re_ADRDhosp
+dt <- re_ADRDhosp[, .SD[2], by = QID]
+dt[, first_ReAdyr := year][]
+dt[, `:=` (count = NULL,
+           year = NULL)][]
+fwrite(dt, paste0(dir_output, "ReAdmissionInfo.csv"))
