@@ -1,6 +1,6 @@
 ###############################################################################
-# Project: Air Pollution and mortality / readmission in AD/ADRD Medicare      #
-# Code: covariates correlations, create table one                             #
+# Project: Air Pollution and mortality / readmission in AD/ADRD Medicare      
+# Code: covariates correlations, create table one                             
 # Input: "ADRD_mortality.csv"                                                  
 # Output: "corr.csv" as correlations between covariates                       #
 # Output: "table1.doc"                                                        #
@@ -48,9 +48,28 @@ summary(dt$region)
 ########################## 1. calculate corr ##################################
 corr_data <- dt[,.(dual, mean_bmi, smoke_rate, hispanic,
                    pct_blk, medhouseholdincome, medianhousevalue, poverty,
-                   education, popdensity, pct_owner_occ, pm25, no2, ozone, ox)]
-corr <- cor(corr_data)
-write.csv(corr, file = paste0(dir_out, "corr.csv"))
+                   education, popdensity, pct_owner_occ, pm25, no2, ozone, ozone_summer, ox)]
+library(corrplot)
+M <- cor(corr_data)
+cor.mtest <- function(mat, ...) {
+  mat <- as.matrix(mat)
+  n <- ncol(mat)
+  p.mat<- matrix(NA, n, n)
+  diag(p.mat) <- 0
+  for (i in 1:(n - 1)) {
+    for (j in (i + 1):n) {
+      tmp <- cor.test(mat[, i], mat[, j], ...)
+      p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+    }
+  }
+  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
+  p.mat
+}
+p.mat <- cor.mtest(corr_data)
+
+pdf(file = paste0(dir_out, "corr.pdf"), width = 12, height = 12)
+corrplot(M, method="number", type = "lower", p.mat = p.mat, sig.level = 0.05)
+dev.off()
 
 ################### 2. create death end var and followup-time #################
 event <- dt[(dead),.(qid,dead)]
@@ -67,7 +86,7 @@ head(dt)
 duration <- dt[,.SD[.N], by = qid]
 duration <- duration[,.(qid, year, firstADRDyr)]
 head(duration)
-duration[, followup_duration := year-firstADRDyr+1][]
+duration[, followup_duration := year-firstADRDyr][]
 dt <- merge(dt, duration[,.(qid,followup_duration)], by = "qid", all.x = TRUE)
 head(dt)
 
@@ -147,8 +166,27 @@ summary(dt$region)
 corr_data <- dt[,.(dual, mean_bmi, smoke_rate, hispanic,
                    pct_blk, medhouseholdincome, medianhousevalue, poverty,
                    education, popdensity, pct_owner_occ, pm25, no2, ozone, ozone_summer, ox)]
-corr <- cor(corr_data)
-write.csv(corr, file = paste0(dir_out, "corr.csv"))
+library(corrplot)
+M <- cor(corr_data)
+cor.mtest <- function(mat, ...) {
+  mat <- as.matrix(mat)
+  n <- ncol(mat)
+  p.mat<- matrix(NA, n, n)
+  diag(p.mat) <- 0
+  for (i in 1:(n - 1)) {
+    for (j in (i + 1):n) {
+      tmp <- cor.test(mat[, i], mat[, j], ...)
+      p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+    }
+  }
+  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
+  p.mat
+}
+p.mat <- cor.mtest(corr_data)
+
+pdf(file = paste0(dir_out, "corr_ReAd.pdf"), width = 12, height = 12)
+corrplot(M, method="number", type = "lower", p.mat = p.mat, sig.level = 0.05)
+dev.off()
 
 ################### 2. create death end var and followup-time #################
 event <- dt[(ReAd),.(qid,ReAd)]
@@ -165,7 +203,7 @@ head(dt)
 duration <- dt[,.SD[.N], by = qid]
 duration <- duration[,.(qid, year, first_ReAdyr, firstADRDyr)]
 head(duration)
-duration[, followup_duration := year-firstADRDyr+1][]
+duration[, followup_duration := year-firstADRDyr][]
 dt <- merge(dt, duration[,.(qid,followup_duration)], by = "qid", all.x = TRUE)
 head(dt)
 
