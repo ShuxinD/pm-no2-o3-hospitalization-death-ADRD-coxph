@@ -110,11 +110,11 @@ HR[, `:=`(HR_IQR = exp(Estimate*IQRunit),
 fwrite(HR, paste0(dir_results, "poisson_1_no2_HR.csv"))
 
 
-p_1_ozone <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) + 
+p_1_ozone_summer <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) + 
                    s(followupyr, by = as.factor(sex)) +
                    s(followupyr, by = as.factor(race_collapsed)) + 
                    s(followupyr, by = as.factor(dual)) +
-                   ozone + 
+                   ozone_summer + 
                    mean_bmi + smoke_rate + hispanic + pct_blk +
                    medhouseholdincome + medianhousevalue +
                    poverty + education + popdensity + pct_owner_occ +
@@ -171,7 +171,7 @@ p_1_all3 <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) +
              s(followupyr, by = as.factor(sex)) +
              s(followupyr, by = as.factor(race_collapsed)) + 
              s(followupyr, by = as.factor(dual)) +
-             pm25 + no2 + ozone + 
+             pm25 + no2 + ozone_summer + 
              mean_bmi + smoke_rate + hispanic + pct_blk +
              medhouseholdincome + medianhousevalue +
              poverty + education + popdensity + pct_owner_occ +
@@ -184,7 +184,7 @@ p_1_all3 <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) +
 tb <- summary(p_1_all3)$p.table
 tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)[]
-fwrite(tb, paste0(dir_results, "poisson_1_all3_coef.csv"))
+fwrite(tb, paste0(dir_results, "poisson_1_all3_summer_coef.csv"))
 
 IQRunit <- c(IQRs$pm25, IQRs$no2, IQRs$ozone)
 HR <- tb[2:4,]
@@ -193,7 +193,7 @@ print(HR)
 HR[, `:=`(HR_IQR = exp(Estimate*IQRunit),
           HR_lci = exp((Estimate-1.96*`Std. Error`)*IQRunit),
           HR_uci = exp((Estimate+1.96*`Std. Error`)*IQRunit))][]
-fwrite(HR, paste0(dir_results, "poisson_1_all3_HR.csv"))
+fwrite(HR, paste0(dir_results, "poisson_1_all3_summer_HR.csv"))
 gc()
 
 p_1_all2 <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) + 
