@@ -52,7 +52,7 @@ print(IQRs)
 #################### 1. single-pollutant models ###############################
 cl <- makeCluster(23)
 
-p_1_pm25 <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) + 
+p_1_pm25 <- bam(ReAd ~ s(followupyr, by = as.factor(entry_age_break)) + 
                   s(followupyr, by = as.factor(sex)) +
                   s(followupyr, by = as.factor(race_collapsed)) + 
                   s(followupyr, by = as.factor(dual)) +
@@ -69,7 +69,7 @@ p_1_pm25 <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) +
 tb <- summary(p_1_pm25)$p.table
 tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)[]
-fwrite(tb, paste0(dir_results, "poisson_1_pm25.csv"))
+fwrite(tb, paste0(dir_results, "poisson_1_ReAd_pm25.csv"))
 
 IQRunit <- c(IQRs$pm25)
 HR <- tb[2,]
@@ -78,10 +78,10 @@ print(HR)
 HR[, `:=`(HR_IQR = exp(Estimate*IQRunit),
           HR_lci = exp((Estimate-1.96*`Std. Error`)*IQRunit),
           HR_uci = exp((Estimate+1.96*`Std. Error`)*IQRunit))][]
-fwrite(HR, paste0(dir_results, "poisson_1_pm25_HR.csv"))
+fwrite(HR, paste0(dir_results, "poisson_1_ReAd_pm25_HR.csv"))
 gc()
 
-p_1_no2 <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) + 
+p_1_no2 <- bam(ReAd ~ s(followupyr, by = as.factor(entry_age_break)) + 
                  s(followupyr, by = as.factor(sex)) +
                  s(followupyr, by = as.factor(race_collapsed)) + 
                  s(followupyr, by = as.factor(dual)) +
@@ -98,7 +98,7 @@ p_1_no2 <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) +
 tb <- summary(p_1_no2)$p.table
 tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)[]
-fwrite(tb, paste0(dir_results, "poisson_1_no2.csv"))
+fwrite(tb, paste0(dir_results, "poisson_1_ReAd_no2.csv"))
 
 IQRunit <- c(IQRs$no2)
 HR <- tb[2,]
@@ -107,27 +107,27 @@ print(HR)
 HR[, `:=`(HR_IQR = exp(Estimate*IQRunit),
           HR_lci = exp((Estimate-1.96*`Std. Error`)*IQRunit),
           HR_uci = exp((Estimate+1.96*`Std. Error`)*IQRunit))][]
-fwrite(HR, paste0(dir_results, "poisson_1_no2_HR.csv"))
+fwrite(HR, paste0(dir_results, "poisson_1_ReAd_no2_HR.csv"))
 
 
-p_1_ozone_summer <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) + 
-                   s(followupyr, by = as.factor(sex)) +
-                   s(followupyr, by = as.factor(race_collapsed)) + 
-                   s(followupyr, by = as.factor(dual)) +
-                   ozone_summer + 
-                   mean_bmi + smoke_rate + hispanic + pct_blk +
-                   medhouseholdincome + medianhousevalue +
-                   poverty + education + popdensity + pct_owner_occ +
-                   summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
-                   as.factor(year) + as.factor(region) +
-                   s(region, bs = "re"),
-                 family = poisson(), data = dt,
-                 discrete = TRUE,
-                 nthreads = length(cl))
+p_1_ozone_summer <- bam(ReAd ~ s(followupyr, by = as.factor(entry_age_break)) + 
+                          s(followupyr, by = as.factor(sex)) +
+                          s(followupyr, by = as.factor(race_collapsed)) + 
+                          s(followupyr, by = as.factor(dual)) +
+                          ozone_summer + 
+                          mean_bmi + smoke_rate + hispanic + pct_blk +
+                          medhouseholdincome + medianhousevalue +
+                          poverty + education + popdensity + pct_owner_occ +
+                          summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+                          as.factor(year) + as.factor(region) +
+                          s(region, bs = "re"),
+                        family = poisson(), data = dt,
+                        discrete = TRUE,
+                        nthreads = length(cl))
 tb <- summary(p_1_ozone)$p.table
 tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)[]
-fwrite(tb, paste0(dir_results, "poisson_1_ozone_summer.csv"))
+fwrite(tb, paste0(dir_results, "poisson_1_ReAd_ozone_summer.csv"))
 
 IQRunit <- c(IQRs$ozone_summer)
 HR <- tb[2,]
@@ -136,26 +136,26 @@ print(HR)
 HR[, `:=`(HR_IQR = exp(Estimate*IQRunit),
           HR_lci = exp((Estimate-1.96*`Std. Error`)*IQRunit),
           HR_uci = exp((Estimate+1.96*`Std. Error`)*IQRunit))][]
-fwrite(HR, paste0(dir_results, "poisson_1_ozone_summer_HR.csv"))
+fwrite(HR, paste0(dir_results, "poisson_1_ReAd_ozone_summer_HR.csv"))
 
-p_1_ox <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) + 
-                   s(followupyr, by = as.factor(sex)) +
-                   s(followupyr, by = as.factor(race_collapsed)) + 
-                   s(followupyr, by = as.factor(dual)) +
-                   ox + 
-                   mean_bmi + smoke_rate + hispanic + pct_blk +
-                   medhouseholdincome + medianhousevalue +
-                   poverty + education + popdensity + pct_owner_occ +
-                   summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
-                   as.factor(year) + as.factor(region) +
-                   s(region, bs = "re"),
-                 family = poisson(), data = dt,
-                 discrete = TRUE,
-                 nthreads = length(cl))
+p_1_ox <- bam(ReAd ~ s(followupyr, by = as.factor(entry_age_break)) + 
+                s(followupyr, by = as.factor(sex)) +
+                s(followupyr, by = as.factor(race_collapsed)) + 
+                s(followupyr, by = as.factor(dual)) +
+                ox + 
+                mean_bmi + smoke_rate + hispanic + pct_blk +
+                medhouseholdincome + medianhousevalue +
+                poverty + education + popdensity + pct_owner_occ +
+                summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+                as.factor(year) + as.factor(region) +
+                s(region, bs = "re"),
+              family = poisson(), data = dt,
+              discrete = TRUE,
+              nthreads = length(cl))
 tb <- summary(p_1_ox)$p.table
 tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)[]
-fwrite(tb, paste0(dir_results, "poisson_1_ox.csv"))
+fwrite(tb, paste0(dir_results, "poisson_1_ReAd_ox.csv"))
 
 IQRunit <- c(IQRs$ox)
 HR <- tb[2,]
@@ -164,27 +164,27 @@ print(HR)
 HR[, `:=`(HR_IQR = exp(Estimate*IQRunit),
           HR_lci = exp((Estimate-1.96*`Std. Error`)*IQRunit),
           HR_uci = exp((Estimate+1.96*`Std. Error`)*IQRunit))][]
-fwrite(HR, paste0(dir_results, "poisson_1_ox_HR.csv"))
+fwrite(HR, paste0(dir_results, "poisson_1_ReAd_ox_HR.csv"))
 
 #################### 2. multi-pollutants models ###############################
-p_1_all3 <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) + 
-             s(followupyr, by = as.factor(sex)) +
-             s(followupyr, by = as.factor(race_collapsed)) + 
-             s(followupyr, by = as.factor(dual)) +
-             pm25 + no2 + ozone_summer + 
-             mean_bmi + smoke_rate + hispanic + pct_blk +
-             medhouseholdincome + medianhousevalue +
-             poverty + education + popdensity + pct_owner_occ +
-             summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
-             as.factor(year) + as.factor(region) +
-             s(region, bs = "re"),
-           family = poisson(), data = dt,
-           discrete = TRUE,
-           nthreads = length(cl))
+p_1_all3 <- bam(ReAd ~ s(followupyr, by = as.factor(entry_age_break)) + 
+                  s(followupyr, by = as.factor(sex)) +
+                  s(followupyr, by = as.factor(race_collapsed)) + 
+                  s(followupyr, by = as.factor(dual)) +
+                  pm25 + no2 + ozone_summer + 
+                  mean_bmi + smoke_rate + hispanic + pct_blk +
+                  medhouseholdincome + medianhousevalue +
+                  poverty + education + popdensity + pct_owner_occ +
+                  summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+                  as.factor(year) + as.factor(region) +
+                  s(region, bs = "re"),
+                family = poisson(), data = dt,
+                discrete = TRUE,
+                nthreads = length(cl))
 tb <- summary(p_1_all3)$p.table
 tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)[]
-fwrite(tb, paste0(dir_results, "poisson_1_all3_summer_coef.csv"))
+fwrite(tb, paste0(dir_results, "poisson_1_all3_ReAd_summer_coef.csv"))
 
 IQRunit <- c(IQRs$pm25, IQRs$no2, IQRs$ozone_summer)
 HR <- tb[2:4,]
@@ -193,10 +193,10 @@ print(HR)
 HR[, `:=`(HR_IQR = exp(Estimate*IQRunit),
           HR_lci = exp((Estimate-1.96*`Std. Error`)*IQRunit),
           HR_uci = exp((Estimate+1.96*`Std. Error`)*IQRunit))][]
-fwrite(HR, paste0(dir_results, "poisson_1_all3_summer_HR.csv"))
+fwrite(HR, paste0(dir_results, "poisson_1_all3_ReAd_summer_HR.csv"))
 gc()
 
-p_1_all2 <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) + 
+p_1_all2 <- bam(ReAd ~ s(followupyr, by = as.factor(entry_age_break)) + 
                   s(followupyr, by = as.factor(sex)) +
                   s(followupyr, by = as.factor(race_collapsed)) + 
                   s(followupyr, by = as.factor(dual)) +
@@ -213,7 +213,7 @@ p_1_all2 <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) +
 tb <- summary(p_1_all2)$p.table
 tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)[]
-fwrite(tb, paste0(dir_results, "poisson_1_all2_coef.csv"))
+fwrite(tb, paste0(dir_results, "poisson_1_all2_ReAd_coef.csv"))
 
 IQRunit <- c(IQRs$pm25, IQRs$ozone)
 HR <- tb[2:3,]
@@ -222,7 +222,7 @@ print(HR)
 HR[, `:=`(HR_IQR = exp(Estimate*IQRunit),
           HR_lci = exp((Estimate-1.96*`Std. Error`)*IQRunit),
           HR_uci = exp((Estimate+1.96*`Std. Error`)*IQRunit))][]
-fwrite(HR, paste0(dir_results, "poisson_1_all3_HR.csv"))
+fwrite(HR, paste0(dir_results, "poisson_1_all3_ReAd_HR.csv"))
 gc()
 
 stop(cl)
