@@ -24,7 +24,7 @@ setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/")
 dir_data <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
 dir_results <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
 
-dt <- fread(paste0(dir_data, "ADRD_for_mortality.csv"))
+dt <- fread(paste0(dir_data, "ADRD_for_ReAd.csv"), colClasses = c("zip"="character"))
 names(dt)
 
 dt[, followupyr := (year - firstADRDyr)]
@@ -50,7 +50,7 @@ colnames(IQRs) <- c("pm25", "no2", "ozone", "ox", "ozone_summer")
 print(IQRs)
 
 #################### 1. single-pollutant models ###############################
-cl <- makeCluster(23)
+cl <- makeCluster(15)
 
 p_1_pm25 <- bam(ReAd ~ s(followupyr, by = as.factor(entry_age_break)) + 
                   s(followupyr, by = as.factor(sex)) +
@@ -124,7 +124,7 @@ p_1_ozone_summer <- bam(ReAd ~ s(followupyr, by = as.factor(entry_age_break)) +
                         family = poisson(), data = dt,
                         discrete = TRUE,
                         nthreads = length(cl))
-tb <- summary(p_1_ozone)$p.table
+tb <- summary(p_1_ozone_summer)$p.table
 tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)[]
 fwrite(tb, paste0(dir_results, "poisson_1_ReAd_ozone_summer.csv"))
@@ -215,14 +215,14 @@ tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)[]
 fwrite(tb, paste0(dir_results, "poisson_1_all2_ReAd_coef.csv"))
 
-IQRunit <- c(IQRs$pm25, IQRs$ozone)
+IQRunit <- c(IQRs$pm25, IQRs$ox)
 HR <- tb[2:3,]
 HR <- cbind(HR,IQRunit)
 print(HR)
 HR[, `:=`(HR_IQR = exp(Estimate*IQRunit),
           HR_lci = exp((Estimate-1.96*`Std. Error`)*IQRunit),
           HR_uci = exp((Estimate+1.96*`Std. Error`)*IQRunit))][]
-fwrite(HR, paste0(dir_results, "poisson_1_all3_ReAd_HR.csv"))
+fwrite(HR, paste0(dir_results, "poisson_1_all2_ReAd_HR.csv"))
 gc()
 
 stop(cl)

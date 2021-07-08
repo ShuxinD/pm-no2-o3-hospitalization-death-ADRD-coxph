@@ -50,7 +50,7 @@ colnames(IQRs) <- c("pm25", "no2", "ozone", "ox", "ozone_summer")
 print(IQRs)
 
 #################### 1. single-pollutant models ###############################
-cl <- makeCluster(23)
+cl <- makeCluster(15)
 
 p_1_pm25 <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) + 
                   s(followupyr, by = as.factor(sex)) +
@@ -215,7 +215,7 @@ tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)[]
 fwrite(tb, paste0(dir_results, "poisson_1_all2_coef.csv"))
 
-IQRunit <- c(IQRs$pm25, IQRs$ozone)
+IQRunit <- c(IQRs$pm25, IQRs$ox)
 HR <- tb[2:3,]
 HR <- cbind(HR,IQRunit)
 print(HR)
