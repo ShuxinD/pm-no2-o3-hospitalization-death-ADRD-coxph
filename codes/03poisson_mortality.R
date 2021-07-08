@@ -124,7 +124,7 @@ p_1_ozone_summer <- bam(dead ~ s(followupyr, by = as.factor(entry_age_break)) +
                  family = poisson(), data = dt,
                  discrete = TRUE,
                  nthreads = length(cl))
-tb <- summary(p_1_ozone)$p.table
+tb <- summary(p_1_ozone_summer)$p.table
 tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)[]
 fwrite(tb, paste0(dir_results, "poisson_1_ozone_summer.csv"))
@@ -222,7 +222,7 @@ print(HR)
 HR[, `:=`(HR_IQR = exp(Estimate*IQRunit),
           HR_lci = exp((Estimate-1.96*`Std. Error`)*IQRunit),
           HR_uci = exp((Estimate+1.96*`Std. Error`)*IQRunit))][]
-fwrite(HR, paste0(dir_results, "poisson_1_all3_HR.csv"))
+fwrite(HR, paste0(dir_results, "poisson_1_all2_HR.csv"))
 gc()
 
 stop(cl)
