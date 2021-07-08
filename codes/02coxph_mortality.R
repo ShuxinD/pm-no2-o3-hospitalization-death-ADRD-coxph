@@ -1,7 +1,7 @@
 ###############################################################################
 # Project: Air Pollution and mortality / readmission in AD/ADRD Medicare      #
 # Code: Cox PH model
-# Input: "ADRD_mortality.csv"                                                  
+# Input: "ADRD_for_mortality.csv"                                                  
 # Output: 
 # Author: Shuxin Dong                                                         #
 # Date: 2021-02-17                                                            #
