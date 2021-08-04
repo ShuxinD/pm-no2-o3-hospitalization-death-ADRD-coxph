@@ -14,6 +14,7 @@ gc()
 library(data.table)
 setDTthreads(threads = 0)
 library(survival)
+library(fst)
 
 setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/")
 
@@ -62,14 +63,15 @@ dir.create(file.path("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/c
 lapply(1:500, function(boots_id){
   set.seed(boots_id)
   zip_sample <- sample(1:num_uniq_zip, floor(2*sqrt(num_uniq_zip)), replace=T) 
-  ADRD_for_mortality_boots <- subset(ADRD_for_mortality_boots, zip %in% all_zip[zip_sample]) 
-  write_fst(ADRD_for_mortality_boots, paste0("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/cox_mortality_bootstrap_temp/", boots_id,".fst"))
+  dt_boots <- subset(dt, zip %in% all_zip[zip_sample]) 
+  write_fst(dt_boots, paste0("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/cox_mortality_bootstrap_temp/", boots_id,".fst"))
+  cat("finish creating data", boots_id, "of 500\n")
 })
 
 cox_coefs_boots<-NULL
 for (boots_id in 1:500){
   set.seed(boots_id)
-  ADRD_for_mortality_boots<- read_fst(paste0("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/cox_mortality_bootstrap_temp/", boots_id,".fst"))
+  dt_boots<- read_fst(paste0("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/cox_mortality_bootstrap_temp/", boots_id,".fst"))
   ## main model
   cox_mortality_pm25 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead) ~ 
                                 pm25 + 
@@ -80,15 +82,16 @@ for (boots_id in 1:500){
                                 as.factor(year) +  as.factor(region) +
                                 strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
                                 strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
-                              data = dt,
+                              data = dt_boots,
                               tie = c("efron"), 
                               na.action = na.omit)
   cox_coefs_boots<-c(cox_coefs_boots, summary(cox_mortality_pm25)$coefficients[1])
   rm(ADRD_for_mortality_boots)
+  gc()
   cat("finish ", boots_id, "of 500\n")
 }
 
-save(num_uniq_zip, cox_coefs_boots,file="/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/cox_mortality_bootstrap_temp/cox_coefs_boots.RData")
+# save(num_uniq_zip, cox_coefs_boots,file="/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/cox_mortality_bootstrap_temp/cox_coefs_boots.RData")
 
-# exp(log(1.066)+10*1.96*sd(Cox_coefs_boots) *sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip))
+exp(log(1.008)+3.70*1.96*sd(cox_coefs_boots) *sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip))
 # exp(log(1.066)-10*1.96*sd(Cox_coefs_boots) *sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip))
