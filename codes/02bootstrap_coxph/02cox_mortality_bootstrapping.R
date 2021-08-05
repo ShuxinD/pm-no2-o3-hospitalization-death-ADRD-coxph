@@ -60,6 +60,7 @@ num_uniq_zip <- uniqueN(dt[,zip])
 
 # Save the bootstrapped data to accelerate computing
 dir.create(file.path("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/cox_mortality_bootstrap_temp"), showWarnings = FALSE)
+
 lapply(1:500, function(boots_id){
   set.seed(boots_id)
   zip_sample <- sample(1:num_uniq_zip, floor(2*sqrt(num_uniq_zip)), replace=T) 
