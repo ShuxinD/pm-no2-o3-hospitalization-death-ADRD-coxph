@@ -7,7 +7,7 @@
 # Date: 2021-07-07                                                         
 ###############################################################################
 
-############################# 0. Setup ########################################
+## 0. Setup---------------------
 rm(list = ls())
 gc()
 
@@ -54,14 +54,14 @@ gc()
 IQRs <- data.table(IQR(dt$pm25), IQR(dt$no2), IQR(dt$ozone), IQR(dt$ox), IQR(dt$ozone_summer))
 colnames(IQRs) <- c("pm25", "no2", "ozone", "ox", "ozone_summer")
 
-####################### 1. prepare for bootstrap ##############################
+## 1. prepare for bootstrap ------------
 all_zip <- unique(dt[,zip])
 num_uniq_zip <- uniqueN(dt[,zip])
 
 # Save the bootstrapped data to accelerate computing
 dir.create(file.path("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/cox_mortality_bootstrap_temp"), showWarnings = FALSE)
 
-lapply(1:500, function(boots_id){
+lapply(1:1000, function(boots_id){
   set.seed(boots_id)
   zip_sample <- sample(1:num_uniq_zip, floor(2*sqrt(num_uniq_zip)), replace=T) 
   dt_boots <- subset(dt, zip %in% all_zip[zip_sample]) 
@@ -69,23 +69,30 @@ lapply(1:500, function(boots_id){
   cat("finish creating data", boots_id, "of 500\n")
 })
 
-cox_coefs_boots<-NULL
-for (boots_id in 1:500){
+## 2. bootstrapping ------------
+exposure <- c("pm25", "no2", "ozone_summer", "ox")
+
+for (exposure_i in exposure) {
+  cox_coefs_boots<-NULL
   set.seed(boots_id)
   dt_boots<- read_fst(paste0("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/cox_mortality_bootstrap_temp/", boots_id,".fst"))
-  ## main model
-  cox_mortality_pm25 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead) ~ 
-                                pm25 + 
-                                mean_bmi + smoke_rate + hispanic + pct_blk + 
-                                medhouseholdincome + medianhousevalue +  
-                                poverty + education + popdensity + pct_owner_occ +
-                                summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
-                                as.factor(year) +  as.factor(region) +
-                                strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-                                strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
-                              data = dt_boots,
-                              tie = c("efron"), 
-                              na.action = na.omit)
+  ## single pollutant model
+  mod <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead) ~ 
+                 get(exposure_i) + 
+                 mean_bmi + smoke_rate + hispanic + pct_blk + 
+                 medhouseholdincome + medianhousevalue +  
+                 poverty + education + popdensity + pct_owner_occ +
+                 summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+                 as.factor(year) +  as.factor(region) +
+                 strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
+                 strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
+               data = dt_boots,
+               tie = c("efron"), 
+               na.action = na.omit)
+}
+
+for (boots_id in 1:1000){
+  
   cox_coefs_boots<-c(cox_coefs_boots, summary(cox_mortality_pm25)$coefficients[1])
   rm(ADRD_for_mortality_boots)
   gc()
