@@ -132,3 +132,57 @@ cox_mortality_boots <- rbind(summary_cox_coefs_boots_pm25, summary_cox_coefs_boo
 rownames(cox_mortality_boots) <- exposure
 colnames(cox_mortality_boots) <- c("HR", "HR_lci", "HR_uci")
 write.table(cox_mortality_boots, file = "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/airPollution_ADRD/results/bootstrapping_cox_mortality_singlePollutant.csv")
+
+cox_coefs_boots_pm25<-NULL
+cox_coefs_boots_no2<-NULL
+cox_coefs_boots_ozone_summer<-NULL
+for (boots_id in 1:500) {
+  set.seed(boots_id)
+  dt_boots<- read_fst(paste0("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/cox_mortality_bootstrap_temp/", boots_id,".fst"))
+  ## single pollutant model
+  mod <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead) ~ 
+                 pm25 + no2 + ozone_summer +         
+                 mean_bmi + smoke_rate + hispanic + pct_blk + 
+                 medhouseholdincome + medianhousevalue +  
+                 poverty + education + popdensity + pct_owner_occ +
+                 summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+                 as.factor(year) +  as.factor(region) +
+                 strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
+                 strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
+               data = dt_boots,
+               tie = c("efron"), 
+               na.action = na.omit)
+  cox_coefs_boots_pm25 <- c(cox_coefs_boots_pm25, summary(mod)$coefficients[1])
+  cox_coefs_boots_no2 <- c(cox_coefs_boots_no2, summary(mod)$coefficients[2])
+  cox_coefs_boots_ozone_summer <- c(cox_coefs_boots_ozone_summer, summary(mod)$coefficients[3])
+  rm(dt_boots)
+  gc()
+  cat("finish 3multi sample", boots_id, "of 500\n")
+}
+save(num_uniq_zip, cox_coefs_boots_pm25, cox_coefs_boots_no2, cox_coefs_boots_ozone_summer, file=paste0(dir_results, "bootstrap_cox_mortality_3multi.RData"))
+
+cox_coefs_boots_pm25<-NULL
+cox_coefs_boots_ox<-NULL
+for (boots_id in 1:500) {
+  set.seed(boots_id)
+  dt_boots<- read_fst(paste0("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/cox_mortality_bootstrap_temp/", boots_id,".fst"))
+  ## single pollutant model
+  mod <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead) ~ 
+                 pm25 + ox +    
+                 mean_bmi + smoke_rate + hispanic + pct_blk + 
+                 medhouseholdincome + medianhousevalue +  
+                 poverty + education + popdensity + pct_owner_occ +
+                 summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+                 as.factor(year) +  as.factor(region) +
+                 strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
+                 strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
+               data = dt_boots,
+               tie = c("efron"), 
+               na.action = na.omit)
+  cox_coefs_boots_pm25 <- c(cox_coefs_boots_pm25, summary(mod)$coefficients[1])
+  cox_coefs_boots_ox <- c(cox_coefs_boots_ox, summary(mod)$coefficients[2])
+  rm(dt_boots)
+  gc()
+  cat("finish 2 multi sample", boots_id, "of 500\n")
+}
+save(num_uniq_zip, cox_coefs_boots_pm25, cox_coefs_boots_ox, file=paste0(dir_results, "bootstrap_cox_mortality_2multi.RData"))
