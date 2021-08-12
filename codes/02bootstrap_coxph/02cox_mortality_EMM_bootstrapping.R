@@ -21,7 +21,7 @@ setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/")
 dir_data <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
 dir_results <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/bootstrapping_results/"
 
-dt <- fread(paste0(dir_data, "ADRD_for_ReAd.csv"), colClasses = c("zip"="character"))
+dt <- fread(paste0(dir_data, "ADRD_for_mortality.csv"), colClasses = c("zip"="character"))
 names(dt)
 #  [1] "qid"                "zip"                "year"               "sex"               
 #  [5] "race"               "age"                "dual"               "statecode"         
@@ -59,28 +59,34 @@ all_zip <- unique(dt[,zip])
 num_uniq_zip <- uniqueN(dt[,zip])
 
 # Save the bootstrapped data to accelerate computing
-dir.create(file.path("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/cox_mortality_bootstrap_temp"), showWarnings = FALSE)
+# dir.create(file.path("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/cox_mortality_bootstrap_temp"), showWarnings = FALSE)
 
-lapply(1:500, function(boots_id){
-  set.seed(boots_id)
-  zip_sample <- sample(1:num_uniq_zip, floor(2*sqrt(num_uniq_zip)), replace=T) 
-  dt_boots <- subset(dt, zip %in% all_zip[zip_sample]) 
-  write_fst(dt_boots, paste0("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/cox_mortality_bootstrap_temp/", boots_id,".fst"))
-  cat("finish creating data", boots_id, "of 1000\n")
-})
+# lapply(1:1000, function(boots_id){
+#  set.seed(boots_id)
+#  zip_sample <- sample(1:num_uniq_zip, floor(2*sqrt(num_uniq_zip)), replace=T) 
+#  dt_boots <- subset(dt, zip %in% all_zip[zip_sample]) 
+#  write_fst(dt_boots, paste0("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/cox_mortality_bootstrap_temp/", boots_id,".fst"))
+#  cat("finish creating data", boots_id, "of 1000\n")
+# })
 
 ## 2. bootstrapping ------------
 exposure <- c("pm25", "no2", "ozone_summer", "ox")
+modifier <- c("sex_female", "dual", "entry_age_over85", "above_median_popdensity", "race_collapsed")
+num_uniq_zip <- 33527L
 
-cox_ReAd_boots <- NULL
-for (exposure_i in exposure[2:4]) {
-  cox_coefs_boots<-NULL
+## sex_female ------
+cox_mortality_sex_boots <- NULL
+for (exposure_i in exposure){
+  cox_boots_coefs_reference <- NULL
+  cox_boots_coefs_level1 <- NULL
   for (boots_id in 1:500) {
-    set.seed(boots_id)
-    dt_boots<- read_fst(paste0("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/cox_mortality_bootstrap_temp/", boots_id,".fst"))
-    ## single pollutant model
-    mod <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = ReAd) ~ 
-                   get(exposure_i) +          
+    dt_boots <- read_fst(paste0("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/cox_mortality_bootstrap_temp/", boots_id,".fst"))
+    dt_boots$sex_female <- dt_boots$sex-1
+#    dt_boots[, entry_age_over85 := entry_age>85]
+#    median_popdensity <- median(dt_boots[, popdensity])
+#     dt_boots[, above_median_popdensity := popdensity>median_popdensity]
+    mod <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead) ~ 
+                   get(exposure_i) + I(get(exposure_i)*sex_female) +
                    mean_bmi + smoke_rate + hispanic + pct_blk + 
                    medhouseholdincome + medianhousevalue +  
                    poverty + education + popdensity + pct_owner_occ +
@@ -91,17 +97,25 @@ for (exposure_i in exposure[2:4]) {
                  data = dt_boots,
                  tie = c("efron"), 
                  na.action = na.omit)
-    cox_coefs_boots<-c(cox_coefs_boots, summary(mod)$coefficients[1])
+    cox_boots_coefs_reference <- c(cox_boots_coefs_reference,summary(mod)$coefficients[1] )
+    cox_boots_coefs_level1 <- c(cox_boots_coefs_level1, summary(mod)$coefficients[1] + summary(mod)$coefficients[2])
     rm(dt_boots)
     gc()
     cat("finish", exposure_i, "sample", boots_id, "of 500\n")
   }
-  save(num_uniq_zip, cox_coefs_boots, file=paste0(dir_results, "bootstrap_cox_ReAd_", exposure_i, ".RData"))
-#  summary_cox_coefs_boots <- c(exp(mean(cox_coefs_boots)), 
-#                               exp(mean(cox_coefs_boots) - IQRs[,get(exposure_i)]*1.96*sd(cox_coefs_boots)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)),
-#                               exp(mean(cox_coefs_boots) + IQRs[,get(exposure_i)]*1.96*sd(cox_coefs_boots)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)))
-#   cox_ReAd_boots <- rbind(cox_ReAd_boots, summary_cox_coefs_boots)
+  save(num_uniq_zip, cox_boots_coefs_reference, cox_boots_coefs_level1, file=paste0(dir_results, "bootstrap_cox_mortality_sex_", exposure_i, ".RData"))
+  summary_cox_boots_coefs_reference <- c(exp(mean(cox_boots_coefs_reference)), 
+                                         exp(mean(cox_boots_coefs_reference) - IQRs[,get(exposure_i)]*1.96*sd(cox_boots_coefs_reference)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)),
+                                         exp(mean(cox_boots_coefs_reference) + IQRs[,get(exposure_i)]*1.96*sd(cox_boots_coefs_reference)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)))
+  summary_cox_boots_coefs_level1 <- c(exp(mean(cox_boots_coefs_level1)), 
+                                         exp(mean(cox_boots_coefs_level1) - IQRs[,get(exposure_i)]*1.96*sd(cox_boots_coefs_level1)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)),
+                                         exp(mean(cox_boots_coefs_level1) + IQRs[,get(exposure_i)]*1.96*sd(cox_boots_coefs_level1)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)))
+  cox_mortality_sex_boots <- rbind(cox_mortality_sex_boots, summary_cox_boots_coefs_reference)
+  cox_mortality_sex_boots <- rbind(cox_mortality_sex_boots, summary_cox_boots_coefs_level1)
+  print(cox_mortality_sex_boots)
 }
+
+
 
 
 

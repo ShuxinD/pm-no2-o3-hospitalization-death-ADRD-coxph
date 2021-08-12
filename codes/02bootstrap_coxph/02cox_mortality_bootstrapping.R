@@ -98,13 +98,37 @@ for (exposure_i in exposure) {
     cat("finish", exposure_i, "sample", boots_id, "of 500\n")
   }
   save(num_uniq_zip, cox_coefs_boots, file=paste0(dir_results, "bootstrap_cox_mortality_", exposure_i, ".RData"))
-  summary_cox_coefs_boots <- c(exp(mean(cox_coefs_boots)), 
-                               exp(mean(cox_coefs_boots) - IQRs[,get(exposure_i)]*1.96*sd(cox_coefs_boots)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)),
-                               exp(mean(cox_coefs_boots) + IQRs[,get(exposure_i)]*1.96*sd(cox_coefs_boots)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)))
-  cox_mortality_boots <- rbind(cox_mortality_boots, summary_cox_coefs_boots)
+#   summary_cox_coefs_boots <- c(exp(mean(cox_coefs_boots)*IQRs[, get(exposure_i)]), 
+#                                exp((mean(cox_coefs_boots) - 1.96*sd(cox_coefs_boots)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip))*IQRs[,get(exposure_i)]),
+#                                exp((mean(cox_coefs_boots) + 1.96*sd(cox_coefs_boots)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip))*IQRs[,get(exposure_i)]))
+#   cox_mortality_boots <- rbind(cox_mortality_boots, summary_cox_coefs_boots)
 }
 
+load(file = paste0(dir_results, "bootstrap_cox_mortality_pm25.RData"))
+summary_cox_coefs_boots_pm25 <- c(exp(log(1.008)),
+                                  exp(log(1.008) - IQRs[,pm25]* 1.96*sd(cox_coefs_boots)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)),
+                                  exp(log(1.008) + IQRs[,pm25]*1.96*sd(cox_coefs_boots)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)))
+summary_cox_coefs_boots_pm25
 
+load(file = paste0(dir_results, "bootstrap_cox_mortality_no2.RData"))
+summary_cox_coefs_boots_no2 <- c(exp(log(1.013)),
+                                  exp(log(1.013) - IQRs[,no2]* 1.96*sd(cox_coefs_boots)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)),
+                                  exp(log(1.013) + IQRs[,no2]*1.96*sd(cox_coefs_boots)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)))
+summary_cox_coefs_boots_no2
 
-# exp(log(1.008)+IQRs[, pm25]*1.96*sd(cox_coefs_boots) *sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip))
-# exp(log(1.066)-10*1.96*sd(Cox_coefs_boots) *sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip))
+load(file = paste0(dir_results, "bootstrap_cox_mortality_ozone_summer.RData"))
+summary_cox_coefs_boots_ozone_summer <- c(exp(log(1.003)),
+                                  exp(log(1.003) - IQRs[,ozone_summer]* 1.96*sd(cox_coefs_boots)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)),
+                                  exp(log(1.003) + IQRs[,ozone_summer]*1.96*sd(cox_coefs_boots)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)))
+summary_cox_coefs_boots_ozone_summer
+
+load(file = paste0(dir_results, "bootstrap_cox_mortality_ox.RData"))
+summary_cox_coefs_boots_ox <- c(exp(log(1.007)),
+                                  exp(log(1.007) - IQRs[,ox]* 1.96*sd(cox_coefs_boots)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)),
+                                  exp(log(1.007) + IQRs[,ox]*1.96*sd(cox_coefs_boots)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)))
+summary_cox_coefs_boots_ox
+
+cox_mortality_boots <- rbind(summary_cox_coefs_boots_pm25, summary_cox_coefs_boots_no2, summary_cox_coefs_boots_ozone_summer, summary_cox_coefs_boots_ox)
+rownames(cox_mortality_boots) <- exposure
+colnames(cox_mortality_boots) <- c("HR", "HR_lci", "HR_uci")
+write.table(cox_mortality_boots, file = "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/airPollution_ADRD/results/bootstrapping_cox_mortality_singlePollutant.csv")
