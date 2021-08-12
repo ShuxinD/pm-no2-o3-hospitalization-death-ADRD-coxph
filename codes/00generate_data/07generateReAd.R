@@ -28,6 +28,7 @@ dt_ReAd_event <- dt_mortliaty[qid %in% ReAdInfo[,QID],]
 # uniqueN(ReAdInfo[,QID])
 dt_ReAd_event <- merge(dt_ReAd_event, ReAdInfo, by.x = "qid", by.y = "QID", all.x = TRUE)
 head(dt_ReAd_event)
+names(dt_ReAd_event)[33] <- "first_ReAdyr"
 dt_ReAd_event$ReAd <- FALSE
 dt_ReAd_event[year==first_ReAdyr, ReAd:=TRUE][]
 dt_ReAd_event <- dt_ReAd_event[year<=first_ReAdyr, ]

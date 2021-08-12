@@ -98,6 +98,7 @@ table(dt[,race])
 dt$race_collapsed <- "Others"
 dt$race_collapsed[dt$race==1] <- "White"
 dt$race_collapsed[dt$race==2] <- "Black"
+dt$race_collapsed[dt$race==5] <- "Hispanic"
 dt[, race_collapsed:=as.factor(race_collapsed)]
 
 ## generate Ox based on no2 and ozone
