@@ -60,7 +60,7 @@ median_popdensity <- median(dt[, popdensity])
 dt[, above_median_popdensity := popdensity>median_popdensity]
 
 ## 1. effect modification for PM2.5 -------------------------------------------
-IQRunit <- IQRs$pm25
+IQRunit <- IQRs[,pm25]
 ### sex 0/1 -----
 cox_pm25_sex <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead) ~ 
                         pm25 + I(pm25*sex_female) +
@@ -177,7 +177,7 @@ tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)
 fwrite(tb, paste0(dir_results, "cox_mortality_pm25_entryage_coef.csv"))
 
-### race chr 3 levels ----
+### race chr 4 levels ----
 cox_pm25_race <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead) ~ 
                          pm25 + pm25*race_collapsed +
                          mean_bmi + smoke_rate + hispanic + pct_blk + 
@@ -193,13 +193,16 @@ cox_pm25_race <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event
 tb <- summary(cox_pm25_race)$coefficients
 cov_matrix <- vcov(cox_pm25_race)
 
+IQRunit <- IQRs[,pm25]
 HR_reference <- c(tb[1,1], IQRunit, exp(tb[1,1]*IQRunit),exp((tb[1,1]-tb[1,3])*IQRunit), exp((tb[1,1]+tb[1,3])*IQRunit))
-se1 <- sqrt(cov_matrix[1,1] + cov_matrix[37,37] + 2*cov_matrix[1,37])
-se2 <- sqrt(cov_matrix[1,1] + cov_matrix[36,36] + 2*cov_matrix[1,36])
-HR_level1 <- c(tb[1,1]+tb[37,1], IQRunit, exp((tb[1,1]+tb[37,1])*IQRunit), exp((tb[1,1]+tb[37,1]-se1)*IQRunit), exp((tb[1,1]+tb[37,1]+se1)*IQRunit))
-HR_level2 <- c(tb[1,1]+tb[36,1], IQRunit, exp((tb[1,1]+tb[36,1])*IQRunit), exp((tb[1,1]+tb[36,1]-se2)*IQRunit), exp((tb[1,1]+tb[36,1]+se2)*IQRunit))
+se1 <- sqrt(cov_matrix[1,1] + cov_matrix[39,39] + 2*cov_matrix[1,39])
+se2 <- sqrt(cov_matrix[1,1] + cov_matrix[38,38] + 2*cov_matrix[1,38])
+se3 <- sqrt(cov_matrix[1,1] + cov_matrix[37,37] + 2*cov_matrix[1,37])
+HR_level1 <- c(tb[1,1]+tb[39,1], IQRunit, exp((tb[1,1]+tb[39,1])*IQRunit), exp((tb[1,1]+tb[39,1]-se1)*IQRunit), exp((tb[1,1]+tb[39,1]+se1)*IQRunit))
+HR_level2 <- c(tb[1,1]+tb[38,1], IQRunit, exp((tb[1,1]+tb[38,1])*IQRunit), exp((tb[1,1]+tb[38,1]-se2)*IQRunit), exp((tb[1,1]+tb[38,1]+se2)*IQRunit))
+HR_level3 <- c(tb[1,1]+tb[37,1], IQRunit, exp((tb[1,1]+tb[37,1])*IQRunit), exp((tb[1,1]+tb[37,1]-se3)*IQRunit), exp((tb[1,1]+tb[37,1]+se3)*IQRunit))
 
-HR <- rbind(HR_reference, HR_level1, HR_level2)
+HR <- rbind(HR_reference, HR_level1, HR_level2, HR_level3)
 print(HR)
 HR <- as.data.frame(HR)
 colnames(HR) <- c("coef", "IQR", "HR", "HR_lci", "HR_uci")

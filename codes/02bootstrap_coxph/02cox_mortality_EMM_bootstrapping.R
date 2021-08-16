@@ -112,15 +112,6 @@ for (exposure_i in exposure){
     cat("finish", exposure_i, "sample", boots_id, "of 500\n")
   }
   save(num_uniq_zip, cox_boots_coefs_reference, cox_boots_coefs_level1, file=paste0(dir_results, "bootstrap_cox_mortality_sex_", exposure_i, ".RData"))
-  summary_cox_boots_coefs_reference <- c(exp(log(get(paste0(exposure_i,"_HR"))[1])), 
-                                         exp(log(get(paste0(exposure_i,"_HR"))[1]) - IQRs[,get(exposure_i)]*1.96*sd(cox_boots_coefs_reference)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)),
-                                         exp(log(get(paste0(exposure_i,"_HR"))[1]) + IQRs[,get(exposure_i)]*1.96*sd(cox_boots_coefs_reference)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)))
-  summary_cox_boots_coefs_level1 <- c(exp(log(get(paste0(exposure_i,"_HR"))[2])), 
-                                         exp(log(get(paste0(exposure_i,"_HR"))[2]) - IQRs[,get(exposure_i)]*1.96*sd(cox_boots_coefs_level1)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)),
-                                         exp(log(get(paste0(exposure_i,"_HR"))[2]) + IQRs[,get(exposure_i)]*1.96*sd(cox_boots_coefs_level1)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)))
-  cox_mortality_sex_boots <- rbind(cox_mortality_sex_boots, summary_cox_boots_coefs_reference)
-  cox_mortality_sex_boots <- rbind(cox_mortality_sex_boots, summary_cox_boots_coefs_level1)
-  print(cox_mortality_sex_boots)
 }
 
 load(file=paste0(dir_results, "bootstrap_cox_mortality_sex_", "ox", ".RData"))
@@ -185,6 +176,8 @@ for (exposure_i in exposure){
   cox_mortality_dual_boots <- rbind(cox_mortality_dual_boots, summary_cox_boots_coefs_reference, summary_cox_boots_coefs_level1)
   print(cox_mortality_dual_boots)
 }
+
+## race chr 4 levels ------
 
 
 # exp(log(1.008)+IQRs[, pm25]*1.96*sd(cox_coefs_boots) *sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip))

@@ -61,12 +61,12 @@ num_uniq_zip <- uniqueN(dt[,zip])
 # Save the bootstrapped data to accelerate computing
 dir.create(file.path("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/cox_mortality_bootstrap_temp"), showWarnings = FALSE)
 
-lapply(1:1000, function(boots_id){
+lapply(1:500, function(boots_id){
   set.seed(boots_id)
   zip_sample <- sample(1:num_uniq_zip, floor(2*sqrt(num_uniq_zip)), replace=T) 
   dt_boots <- subset(dt, zip %in% all_zip[zip_sample]) 
   write_fst(dt_boots, paste0("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/cox_mortality_bootstrap_temp/", boots_id,".fst"))
-  cat("finish creating data", boots_id, "of 1000\n")
+  cat("finish creating data", boots_id, "of 500\n")
 })
 
 ## 2. bootstrapping ------------
@@ -161,6 +161,31 @@ for (boots_id in 1:500) {
 }
 save(num_uniq_zip, cox_coefs_boots_pm25, cox_coefs_boots_no2, cox_coefs_boots_ozone_summer, file=paste0(dir_results, "bootstrap_cox_mortality_3multi.RData"))
 
+load(file=paste0(dir_results, "bootstrap_cox_mortality_3multi.RData"))
+summary_cox_coefs_boots_pm25 <- c(exp(log(1.004)),
+                                exp(log(1.004) - IQRs[,pm25]* 1.96*sd(cox_coefs_boots_pm25)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)),
+                                exp(log(1.004) + IQRs[,pm25]*1.96*sd(cox_coefs_boots_pm25)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)))
+summary_cox_coefs_boots_pm25
+
+summary_cox_coefs_boots_no2 <- c(exp(log(1.011)),
+                                  exp(log(1.011) - IQRs[,no2]* 1.96*sd(cox_coefs_boots_no2)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)),
+                                  exp(log(1.011) + IQRs[,no2]*1.96*sd(cox_coefs_boots_no2)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)))
+summary_cox_coefs_boots_no2
+
+summary_cox_coefs_boots_ozone_summer <- c(exp(log(1.001)),
+                                  exp(log(1.001) - IQRs[,ozone_summer]* 1.96*sd(cox_coefs_boots_ozone_summer)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)),
+                                  exp(log(1.001) + IQRs[,ozone_summer]*1.96*sd(cox_coefs_boots_ozone_summer)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)))
+summary_cox_coefs_boots_ozone_summer
+
+cox_mortality_boots_3multi <- rbind(summary_cox_coefs_boots_pm25, summary_cox_coefs_boots_no2, summary_cox_coefs_boots_ozone_summer)
+rownames(cox_mortality_boots_3multi) <- c("pm25" ,"no2", "ozone_summer")
+colnames(cox_mortality_boots_3multi) <- c("HR", "HR_lci", "HR_uci")
+cox_mortality_boots_3multi
+write.table(cox_mortality_boots_3multi, file = "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/airPollution_ADRD/results/bootstrapping_cox_mortality_3multi.csv")
+
+
+
+
 cox_coefs_boots_pm25<-NULL
 cox_coefs_boots_ox<-NULL
 for (boots_id in 1:500) {
@@ -186,3 +211,20 @@ for (boots_id in 1:500) {
   cat("finish 2 multi sample", boots_id, "of 500\n")
 }
 save(num_uniq_zip, cox_coefs_boots_pm25, cox_coefs_boots_ox, file=paste0(dir_results, "bootstrap_cox_mortality_2multi.RData"))
+
+load(file=paste0(dir_results, "bootstrap_cox_mortality_2multi.RData"))
+summary_cox_coefs_boots_pm25 <- c(exp(log(1.006)),
+                                  exp(log(1.006) - IQRs[,pm25]* 1.96*sd(cox_coefs_boots_pm25)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)),
+                                  exp(log(1.006) + IQRs[,pm25]*1.96*sd(cox_coefs_boots_pm25)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)))
+summary_cox_coefs_boots_pm25
+
+summary_cox_coefs_boots_ox <- c(exp(log(1.005)),
+                                 exp(log(1.005) - IQRs[,ox]* 1.96*sd(cox_coefs_boots_ox)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)),
+                                 exp(log(1.005) + IQRs[,ox]*1.96*sd(cox_coefs_boots_ox)*sqrt(2*sqrt(num_uniq_zip))/sqrt(num_uniq_zip)))
+summary_cox_coefs_boots_ox
+
+cox_mortality_boots_2multi <- rbind(summary_cox_coefs_boots_pm25, summary_cox_coefs_boots_ox)
+rownames(cox_mortality_boots_2multi) <- c("pm25" ,"ox")
+colnames(cox_mortality_boots_2multi) <- c("HR", "HR_lci", "HR_uci")
+cox_mortality_boots_2multi
+write.table(cox_mortality_boots_2multi, file = "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/airPollution_ADRD/results/bootstrapping_cox_mortality_2multi.csv")
