@@ -206,10 +206,10 @@ HR <- rbind(HR_reference, HR_level1, HR_level2, HR_level3)
 print(HR)
 HR <- as.data.frame(HR)
 colnames(HR) <- c("coef", "IQR", "HR", "HR_lci", "HR_uci")
-write.csv(HR, paste0(dir_results, "cox_mortality_pm25_race_HR.csv"))
+write.csv(HR, paste0(dir_results, "cox_mortality_pm25_race4_HR.csv"))
 tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)
-fwrite(tb, paste0(dir_results, "cox_mortality_pm25_race_coef.csv"))
+fwrite(tb, paste0(dir_results, "cox_mortality_pm25_race4_coef.csv"))
 
 ## 2. effect modification for NO2 -------------------------------------------
 IQRunit <- IQRs$no2
