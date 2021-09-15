@@ -85,6 +85,9 @@ tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)
 fwrite(tb, paste0(dir_results, "cox_mortality_pm25_race_coef.csv"))
 
+rm(cox_pm25_race)
+gc()
+
 ### no2 race chr 4 levels ----
 cox_no2_race <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead) ~ 
                         no2 + no2*race_collapsed +
@@ -119,6 +122,9 @@ write.table(HR, paste0(dir_results, "cox_mortality_no2_race4_HR.csv"))
 tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)
 fwrite(tb, paste0(dir_results, "cox_mortality_no2_race_coef.csv"))
+
+rm(cox_no2_race)
+gc()
 
 ### ozone_summer race chr 4 levels ----
 cox_ozone_summer_race <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead) ~ 
@@ -155,6 +161,9 @@ tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)
 fwrite(tb, paste0(dir_results, "cox_mortality_ozone_summer_race_coef.csv"))
 
+rm(cox_ozone_summer_race)
+gc()
+
 ### ox race chr 4 levels ----
 cox_ox_race <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead) ~ 
                        ox + ox*race_collapsed +
@@ -189,3 +198,6 @@ write.table(HR, paste0(dir_results, "cox_mortality_ox_race4_HR.csv"))
 tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)
 fwrite(tb, paste0(dir_results, "cox_mortality_ox_race_coef.csv"))
+
+rm(cox_ox_race)
+gc()

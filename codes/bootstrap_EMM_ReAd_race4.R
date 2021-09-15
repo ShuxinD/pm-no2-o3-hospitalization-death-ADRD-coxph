@@ -120,6 +120,9 @@ tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)
 fwrite(tb, paste0(dir_results, "cox_ReAd_no2_race_coef.csv"))
 
+rm(cox_no2_race)
+gc()
+
 ### ozone_summer race chr 4 levels ----
 cox_ozone_summer_race <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = ReAd) ~ 
                          ozone_summer + ozone_summer*race_collapsed +
@@ -155,6 +158,9 @@ tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)
 fwrite(tb, paste0(dir_results, "cox_ReAd_ozone_summer_race_coef.csv"))
 
+rm(cox_ozone_summer_race)
+gc()
+
 ### ox race chr 4 levels ----
 cox_ox_race <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = ReAd) ~ 
                          ox + ox*race_collapsed +
@@ -189,3 +195,6 @@ write.table(HR, paste0(dir_results, "cox_ReAd_ox_race4_HR.csv"))
 tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)
 fwrite(tb, paste0(dir_results, "cox_ReAd_ox_race_coef.csv"))
+
+rm(cox_ox_race)
+gc()
