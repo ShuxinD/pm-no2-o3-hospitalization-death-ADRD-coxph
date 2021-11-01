@@ -1,11 +1,9 @@
-###############################################################################
-# Project: Air Pollution and mortality / readmission in AD/ADRD Medicare      #
-# Code: Cox PH model
-# Input: "ADRD_for_ReAd.csv"                                                  
-# Output: 
-# Author: Shuxin Dong                                                         #
-# Date: 2021-02-17                                                            #
-###############################################################################
+#' Project: Air Pollution and mortality / readmission in AD/ADRD Medicare
+#' Code: Cox PH model
+#' Input: "ADRD_for_ReAd.csv"                                                  
+#' Output: ...
+#' Author: Shuxin Dong
+#' First create date: 2021-02-17
 
 ############################# 0. Setup ########################################
 rm(list = ls())
@@ -16,12 +14,16 @@ setDTthreads(threads = 0)
 library(survival)
 
 setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/")
-
 dir_data <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
-dir_results <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/ReAdResults/"
 
 dt <- fread(paste0(dir_data, "ADRD_for_ReAd.csv"), colClasses = c("zip"="character"))
 names(dt)
+# [1] "qid"                "zip"                "year"               "sex"                "race"               "age"               
+# [7] "dual"               "statecode"          "dead"               "mean_bmi"           "smoke_rate"         "hispanic"          
+# [13] "pct_blk"            "medhouseholdincome" "medianhousevalue"   "poverty"            "education"          "popdensity"        
+# [19] "pct_owner_occ"      "summer_tmmx"        "winter_tmmx"        "summer_rmax"        "winter_rmax"        "firstADRDyr"       
+# [25] "pm25"               "no2"                "ozone"              "ozone_summer"       "entry_age"          "entry_age_break"   
+# [31] "race_collapsed"     "ox"                 "first_ReAdyr"       "ReAd"     
 
 dt[, followupyr := (year - firstADRDyr)]
 dt[, followupyr_plusone := followupyr +1]
@@ -46,219 +48,90 @@ IQRs <- data.table(IQR(dt$pm25), IQR(dt$no2), IQR(dt$ozone), IQR(dt$ox), IQR(dt$
 colnames(IQRs) <- c("pm25", "no2", "ozone", "ox", "ozone_summer")
 print(IQRs)
 
-######################## 1. single-pollutants model ############################
-cox_1_pm25 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = ReAd) ~ 
-                      pm25 + 
-                      mean_bmi + smoke_rate + hispanic + pct_blk + 
-                      medhouseholdincome + medianhousevalue +  
-                      poverty + education + popdensity + pct_owner_occ +
-                      summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
-                      as.factor(year) +  as.factor(region) +
-                      strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-                      strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
-                    data = dt,
-                    tie = c("efron"), 
-                    na.action = na.omit)
-tb <- summary(cox_1_pm25)$coefficients
-tb <- as.data.frame(tb)
-setDT(tb, keep.rownames = TRUE)[]
-fwrite(tb, paste0(dir_results, "cox_1_pm25_coef.csv"))
+# 1. single-pollutants model ----
+dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/airPollution_ADRD/results/main_analyses/coxph_ReAd/"
+pollutants <- c("pm25", "no2", "ozone_summer", "ox")
 
-IQRunit <- IQRs$pm25
-HR <- tb[1,]
-HR <- cbind(HR, IQRunit)
-print(HR)
-HR[, `:=`(HR_IQR = exp(coef*IQRunit),
-          HR_lci = exp((coef-1.96*`se(coef)`)*IQRunit),
-          HR_uci = exp((coef+1.96*`se(coef)`)*IQRunit))][]
-fwrite(HR, paste0(dir_results, "cox_1_pm25_HR.csv"))
+for (pollutants_i in pollutants){
+  cat("fit coxph model", pollutants_i, "\n")
+  cox <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = ReAd) ~ 
+                 get(pollutants_i) + 
+                 mean_bmi + smoke_rate + 
+                 hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
+                 summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+                 as.factor(year) +  as.factor(region) +
+                 strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
+               data = dt,
+               tie = c("efron"), 
+               na.action = na.omit)
+  tb <- summary(cox)$coefficients
+  tb <- as.data.frame(tb)
+  setDT(tb, keep.rownames = TRUE)
+  fwrite(tb, paste0(dir_out, "cox_ReAd_", pollutants_i, ".csv"))
+  cat("output coefs...\n")
+  HR <- tb[1,]
+  HR <- cbind(HR, IQRs[, get(pollutants_i)])
+  HR[, `:=`(HR_IQR = exp(coef*IQRs[, get(pollutants_i)]),
+            HR_lci = exp((coef-1.96*`se(coef)`)*IQRs[, get(pollutants_i)]),
+            HR_uci = exp((coef+1.96*`se(coef)`)*IQRs[, get(pollutants_i)]))][]
+  fwrite(HR, paste0(dir_out, "cox_ReAd_", pollutants_i, "_HR.csv"))
+  cat("save HR for cox ReAd", pollutants_i, "\n")
+}
 
+# 2. multi-pollutants model ----
+dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/airPollution_ADRD/results/main_analyses/coxph_ReAd/"
 
-cox_1_no2 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = ReAd) ~ 
-                     no2 + 
-                     mean_bmi + smoke_rate + hispanic + pct_blk + 
-                     medhouseholdincome + medianhousevalue +  
-                     poverty + education + popdensity + pct_owner_occ +
-                     summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
-                     as.factor(year) +  as.factor(region) +
-                     strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-                     strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
-                   data = dt,
-                   tie = c("efron"), 
-                   na.action = na.omit)
-tb <- summary(cox_1_no2)$coefficients
-tb <- as.data.frame(tb)
-setDT(tb, keep.rownames = TRUE)[]
-fwrite(tb, paste0(dir_results, "cox_1_no2_coef.csv"))
-
-IQRunit <- IQRs$no2
-HR <- tb[1,]
-HR <- cbind(HR, IQRunit)
-print(HR)
-HR[, `:=`(HR_IQR = exp(coef*IQRunit),
-          HR_lci = exp((coef-1.96*`se(coef)`)*IQRunit),
-          HR_uci = exp((coef+1.96*`se(coef)`)*IQRunit))][]
-fwrite(HR, paste0(dir_results, "cox_1_no2_HR.csv"))
-
-
-cox_1_ozone <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = ReAd) ~ 
-                       ozone + 
-                       mean_bmi + smoke_rate + hispanic + pct_blk + 
-                       medhouseholdincome + medianhousevalue +  
-                       poverty + education + popdensity + pct_owner_occ +
-                       summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
-                       as.factor(year) +  as.factor(region) +
-                       strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-                       strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
-                     data = dt,
-                     tie = c("efron"), 
-                     na.action = na.omit)
-tb <- summary(cox_1_ozone)$coefficients
-tb <- as.data.frame(tb)
-setDT(tb, keep.rownames = TRUE)[]
-fwrite(tb, paste0(dir_results, "cox_1_ozone_coef.csv"))
-
-IQRunit <- IQRs$ozone
-HR <- tb[1,]
-HR <- cbind(HR, IQRunit)
-print(HR)
-HR[, `:=`(HR_IQR = exp(coef*IQRunit),
-          HR_lci = exp((coef-1.96*`se(coef)`)*IQRunit),
-          HR_uci = exp((coef+1.96*`se(coef)`)*IQRunit))][]
-fwrite(HR, paste0(dir_results, "cox_1_ozone_HR.csv"))
-
-cox_1_ox <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = ReAd) ~ 
-                    ox + 
-                    mean_bmi + smoke_rate + hispanic + pct_blk + 
-                    medhouseholdincome + medianhousevalue +  
-                    poverty + education + popdensity + pct_owner_occ +
+cat("estimate cox for 3-pollutant model \n")
+cox_all3 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = ReAd) ~ 
+                    pm25 + no2 + ozone_summer + 
+                    mean_bmi + smoke_rate + 
+                    hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
                     summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                     as.factor(year) +  as.factor(region) +
-                    strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-                    strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
+                    strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
                   data = dt,
                   tie = c("efron"), 
                   na.action = na.omit)
-tb <- summary(cox_1_ox)$coefficients
+tb <- summary(cox_all3)$coefficients
 tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)[]
-fwrite(tb, paste0(dir_results, "cox_1_ox_coef.csv"))
-
-IQRunit <- IQRs$ox
-HR <- tb[1,]
-HR <- cbind(HR, IQRunit)
-print(HR)
-HR[, `:=`(HR_IQR = exp(coef*IQRunit),
-          HR_lci = exp((coef-1.96*`se(coef)`)*IQRunit),
-          HR_uci = exp((coef+1.96*`se(coef)`)*IQRunit))][]
-fwrite(HR, paste0(dir_results, "cox_1_ox_HR.csv"))
-
-cox_1_ozone_summer <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = ReAd) ~ 
-                              ozone_summer + 
-                              mean_bmi + smoke_rate + hispanic + pct_blk + 
-                              medhouseholdincome + medianhousevalue +  
-                              poverty + education + popdensity + pct_owner_occ +
-                              summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
-                              as.factor(year) +  as.factor(region) +
-                              strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-                              strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
-                            data = dt,
-                            tie = c("efron"), 
-                            na.action = na.omit)
-tb <- summary(cox_1_ozone_summer)$coefficients
-tb <- as.data.frame(tb)
-setDT(tb, keep.rownames = TRUE)[]
-fwrite(tb, paste0(dir_results, "cox_1_ozone_summer_coef.csv"))
-
-IQRunit <- IQRs$ozone_summer
-HR <- tb[1,]
-HR <- cbind(HR, IQRunit)
-print(HR)
-HR[, `:=`(HR_IQR = exp(coef*IQRunit),
-          HR_lci = exp((coef-1.96*`se(coef)`)*IQRunit),
-          HR_uci = exp((coef+1.96*`se(coef)`)*IQRunit))][]
-fwrite(HR, paste0(dir_results, "cox_1_ozone_summer_HR.csv"))
-
-
-######################## 2. multi-pollutants model ############################
-cox_1_all3 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = ReAd) ~ 
-                      pm25 + no2 + ozone + 
-                      mean_bmi + smoke_rate + hispanic + pct_blk + 
-                      medhouseholdincome + medianhousevalue +  
-                      poverty + education + popdensity + pct_owner_occ +
-                      summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
-                      as.factor(year) +  as.factor(region) +
-                      strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-                      strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
-                    data = dt,
-                    tie = c("efron"), 
-                    na.action = na.omit)
-tb <- summary(cox_1_all3)$coefficients
-tb <- as.data.frame(tb)
-setDT(tb, keep.rownames = TRUE)[]
-fwrite(tb, paste0(dir_results, "cox_1_all3_coef.csv"))
-
-IQRunit <- c(IQRs$pm25, IQRs$no2, IQRs$ozone)
-HR <- tb[1:3,]
-HR <- cbind(HR,IQRunit)
-print(HR)
-HR[, `:=`(HR_IQR = exp(coef*IQRunit),
-          HR_lci = exp((coef-1.96*`se(coef)`)*IQRunit),
-          HR_uci = exp((coef+1.96*`se(coef)`)*IQRunit))][]
-fwrite(HR, paste0(dir_results, "cox_1_all3_HR.csv"))
-
-cox_1_all3_summer <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = ReAd) ~ 
-                             pm25 + no2 + ozone_summer + 
-                             mean_bmi + smoke_rate + hispanic + pct_blk + 
-                             medhouseholdincome + medianhousevalue +  
-                             poverty + education + popdensity + pct_owner_occ +
-                             summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
-                             as.factor(year) +  as.factor(region) +
-                             strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-                             strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
-                           data = dt,
-                           tie = c("efron"), 
-                           na.action = na.omit)
-tb <- summary(cox_1_all3_summer)$coefficients
-tb <- as.data.frame(tb)
-setDT(tb, keep.rownames = TRUE)[]
-fwrite(tb, paste0(dir_results, "cox_1_all3_summer_coef.csv"))
+fwrite(tb, paste0(dir_out, "cox_ReAd_all3.csv"))
 
 IQRunit <- c(IQRs$pm25, IQRs$no2, IQRs$ozone_summer)
 HR <- tb[1:3,]
 HR <- cbind(HR,IQRunit)
-print(HR)
+cat("output HR for cox 3-pollutant model \n")
 HR[, `:=`(HR_IQR = exp(coef*IQRunit),
           HR_lci = exp((coef-1.96*`se(coef)`)*IQRunit),
           HR_uci = exp((coef+1.96*`se(coef)`)*IQRunit))][]
-fwrite(HR, paste0(dir_results, "cox_1_all3_summer_HR.csv"))
+fwrite(HR, paste0(dir_out, "cox_ReAd_all3_HR.csv"))
 
-cox_1_all2 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = ReAd) ~ 
-                      pm25 + ox +
-                      mean_bmi + smoke_rate + hispanic + pct_blk + 
-                      medhouseholdincome + medianhousevalue +  
-                      poverty + education + popdensity + pct_owner_occ +
-                      summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
-                      as.factor(year) +  as.factor(region) +
-                      strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-                      strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
-                    data = dt,
-                    tie = c("efron"), 
-                    na.action = na.omit)
+cat("estimate cox for 2-pollutant model \n")
+cox_all2 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = ReAd) ~ 
+                    pm25 + ox +
+                    mean_bmi + smoke_rate + 
+                    hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
+                    summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+                    as.factor(year) +  as.factor(region) +
+                    strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
+                  data = dt,
+                  tie = c("efron"), 
+                  na.action = na.omit)
 tb <- summary(cox_1_all2)$coefficients
 tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)[]
-fwrite(tb, paste0(dir_results, "cox_1_all2_coef.csv"))
+fwrite(tb, paste0(dir_out, "cox_ReAd_all2.csv"))
 
 IQRunit <- c(IQRs$pm25, IQRs$ox)
 HR <- tb[1:2,]
 HR <- cbind(HR,IQRunit)
-print(HR)
+cat("output HR for cox 3-pollutant model \n")
 HR[, `:=`(HR_IQR = exp(coef*IQRunit),
           HR_lci = exp((coef-1.96*`se(coef)`)*IQRunit),
           HR_uci = exp((coef+1.96*`se(coef)`)*IQRunit))][]
-fwrite(HR, paste0(dir_results, "cox_1_all2_HR.csv"))
+fwrite(HR, paste0(dir_out, "cox_ReAd_all2_HR.csv"))
 
+# 3. splines ----
 cox_splines <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = ReAd) ~ 
                        pspline(pm25, df=4) + 
                        pspline(no2, df=4) + 
@@ -275,6 +148,3 @@ cox_splines <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event =
                      na.action = na.omit)
 print(cox_splines)
 termplot(cox_splines, term = 1, se=TRUE, col.term = 1, col.se = 1)
-
-
-# write.csv(temp$coefficients, paste0(dir_output, "cox_all.csv"))

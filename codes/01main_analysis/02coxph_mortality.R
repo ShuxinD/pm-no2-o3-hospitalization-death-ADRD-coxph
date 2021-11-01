@@ -72,15 +72,17 @@ for (pollutants_i in pollutants){
   fwrite(tb, paste0(dir_out, "cox_mortality_", pollutants_i, ".csv"))
   cat("output coefs...\n")
   HR <- tb[1,]
-  HR <- cbind(HR, IQRs_mortality[, get(pollutants_i)])
-  HR[, `:=`(HR_IQR = exp(coef*IQRs_mortality[, get(pollutants_i)]),
-            HR_lci = exp((coef-1.96*`se(coef)`)*IQRs_mortality[, get(pollutants_i)]),
-            HR_uci = exp((coef+1.96*`se(coef)`)*IQRs_mortality[, get(pollutants_i)]))][]
+  HR <- cbind(HR, IQRs[, get(pollutants_i)])
+  HR[, `:=`(HR_IQR = exp(coef*IQRs[, get(pollutants_i)]),
+            HR_lci = exp((coef-1.96*`se(coef)`)*IQRs[, get(pollutants_i)]),
+            HR_uci = exp((coef+1.96*`se(coef)`)*IQRs[, get(pollutants_i)]))][]
   fwrite(HR, paste0(dir_out, "cox_mortality_", pollutants_i, "_HR.csv"))
   cat("save HR for cox mortality", pollutants_i, "\n")
 }
 
 ## 2. multi-pollutants model ----
+dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/airPollution_ADRD/results/main_analyses/coxph_mortality/"
+
 cat("estimate cox for 3-pollutant model \n")
 cox_all3 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead) ~ 
                     pm25 + no2 + ozone_summer + 
@@ -95,7 +97,7 @@ cox_all3 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = de
 tb <- summary(cox_all3)$coefficients
 tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)[]
-fwrite(tb, paste0(dir_results, "cox_mortality_all3.csv"))
+fwrite(tb, paste0(dir_out, "cox_mortality_all3.csv"))
 
 IQRunit <- c(IQRs$pm25, IQRs$no2, IQRs$ozone_summer)
 HR <- tb[1:3,]
@@ -104,7 +106,7 @@ cat("output HR for cox 3-pollutant model \n")
 HR[, `:=`(HR_IQR = exp(coef*IQRunit),
           HR_lci = exp((coef-1.96*`se(coef)`)*IQRunit),
           HR_uci = exp((coef+1.96*`se(coef)`)*IQRunit))][]
-fwrite(HR, paste0(dir_results, "cox_mortality_all3_HR.csv"))
+fwrite(HR, paste0(dir_out, "cox_mortality_all3_HR.csv"))
 
 cat("estimate cox for 2-pollutant model \n")
 cox_all2 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead) ~ 
@@ -120,7 +122,7 @@ cox_all2 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = de
 tb <- summary(cox_1_all2)$coefficients
 tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)[]
-fwrite(tb, paste0(dir_results, "cox_mortality_all2.csv"))
+fwrite(tb, paste0(dir_out, "cox_mortality_all2.csv"))
 
 IQRunit <- c(IQRs$pm25, IQRs$ox)
 HR <- tb[1:2,]
@@ -129,7 +131,7 @@ cat("output HR for cox 3-pollutant model \n")
 HR[, `:=`(HR_IQR = exp(coef*IQRunit),
           HR_lci = exp((coef-1.96*`se(coef)`)*IQRunit),
           HR_uci = exp((coef+1.96*`se(coef)`)*IQRunit))][]
-fwrite(HR, paste0(dir_results, "cox_mortality_all2_HR.csv"))
+fwrite(HR, paste0(dir_out, "cox_mortality_all2_HR.csv"))
 
 ## 3. splines ----
 cox_splines <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead) ~ 
