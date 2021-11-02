@@ -1,13 +1,11 @@
-###############################################################################
-# Project: Air Pollution on mortality and readmission in Medicare AD/ADRD     #
-# Code: extract ADRD hopspitalization info from hospitalization files         #
-# Input: hospitalization files                                                #
-# Output: "ADRD`type`_`year`.fst"                                             #
-# Author: Shuxin Dong                                                         #
-# Date: 2021-02-03                                                            #
-###############################################################################
+#' Project: airpollution_ADRD
+#' Code: extract ADRD hopspitalization info from hospitalization files
+#' Input: hospitalization files
+#' Output: "ADRD`type`_`year`.fst"
+#' Author: Shuxin Dong
+#' First create date: 2021-02-03
 
-############################# 0. Setup ########################################
+## setup ----
 rm(list = ls())
 gc()
 
@@ -20,19 +18,57 @@ library(icd)
 setDTthreads(threads = 0)
 setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia")
 dir_hospital <- "/nfs/home/S/shd968/shared_space/ci3_health_data/medicare/gen_admission/1999_2016/targeted_conditions/cache_data/admissions_by_year/"
-dir_output <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/ADRDhospitalization/"
+dir_output <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/ADRDhospitalization/"
 
-######################## 1. ICD code info #####################################
+## ICD code info ----
 outcomes <- list()
 outcomes[["ADRD"]] <- list()
 outcomes[["ADRD"]][["icd9"]] <- c("3310", "3311", "3312", "3317", "2900", children("2901"), children("2902"), "2903", children("2904"), "2940", children("2941"), "2948", "797")
 outcomes[["ADRD"]][["icd10"]] <- c(children("F01"), children("F02"), "F0390", children("G30"), children("G310"), "G311", "G312", "R4181")
 
-##################### 2. extract hospitalization info #########################
-## clear out old data in case of re-run
+## extract hospitalization info ----
+#' clear out old data in case of re-run
 file.remove(list.files(dir_output, 
                        pattern = ".fst",
                        full.names = T))
+#' sample 
+# temp <- read_fst(paste0(dir_hospital, "admissions_2000.fst"))
+# head(temp,2)
+# QID AGE SEX RACE SSA_STATE_CD SSA_CNTY_CD PROV_NUM ADM_SOURCE ADM_TYPE     ADATE
+# 1 A00270022  89   2    1           30          10   300006          1        3 06SEP1996
+# 2 A03003851  92   1    1           33          30   330394          7        1 29MAR1998
+# DDATE  BENE_DOD DODFLAG ICU_DAY CCI_DAY ICU CCI DIAG1 DIAG2 DIAG3 DIAG4 DIAG5 DIAG6
+# 1 19JUN2000 19JUN2000       V       0       0  NA  NA 82120  4928  4280 73301  2859  E888
+# 2 10JAN2000 07FEB2001       V       2       0   0  NA 41401  4111  5990 03849   486   496
+# DIAG7 DIAG8 DIAG9 DIAG10 diag11 diag12 diag13 diag14 diag15 diag16 diag17 diag18 diag19
+# 1                       NA     NA     NA     NA     NA     NA     NA     NA     NA     NA
+# 2  2765  5272 29633     NA     NA     NA     NA     NA     NA     NA     NA     NA     NA
+# diag20 diag21 diag22 diag23 diag24 diag25 YEAR  LOS Parkinson_pdx Parkinson_pdx2dx_10
+# 1     NA     NA     NA     NA     NA     NA 2000 1382             0                   0
+# 2     NA     NA     NA     NA     NA     NA 2000  652             0                   0
+# Parkinson_pdx2dx_25 Alzheimer_pdx Alzheimer_pdx2dx_10 Alzheimer_pdx2dx_25 Dementia_pdx
+# 1                   0             0                   0                   0            0
+# 2                   0             0                   0                   0            0
+# Dementia_pdx2dx_10 Dementia_pdx2dx_25 CHF_pdx CHF_pdx2dx_10 CHF_pdx2dx_25 AMI_pdx
+# 1                  0                  0       0             1             1       0
+# 2                  0                  0       0             0             0       0
+# AMI_pdx2dx_10 AMI_pdx2dx_25 COPD_pdx COPD_pdx2dx_10 COPD_pdx2dx_25 DM_pdx DM_pdx2dx_10
+# 1             0             0        0              1              1      0            0
+# 2             0             0        0              1              1      0            0
+# DM_pdx2dx_25 Stroke_pdx Stroke_pdx2dx_10 Stroke_pdx2dx_25 CVD_pdx CVD_pdx2dx_10
+# 1            0          0                0                0       0             1
+# 2            0          0                0                0       1             1
+# CVD_pdx2dx_25 CSD_pdx CSD_pdx2dx_10 CSD_pdx2dx_25 Ischemic_stroke_pdx
+# 1             1       0             1             1                   0
+# 2             1       1             1             1                   0
+# Ischemic_stroke_pdx2dx_10 Ischemic_stroke_pdx2dx_25 Hemo_Stroke_pdx Hemo_Stroke_pdx2dx_10
+# 1                         0                         0               0                     0
+# 2                         0                         0               0                     0
+# Hemo_Stroke_pdx2dx_25 zipcode_R Race_gp Sex_gp age_gp Dual
+# 1                     0     27830   White Female Age>84    0
+# 2                     0     20931   White   Male Age>84    0
+# rm(temp)
+# gc()
 
 for (year_ in 2000:2016) {
   admissions <- read_data(dir_hospital, years = year_,
