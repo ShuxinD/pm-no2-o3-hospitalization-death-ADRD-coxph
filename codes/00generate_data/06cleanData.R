@@ -1,98 +1,81 @@
-###############################################################################
-# Project: Air Pollution on mortality and readmission in Medicare AD/ADRD     #
-# Code: clean dataset for mortality analyses
-# Input: "ADRDpeople.csv"
-# Output: "ADRD_for_mortality.csv" 
-# Author: Shuxin Dong                                                         #
-# Date: 2021-02-08                                                            #
-###############################################################################
+#' Project: airPollution_ADRD
+#' Code: clean dataset for mortality analyses
+#' Input: "ADRDcohort.fst"
+#' Output: "ADRDcohort_clean.fst" 
+#' Author: Shuxin Dong 
+#' First create cate: 2021-02-08
 
-############################# 0. Setup ########################################
+## setup----
 rm(list = ls())
 gc()
 
 library(data.table)
+library(fst)
 setDTthreads(threads = 15)
 
 dir_in <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
 dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
 
-########################### 1. Load data ######################################
-ADRDpeople <- fread(paste0(dir_in, "ADRDpeople.csv"), colClasses = c("zip"="character"))
-names(ADRDpeople)
-# [1] "zip"                "year"               "qid"                "sex"               
-# [5] "race"               "age"                "dual"               "statecode"         
-# [9] "dead"               "mean_bmi"           "smoke_rate"         "hispanic"          
-# [13] "pct_blk"            "medhouseholdincome" "medianhousevalue"   "poverty"           
-# [17] "education"          "popdensity"         "pct_owner_occ"      "summer_tmmx"       
-# [21] "winter_tmmx"        "summer_rmax"        "winter_rmax"        "firstADRDyr"       
-# [25] "pm25"               "no2"                "ozone"              "ozone_summer"  
-dim(ADRDpeople)
-# [1] 25112131       28
-ADRDpeople <- ADRDpeople[year!=firstADRDyr, ] # remove firstADRDyr
-dim(ADRDpeople) # study population personyrs
-# [1] 17807821       28
-uniqueN(ADRDpeople, by = "qid") # study population individuals
-# [1] 5069279
-dt <- na.omit(ADRDpeople) # remove NAs
-dim(dt)
-# [1] 17376870       28
-uniqueN(dt, by = "qid")
-# [1] 4962098
-dim(ADRDpeople)[1] - dim(dt)[1] # number of person-years to be removed due to NAs
-# [1] 430951
-uniqueN(ADRDpeople, by = "qid") - uniqueN(dt, by = "qid") # number of indivuals removed due to NAs
-# [1] 107181
-dt <- dt[race!=0,] # remove those with race==0 (unknown)
+## load data ----
+ADRDcohort <- read_fst(paste0(dir_in, "ADRDcohort.fst"), as.data.table = T)
+names(ADRDcohort)
+# [1] "zip"                "year_prev"          "qid"                "year"              
+# [5] "sex"                "race"               "age"                "dual"              
+# [9] "statecode"          "dead"               "mean_bmi"           "smoke_rate"        
+# [13] "hispanic"           "pct_blk"            "medhouseholdincome" "medianhousevalue"  
+# [17] "poverty"            "education"          "popdensity"         "pct_owner_occ"     
+# [21] "summer_tmmx"        "winter_tmmx"        "summer_rmax"        "winter_rmax"       
+# [25] "firstADRDyr"        "pm25"               "no2"                "ozone"             
+# [29] "ozone_summer" 
+dim(ADRDcohort)
+# [1] 18150478       29
+uniqueN(ADRDcohort[,qid]) # study population individuals
+# [1] 5226549
+
+## omit ----
+#' first: remove NAs
+dt <- na.omit(ADRDcohort) # remove NAs
+dim(dt) # person-year
+# [1] 17702025       29
+uniqueN(dt[,qid]) # number of subjects
+# [1] 5114720
+
+#' second: remove those without complete follow-ups
+omitInfo <- read.csv(paste0(dir_in,"omitInfo.csv"))
+dt <- dt[!(qid %in% omitInfo$qid),]
+dim(dt) # person-year
+# [1] 17603959       29
+uniqueN(dt[,qid]) # number of subjects
+# [1] 5090939
+
+#' third: race==unknow
+uniqueN(dt[race==0,qid]) # number subjects with unknown race info
+# [1] 12795
+dt <- dt[!(qid %in% dt[race==0,qid]),]
+dim(dt) # person-year
+# [1] 17564617       29
+uniqueN(dt[,qid]) # number of subjects
+# [1] 5078144
+
+
 dim(dt) # final
-# [1] 17338260       27
+# [1] 17564617       29
 uniqueN(dt, by = "qid") #final # of subjects
-# [1] 4949616
+# [1] 5078144
 
-########################### 2. Clean data #####################################
-temp <- dt[, .(start_yr = min(year),
-               end_yr = max(year),
-               count = uniqueN(year)), by = .(qid)]
-dim(temp)
-head(temp)
-temp <- merge(temp, unique(dt[,.(qid,firstADRDyr)]), by = "qid", all.x = TRUE)
-dim(temp)
-head(temp)
-gc()
-
-## remove those not followed-up from the year following firstADRDyr
-dim(temp[start_yr > (firstADRDyr+1)]) # number of subjects to remove
-# [1] 15378     5
-# dt[!(qid %in% temp[start_yr != (firstADRDyr+1)][, qid]), ]
-dt <- dt[!(qid %in% temp[start_yr != (firstADRDyr+1)][, qid]), ]
-gc()
-
-dim(ADRDpeople)[1] - dim(dt)[1] # number of person-years to removed
-# [1] 524314
-
-## remove those not having each year’s info during follow-up
-dim(temp[(end_yr-start_yr+1) != count,]) # number of subjects to remove
-# [1] 5399     5
-dt <- dt[qid %in% temp[(end_yr-start_yr+1) == count, qid],]
-gc()
-
-dim(ADRDpeople)[1] - dim(dt)[1]
-# [1] 555521
-
-head(dt)
-
-## create entry_age variable
-tempAge <- dt[, .(entry_age = min(age)), by = .(qid)]
+## add necessary variables ----
+#' create entry_age variable, 5 years as a break
+tempAge <- dt[, .(entry_age = min(age)), by = qid]
 head(tempAge)
 min(tempAge[,entry_age])
 max(tempAge[,entry_age])
-seq(65, 115, 2)
-tempAge[, entry_age_break := cut(entry_age, breaks = seq(65, 115, 2), right = FALSE)][]
+seq(65, 115, 5)
+tempAge[, entry_age_break := cut(entry_age, breaks = seq(65, 115, 5), right = FALSE)][]
 summary(tempAge[,entry_age_break])
 head(tempAge)
 dt <- merge(dt, tempAge, by = "qid") ## add entry_age and entry_age_break
 
-## merge different race categories and create race_collapsed
+#' merge different race categories and create race_collapsed
 dt[,race:=as.factor(race)]
 table(dt[,race])
 dt$race_collapsed <- "Others"
@@ -101,8 +84,21 @@ dt$race_collapsed[dt$race==2] <- "Black"
 dt$race_collapsed[dt$race==5] <- "Hispanic"
 dt[, race_collapsed:=as.factor(race_collapsed)]
 
-## generate Ox based on no2 and ozone
+#' generate Ox based on no2 and ozone
 dt[, ox := (1.07*no2 + 2.075*ozone)/3.14]
 head(dt)
 
-fwrite(dt, paste0(dir_out, "ADRD_for_mortality.csv"))
+#' generate region based on statecode
+NORTHEAST <- c("NY", "MA", "PA", "RI", "NH", "ME", "VT", "CT", "NJ")  
+SOUTH <- c("DC", "VA", "NC", "WV", "KY", "SC", "GA", "FL", "AL", "TN", "MS", 
+           "AR", "MD", "DE", "OK", "TX", "LA")
+MIDWEST <- c("OH", "IN", "MI", "IA", "MO", "WI", "MN", "SD", "ND", "IL", "KS", "NE")
+WEST <- c("MT", "CO", "WY", "ID", "UT", "NV", "CA", "OR", "WA", "AZ", "NM")
+dt$region <- ifelse(dt$statecode %in% NORTHEAST, "NORTHEAST",
+                    ifelse(dt$statecode %in% SOUTH, "SOUTH",
+                           ifelse(dt$statecode  %in% MIDWEST, "MIDWEST",
+                                  ifelse(dt$statecode  %in% WEST, "WEST",
+                                         NA))))
+dt[, region := as.factor(region)]
+
+write_fst(dt, paste0(dir_out, "ADRDcohort_clean.fst"))
