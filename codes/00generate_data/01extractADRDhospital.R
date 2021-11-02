@@ -166,6 +166,7 @@ for (year_ in 2000:2016) {
     write_fst(admissions[(get(varname)),], paste0(dir_output, "ADRD", type, "_", year_, ".fst"))
   }
   
+  
   # for (i in 2000:2016) {
   #   for (outcome in names(outcomes)) {
   #     for (type in c("primary", "secondary")) {
