@@ -1,52 +1,40 @@
-###############################################################################
-# Project: Air Pollution and mortality / readmission in AD/ADRD Medicare      
-# Code: covariates correlations, create table one                             
-# Input: "ADRD_mortality.csv"                                                  
-# Output: "corr.csv" as correlations between covariates                       #
-# Output: "table1.doc"                                                        #
-# Author: Shuxin Dong                                                         #
-# Date: 2021-02-08                                                            #
-###############################################################################
+#' Project: airPollution_ADRD
+#' Code: covariates correlations, create table one
+#' Input: "ADRDcohort_clean.fst"
+#' Output: "corr.csv" as correlations between covariates
+#' Output: "table1.doc"
+#' Author: Shuxin Dong
+#' Date: 2021-02-08
 
-############################# 0. Setup ########################################
+## setup ----
 rm(list = ls())
 gc()
 
 library(data.table)
+library(fst)
 setDTthreads(threads = 0)
 
 setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/")
 
 dir_in <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/results/"
+dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/airPollution_ADRD/results/descriptive_stats/"
 
-dt <- fread(paste0(dir_in, "ADRD_for_mortality.csv"), colClasses = c("zip"="character"))
+## load mortality data----
+dt <- read_fst(paste0(dir_in, "ADRDcohort_clean.fst"), as.data.table = T)
 names(dt)
-# [1] "qid"                "zip"                "year"               "sex"               
-# [5] "race"               "age"                "dual"               "statecode"         
-# [9] "dead"               "mean_bmi"           "smoke_rate"         "hispanic"          
-# [13] "pct_blk"            "medhouseholdincome" "medianhousevalue"   "poverty"           
-# [17] "education"          "popdensity"         "pct_owner_occ"      "summer_tmmx"       
-# [21] "winter_tmmx"        "summer_rmax"        "winter_rmax"        "firstADRDyr"       
-# [25] "pm25"               "no2"                "ozone"              "ozone_summer"      
-# [29] "entry_age"          "entry_age_break"    "race_collapsed"     "ox"
-dt[, race_collapsed:=as.factor(race_collapsed)]
-dt[, entry_age_break := as.factor(entry_age_break)]
-NORTHEAST <- c("NY", "MA", "PA", "RI", "NH", "ME", "VT", "CT", "NJ")  
-SOUTH <- c("DC", "VA", "NC", "WV", "KY", "SC", "GA", "FL", "AL", "TN", "MS", 
-           "AR", "MD", "DE", "OK", "TX", "LA")
-MIDWEST <- c("OH", "IN", "MI", "IA", "MO", "WI", "MN", "SD", "ND", "IL", "KS", "NE")
-WEST <- c("MT", "CO", "WY", "ID", "UT", "NV", "CA", "OR", "WA", "AZ", "NM")
-dt$region <- ifelse(dt$statecode %in% NORTHEAST, "NORTHEAST",
-                    ifelse(dt$statecode %in% SOUTH, "SOUTH",
-                           ifelse(dt$statecode  %in% MIDWEST, "MIDWEST",
-                                  ifelse(dt$statecode  %in% WEST, "WEST",
-                                         NA))))
-dt[, region := as.factor(region)]
-summary(dt$region)
+# [1] "qid"                "zip"                "year_prev"          "year"              
+# [5] "sex"                "race"               "age"                "dual"              
+# [9] "statecode"          "dead"               "mean_bmi"           "smoke_rate"        
+# [13] "hispanic"           "pct_blk"            "medhouseholdincome" "medianhousevalue"  
+# [17] "poverty"            "education"          "popdensity"         "pct_owner_occ"     
+# [21] "summer_tmmx"        "winter_tmmx"        "summer_rmax"        "winter_rmax"       
+# [25] "firstADRDyr"        "pm25"               "no2"                "ozone"             
+# [29] "ozone_summer"       "entry_age"          "entry_age_break"    "race_collapsed"    
+# [33] "ox"                 "region"  
+dt$dual <- as.numeric(dt$dual)
 
-########################## 1. calculate corr ##################################
-corr_data <- dt[,.(dual, mean_bmi, smoke_rate, hispanic,
+## calculate corr ----
+corr_data <- dt[,.(mean_bmi, smoke_rate, hispanic,
                    pct_blk, medhouseholdincome, medianhousevalue, poverty,
                    education, popdensity, pct_owner_occ, pm25, no2, ozone, ozone_summer, ox)]
 library(corrplot)
@@ -71,7 +59,7 @@ pdf(file = paste0(dir_out, "corr.pdf"), width = 12, height = 12)
 corrplot(M, method="number", type = "lower", p.mat = p.mat, sig.level = 0.05)
 dev.off()
 
-################### 2. create death end var and followup-time #################
+## create event_end var and followup-time ----
 event <- dt[(dead),.(qid,dead)]
 names(event)[2] <- "dead_end"
 names(event)
@@ -79,6 +67,8 @@ names(event)
 dt <- merge(dt, event, by = "qid", all.x = TRUE)
 dt$dead_end[is.na(dt$dead_end)] <- FALSE
 summary(dt$dead_end)
+# Mode    FALSE     TRUE 
+# logical  3345350 14219267 
 gc()
 
 setorder(dt, qid, year)
@@ -90,7 +80,7 @@ duration[, followup_duration := year-firstADRDyr][]
 dt <- merge(dt, duration[,.(qid,followup_duration)], by = "qid", all.x = TRUE)
 head(dt)
 
-############################# 3. create table one #############################
+## table one ----
 listVars <- c("pm25", "no2", "ozone", "ox", "ozone_summer",
               "mean_bmi", "smoke_rate", "hispanic", "pct_blk",
               "medhouseholdincome", "medianhousevalue", "poverty",
@@ -124,46 +114,15 @@ addParagraph(rtffile, "\n \n Table1_individual")
 addTable(rtffile, cbind(rownames(table1.individual), table1.individual))
 done(rtffile)
 
-############################# 0. Setup ########################################
-rm(list = ls())
 gc()
 
-library(data.table)
-setDTthreads(threads = 0)
-
-setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/")
-
-dir_in <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/results/"
-
-dt <- fread(paste0(dir_in, "ADRD_for_ReAd.csv"), colClasses = c("zip"="character"))
+## load read data----
+dt <- read_fst(paste0(dir_in, "ADRDcohort_ReAd.fst"), as.data.table = T)
 names(dt)
-# [1] "qid"                "zip"                "year"               "sex"               
-# [5] "race"               "age"                "dual"               "statecode"         
-# [9] "dead"               "mean_bmi"           "smoke_rate"         "hispanic"          
-# [13] "pct_blk"            "medhouseholdincome" "medianhousevalue"   "poverty"           
-# [17] "education"          "popdensity"         "pct_owner_occ"      "summer_tmmx"       
-# [21] "winter_tmmx"        "summer_rmax"        "winter_rmax"        "firstADRDyr"       
-# [25] "pm25"               "no2"                "ozone"              "ozone_summer"      
-# [29] "entry_age"          "entry_age_break"    "race_collapsed"     "ox"                
-# [33] "first_ReAdyr"       "ReAd" 
-dt[, race_collapsed:=as.factor(race_collapsed)]
-dt[, entry_age_break := as.factor(entry_age_break)]
-NORTHEAST <- c("NY", "MA", "PA", "RI", "NH", "ME", "VT", "CT", "NJ")  
-SOUTH <- c("DC", "VA", "NC", "WV", "KY", "SC", "GA", "FL", "AL", "TN", "MS", 
-           "AR", "MD", "DE", "OK", "TX", "LA")
-MIDWEST <- c("OH", "IN", "MI", "IA", "MO", "WI", "MN", "SD", "ND", "IL", "KS", "NE")
-WEST <- c("MT", "CO", "WY", "ID", "UT", "NV", "CA", "OR", "WA", "AZ", "NM")
-dt$region <- ifelse(dt$statecode %in% NORTHEAST, "NORTHEAST",
-                    ifelse(dt$statecode %in% SOUTH, "SOUTH",
-                           ifelse(dt$statecode  %in% MIDWEST, "MIDWEST",
-                                  ifelse(dt$statecode  %in% WEST, "WEST",
-                                         NA))))
-dt[, region := as.factor(region)]
-summary(dt$region)
+dt$dual <- as.numeric(dt$dual)
 
-########################## 1. calculate corr ##################################
-corr_data <- dt[,.(dual, mean_bmi, smoke_rate, hispanic,
+## calculate corr ----
+corr_data <- dt[,.(mean_bmi, smoke_rate, hispanic,
                    pct_blk, medhouseholdincome, medianhousevalue, poverty,
                    education, popdensity, pct_owner_occ, pm25, no2, ozone, ozone_summer, ox)]
 library(corrplot)
@@ -188,7 +147,7 @@ pdf(file = paste0(dir_out, "corr_ReAd.pdf"), width = 12, height = 12)
 corrplot(M, method="number", type = "lower", p.mat = p.mat, sig.level = 0.05)
 dev.off()
 
-################### 2. create death end var and followup-time #################
+## create event_end var and followup-time ----
 event <- dt[(ReAd),.(qid,ReAd)]
 names(event)[2] <- "ReAd_end"
 names(event)
@@ -207,7 +166,7 @@ duration[, followup_duration := year-firstADRDyr][]
 dt <- merge(dt, duration[,.(qid,followup_duration)], by = "qid", all.x = TRUE)
 head(dt)
 
-############################# 3. create table one #############################
+## table one
 listVars <- c("pm25", "no2", "ozone", "ox", "ozone_summer",
               "mean_bmi", "smoke_rate", "hispanic", "pct_blk",
               "medhouseholdincome", "medianhousevalue", "poverty",
