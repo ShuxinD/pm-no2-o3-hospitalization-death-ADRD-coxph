@@ -23,7 +23,7 @@ dir_output <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/ADRDhosp
 ## ICD code info ----
 outcomes <- list()
 outcomes[["ADRD"]] <- list()
-outcomes[["ADRD"]][["icd9"]] <- c("3310", "3311", "3312", "3317", "2900", children("2901"), children("2902"), "2903", children("2904"), "2940", children("2941"), "2948", "797")
+outcomes[["ADRD"]][["icd9"]] <- c("3310", "33100", "3311", "33110", "3312", "33120", "3317", "33170", "2900", "29000", children("2901"), children("2902"), "2903", "29030", children("2904"), "2940","29400", children("2941"), "2948","29480", "797", "7970", "79700")
 outcomes[["ADRD"]][["icd10"]] <- c(children("F01"), children("F02"), "F0390", children("G30"), children("G310"), "G311", "G312", "R4181")
 
 ## extract hospitalization info ----
@@ -32,7 +32,7 @@ file.remove(list.files(dir_output,
                        pattern = ".fst",
                        full.names = T))
 #' sample 
-# temp <- read_fst(paste0(dir_hospital, "admissions_2000.fst"))
+# temp <- read_fst(paste0(dir_hospital, "admissions_2012.fst"))
 # head(temp,2)
 # QID AGE SEX RACE SSA_STATE_CD SSA_CNTY_CD PROV_NUM ADM_SOURCE ADM_TYPE     ADATE
 # 1 A00270022  89   2    1           30          10   300006          1        3 06SEP1996
@@ -84,53 +84,104 @@ for (year_ in 2000:2016) {
                                       "DIAG7",
                                       "DIAG8",
                                       "DIAG9",
-                                      "DIAG10"))
+                                      "DIAG10",
+                                      "diag11",
+                                      "diag12",
+                                      "diag13",
+                                      "diag14",
+                                      "diag15",
+                                      "diag16",
+                                      "diag17",
+                                      "diag18",
+                                      "diag19",
+                                      "diag20",
+                                      "diag21",
+                                      "diag22",
+                                      "diag23",
+                                      "diag24",
+                                      "diag25"))
   admissions[, ADATE := dmy(ADATE)]
   admissions[, DDATE := dmy(DDATE)]
   admissions[, year := year(ADATE)]
   admissions <- admissions[year %in% 2000:2016]
   cat("Loading", year_, "hospitalization file... \n")
-
-  for (outcome in names(outcomes)) {
-    admissions[DDATE < "2015-10-01", (paste0(outcome, "_primary")) := DIAG1 %in% outcomes[[outcome]][["icd9"]]]
-    admissions[DDATE >= "2015-10-01", (paste0(outcome, "_primary")) := DIAG1 %in% outcomes[[outcome]][["icd10"]]]
-    admissions[DDATE < "2015-10-01", (paste0(outcome, "_secondary")) := DIAG1 %in% outcomes[[outcome]][["icd9"]]|
-                 DIAG2 %in% outcomes[[outcome]][["icd9"]]|
-                 DIAG3 %in% outcomes[[outcome]][["icd9"]]|
-                 DIAG4 %in% outcomes[[outcome]][["icd9"]]|
-                 DIAG5 %in% outcomes[[outcome]][["icd9"]]|
-                 DIAG6 %in% outcomes[[outcome]][["icd9"]]|
-                 DIAG7 %in% outcomes[[outcome]][["icd9"]]|
-                 DIAG8 %in% outcomes[[outcome]][["icd9"]]|
-                 DIAG9 %in% outcomes[[outcome]][["icd9"]]|
-                 DIAG10 %in% outcomes[[outcome]][["icd9"]]]
-    admissions[DDATE >= "2015-10-01", (paste0(outcome, "_secondary")) := DIAG1 %in% outcomes[[outcome]][["icd10"]]|
-                 DIAG2 %in% outcomes[[outcome]][["icd10"]]|
-                 DIAG3 %in% outcomes[[outcome]][["icd10"]]|
-                 DIAG4 %in% outcomes[[outcome]][["icd10"]]|
-                 DIAG5 %in% outcomes[[outcome]][["icd10"]]|
-                 DIAG6 %in% outcomes[[outcome]][["icd10"]]|
-                 DIAG7 %in% outcomes[[outcome]][["icd10"]]|
-                 DIAG8 %in% outcomes[[outcome]][["icd10"]]|
-                 DIAG9 %in% outcomes[[outcome]][["icd10"]]|
-                 DIAG10 %in% outcomes[[outcome]][["icd10"]]]
+  
+  admissions[, (paste0("ADRD", "_primary")) := 
+               DIAG1 %in% outcomes[["ADRD"]][["icd9"]]|
+               DIAG1 %in% outcomes[["ADRD"]][["icd10"]]]
+  admissions[, (paste0("ADRD", "_secondary")) := 
+               DIAG1 %in% outcomes[["ADRD"]][["icd9"]]|
+               DIAG2 %in% outcomes[["ADRD"]][["icd9"]]|
+               DIAG3 %in% outcomes[["ADRD"]][["icd9"]]|
+               DIAG4 %in% outcomes[["ADRD"]][["icd9"]]|
+               DIAG5 %in% outcomes[["ADRD"]][["icd9"]]|
+               DIAG6 %in% outcomes[["ADRD"]][["icd9"]]|
+               DIAG7 %in% outcomes[["ADRD"]][["icd9"]]|
+               DIAG8 %in% outcomes[["ADRD"]][["icd9"]]|
+               DIAG9 %in% outcomes[["ADRD"]][["icd9"]]|
+               DIAG10 %in% outcomes[["ADRD"]][["icd9"]]|
+               diag11 %in% outcomes[["ADRD"]][["icd9"]]|
+               diag12 %in% outcomes[["ADRD"]][["icd9"]]|
+               diag13 %in% outcomes[["ADRD"]][["icd9"]]|
+               diag14 %in% outcomes[["ADRD"]][["icd9"]]|
+               diag15 %in% outcomes[["ADRD"]][["icd9"]]|
+               diag16 %in% outcomes[["ADRD"]][["icd9"]]|
+               diag17 %in% outcomes[["ADRD"]][["icd9"]]|
+               diag18 %in% outcomes[["ADRD"]][["icd9"]]|
+               diag19 %in% outcomes[["ADRD"]][["icd9"]]|
+               diag20 %in% outcomes[["ADRD"]][["icd9"]]|
+               diag21 %in% outcomes[["ADRD"]][["icd9"]]|
+               diag22 %in% outcomes[["ADRD"]][["icd9"]]|
+               diag23 %in% outcomes[["ADRD"]][["icd9"]]|
+               diag24 %in% outcomes[["ADRD"]][["icd9"]]|
+               diag25 %in% outcomes[["ADRD"]][["icd9"]]|
+               DIAG1 %in% outcomes[["ADRD"]][["icd10"]]|
+               DIAG2 %in% outcomes[["ADRD"]][["icd10"]]|
+               DIAG3 %in% outcomes[["ADRD"]][["icd10"]]|
+               DIAG4 %in% outcomes[["ADRD"]][["icd10"]]|
+               DIAG5 %in% outcomes[["ADRD"]][["icd10"]]|
+               DIAG6 %in% outcomes[["ADRD"]][["icd10"]]|
+               DIAG7 %in% outcomes[["ADRD"]][["icd10"]]|
+               DIAG8 %in% outcomes[["ADRD"]][["icd10"]]|
+               DIAG9 %in% outcomes[["ADRD"]][["icd10"]]|
+               DIAG10 %in% outcomes[["ADRD"]][["icd10"]]|
+               diag11 %in% outcomes[["ADRD"]][["icd10"]]|
+               diag12 %in% outcomes[["ADRD"]][["icd10"]]|
+               diag13 %in% outcomes[["ADRD"]][["icd10"]]|
+               diag14 %in% outcomes[["ADRD"]][["icd10"]]|
+               diag15 %in% outcomes[["ADRD"]][["icd10"]]|
+               diag16 %in% outcomes[["ADRD"]][["icd10"]]|
+               diag17 %in% outcomes[["ADRD"]][["icd10"]]|
+               diag18 %in% outcomes[["ADRD"]][["icd10"]]|
+               diag19 %in% outcomes[["ADRD"]][["icd10"]]|
+               diag20 %in% outcomes[["ADRD"]][["icd10"]]|
+               diag21 %in% outcomes[["ADRD"]][["icd10"]]|
+               diag22 %in% outcomes[["ADRD"]][["icd10"]]|
+               diag23 %in% outcomes[["ADRD"]][["icd10"]]|
+               diag24 %in% outcomes[["ADRD"]][["icd10"]]|
+               diag25 %in% outcomes[["ADRD"]][["icd10"]]]
+  
+  for (type in c("primary", "secondary")) {
+    varname <- paste0("ADRD_", type)
+    write_fst(admissions[(get(varname)),], paste0(dir_output, "ADRD", type, "_", year_, ".fst"))
   }
-  for (i in 2000:2016) {
-    for (outcome in names(outcomes)) {
-      for (type in c("primary", "secondary")) {
-        varname <- paste0(outcome, "_", type)
-        if (file.exists(paste0(dir_output, outcome, type, "_", i, ".fst"))) {
-          year_admissions <- read_fst(paste0(dir_output, outcome, type, "_", i, ".fst"))
-        } else {
-          year_admissions <- NULL
-        }
-        year_admissions <- rbind(year_admissions, admissions[year == i & get(varname) == T])
-        if (nrow(year_admissions) != 0) {
-          write_fst(year_admissions, paste0(dir_output, outcome, type, "_", i, ".fst"))
-        }
-      }
-    }
-  }
+  
+  # for (i in 2000:2016) {
+  #   for (outcome in names(outcomes)) {
+  #     for (type in c("primary", "secondary")) {
+  #       varname <- paste0(outcome, "_", type)
+  #       if (file.exists(paste0(dir_output, outcome, type, "_", i, ".fst"))) {
+  #         year_admissions <- read_fst(paste0(dir_output, outcome, type, "_", i, ".fst"))
+  #       } else {
+  #         year_admissions <- NULL
+  #       }
+  #       year_admissions <- rbind(year_admissions, admissions[year == i & get(varname) == T])
+  #       if (nrow(year_admissions) != 0) {
+  #         write_fst(year_admissions, paste0(dir_output, outcome, type, "_", i, ".fst"))
+  #       }
+  #     }
+  #   }
+  # }
 }
 gc()
 gc()
