@@ -1,14 +1,12 @@
-###############################################################################
-# Project: Air Pollution on mortality and readmission in Medicare AD/ADRD     #
-# Code: extract ADRD population based on enrolled info from denominator files #
-# Input: "EnrolledInfo.csv"
-# Input: denominator files                             
-# Output: "ADRDpeople_denom.csv" the data extracted from denominator files          
-# Author: Shuxin Dong                                                         #
-# Date: 2021-01-19                                                            #
-###############################################################################
+#' Project: Air Pollution on mortality and readmission in Medicare AD/ADRD
+#' Code: extract ADRD population based on enrolled info from denominator files
+#' Input: "EnrolledInfo.csv"
+#' Input: denominator files
+#' Output: "ADRDpeople_denom.csv" the data extracted from denominator files
+#' Author: Shuxin Dong
+#' First create date: 2021-01-19 
 
-############################# 0. Setup ########################################
+## setup ----
 rm(list = ls())
 gc()
 
@@ -47,91 +45,46 @@ myvars <- c("qid", "year", "zip", "sex", "race", "age", "dual", "statecode", "de
 
 enrolledInfo <- fread(paste0(dir_enrolledInfo, "EnrolledInfo.csv"))
 dim(enrolledInfo)[1]
-# [1] 7315095
+# [1] 7647589
 
-################################# 1. Subset ###################################
-dt1_3 <- rbindlist(lapply(f[1:3],
+## subset denominator files ----
+#' select denominator with ADRD based on qid
+#' read first 9 files
+dt1_9 <- rbindlist(lapply(f[1:9],
                        read_fst,
                        columns = myvars,
-                       as.data.table = TRUE))
-subset1_3 <- dt1_3[qid %in% enrolledInfo[,QID], ]
-rm(dt1_3)
+                       as.data.table = TRUE)) # 311699186 rows
+subset1_9 <- dt1_9[qid %in% enrolledInfo[,QID], ] # 54085330 rows
+rm(dt1_9)
 gc()
-
-dt4_6 <- rbindlist(lapply(f[4:6],
+#' read 10-18 files
+dt10_18 <- rbindlist(lapply(f[10:18],
                           read_fst,
                           columns = myvars,
                           as.data.table = TRUE))
-subset4_6 <- dt4_6[qid %in% enrolledInfo[,QID], ]
-rm(dt4_6)
+subset10_18 <- dt10_18[qid %in% enrolledInfo[,QID], ]
+rm(dt10_18)
 gc()
 
-ADRDpeople <- rbind(subset1_3, subset4_6)
-rm(subset1_3)
-rm(subset4_6)
+#' combine two subset together
+ADRDpeople <- rbind(subset1_9, subset10_18)
+rm(subset1_9)
+rm(subset10_18)
 gc()
 
-dt7_9 <- rbindlist(lapply(f[7:9],
-                          read_fst,
-                          columns = myvars,
-                          as.data.table = TRUE))
-subset7_9 <- dt7_9[qid %in% enrolledInfo[,QID], ]
-rm(dt7_9)
-gc()
+uniqueN(ADRDpeople[,qid]) # number of ADRD people in denominator file
+# [1] 7638776
+dim(ADRDpeople) # person-year
+# [1]   81080253       23     
 
-ADRDpeople <- rbind(ADRDpeople, subset7_9)
-rm(subset7_9)
-gc()
-
-dt10_12 <- rbindlist(lapply(f[10:12],
-                          read_fst,
-                          columns = myvars,
-                          as.data.table = TRUE))
-subset10_12 <- dt10_12[qid %in% enrolledInfo[,QID], ]
-rm(dt10_12)
-gc()
-
-ADRDpeople <- rbind(ADRDpeople, subset10_12)
-rm(subset10_12)
-gc()
-
-dt13_15 <- rbindlist(lapply(f[13:15],
-                          read_fst,
-                          columns = myvars,
-                          as.data.table = TRUE))
-subset13_15 <- dt13_15[qid %in% enrolledInfo[,QID], ]
-rm(dt13_15)
-gc()
-
-ADRDpeople <- rbind(ADRDpeople, subset13_15)
-rm(subset13_15)
-gc()
-
-dt16_18 <- rbindlist(lapply(f[16:18],
-                          read_fst,
-                          columns = myvars,
-                          as.data.table = TRUE))
-subset16_18 <- dt16_18[qid %in% enrolledInfo[,QID], ]
-rm(dt16_18)
-gc()
-
-ADRDpeople <- rbind(ADRDpeople, subset16_18)
-rm(subset16_18)
-gc()
-
-
-uniqueN(ADRDpeople[,qid])
-# [1] 7306343
-dim(ADRDpeople)
-# [1]   76411800       23     
-
+## merge enrollInfo into ADRD denom ----
 ADRDpeople <- merge(ADRDpeople, enrolledInfo, by.x = "qid", by.y = "QID", all = FALSE)
 setorder(ADRDpeople, qid, year)
-ADRDpeople <- ADRDpeople[year >= firstADRDyr, ]
+ADRDpeople <- ADRDpeople[year >= firstADRDyr, ] # subset from firstADRDyr
 uniqueN(ADRDpeople[,qid])
-# [1] 7306116
+# [1] 7638546
 dim(ADRDpeople)
-# [1]    25112131       24    
-setorder(ADRDpeople, qid, year)
+# [1]    25787050       24    
 ADRDpeople[, zip := int_to_zip_str(zip)]
-fwrite(ADRDpeople, paste0(dir_output, "ADRDpeople_denom.csv"))
+
+write_fst(ADRDpeople, paste0(dir_output, "ADRDpeople_denom.fst"))
