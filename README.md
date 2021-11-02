@@ -13,7 +13,7 @@ air pollution and mortality/readmission in Medicare ADRD
 - the qid changed after a certain time, but there is a crosswalk file linking qids. According to Ben, QIDs in raw dataset have been converted to one single formmat
 - still, some qids weren't matched. We excluded those problemetic qids based on the .csv file Ben provided.
 - export `EnrolledInfo.csv`, only containing `QID` and `firstADRDyr`(first hospitalization admission year with ADRD). one-row-per-person
-- export `ReAdInfo.csv`, only containing `QID` and `ReAdyr`(second hospitalization admission year with ADRD). one-row-per-person
+- export `ReAdmissionInfo.csv`, only containing `QID` and `ReAdyr`(second hospitalization admission year with ADRD). one-row-per-person
 
 ### extract denominator info for ADRD people in Medicare
 [03extractDenominatorFile.R](https://github.com/ShuxinD/airPollution_ADRD/blob/main/codes/00generate_data/03extractDenominatorFile.R) 
@@ -40,4 +40,7 @@ air pollution and mortality/readmission in Medicare ADRD
 - add necessary variables into the dataset: `entry_age_break`, `race_collapsed`, `ox`, `region`
 - export `ADRDcohort_clean.fst`
 
-
+### prepare datasets for event (dead, readmission)
+[07generateReAd.R](https://github.com/ShuxinD/airPollution_ADRD/blob/main/codes/00generate_data/07generateReAd.R)
+- `ADRDcohort_clean.fst` is ready to be used for time-to-death analysis
+- subset `ADRDcohort_clean.fst` based on `ReAdmission.csv` for time-to-readmission analysis
