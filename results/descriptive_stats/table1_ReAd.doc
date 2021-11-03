@@ -26,47 +26,47 @@ Table1_person year_ReAd\par}
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 n\cell
-\pard\qr\widctlpar\intbl\fi0\f2\fs20  12487702\cell
+\pard\qr\widctlpar\intbl\fi0\f2\fs20  10208151\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 pm25 (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20     10.60 (2.90)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20     10.70 (2.94)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 no2 (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20     20.16 (10.15)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20     20.35 (10.20)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 ozone (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20     38.59 (4.05)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20     38.60 (4.08)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 ox (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20     32.37 (3.88)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20     32.44 (3.90)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 ozone_summer (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20     45.08 (5.80)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20     45.17 (5.81)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 mean_bmi (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20     27.49 (0.95)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20     27.46 (0.96)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 smoke_rate (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20      0.46 (0.07)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20      0.47 (0.07)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 hispanic (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20      0.12 (0.17)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20      0.11 (0.17)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
@@ -76,12 +76,12 @@ Table1_person year_ReAd\par}
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 medhouseholdincome (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  53064.96 (22365.10)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  52911.69 (22290.97)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 medianhousevalue (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20 197905.29 (155875.39)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20 196130.39 (154652.95)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
@@ -96,7 +96,7 @@ Table1_person year_ReAd\par}
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 popdensity (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20   3455.97 (9278.55)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20   3400.32 (9176.13)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
@@ -106,22 +106,22 @@ Table1_person year_ReAd\par}
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 summer_tmmx (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20    303.11 (3.43)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20    303.07 (3.43)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 winter_tmmx (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20    281.99 (7.29)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20    281.90 (7.26)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 summer_rmax (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20     88.04 (10.76)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20     88.08 (10.78)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\clbrdrb\brdrs\brdrw15\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\clbrdrb\brdrs\brdrw15\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 winter_rmax (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20     84.75 (7.54)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20     84.82 (7.55)\cell
 \widctlpar\intbl\row
 }
 
@@ -347,12 +347,12 @@ Table1_person year_ReAd\par}
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 followup_duration (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20    2.46 (2.10)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20    2.01 (1.70)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\clbrdrb\brdrs\brdrw15\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\clbrdrb\brdrs\brdrw15\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 ReAd_end = Yes (%)\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20 2631015 (51.8) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20 3626160 (71.4) \cell
 \widctlpar\intbl\row
 }
 
