@@ -12,8 +12,7 @@ air pollution and mortality/readmission in Medicare ADRD
 [02getEnrolledInfo.R](https://github.com/ShuxinD/airPollution_ADRD/blob/main/codes/00generate_data/02getEnrolledInfo.R) 
 - the qid changed after a certain time, but there is a crosswalk file linking qids. According to Ben, QIDs in raw dataset have been converted to one single formmat
 - still, some qids weren't matched. We excluded those problemetic qids based on the .csv file Ben provided.
-- export `EnrolledInfo.csv`, only containing `QID` and `firstADRDyr`(first hospitalization admission year with ADRD). one-row-per-person
-- export `ReAdmissionInfo.csv`, only containing `QID` and `ReAdyr`(second hospitalization admission year with ADRD). one-row-per-person
+- export `EnrolledInfo.csv`, only containing `QID` and `firstADRDyr`(first hospitalization admission year with ADRD), one-row-per-person
 
 ### extract denominator info for ADRD people in Medicare
 [03extractDenominatorFile.R](https://github.com/ShuxinD/airPollution_ADRD/blob/main/codes/00generate_data/03extractDenominatorFile.R) 
@@ -40,7 +39,11 @@ air pollution and mortality/readmission in Medicare ADRD
 - add necessary variables into the dataset: `entry_age_break`, `race_collapsed`, `ox`, `region`
 - export `ADRDcohort_clean.fst`
 
-### prepare datasets for event (dead, readmission)
+### prepare datasets for event analysis (death and readmission)
 [07generateReAd.R](https://github.com/ShuxinD/airPollution_ADRD/blob/main/codes/00generate_data/07generateReAd.R)
 - `ADRDcohort_clean.fst` is ready to be used for time-to-death analysis
+- we defined "readmission" as the second admission of ADRD people after their first hospitalization with ADRD, and the second hospitalization doesn't have to contain ADRD billing code. This is for a better capture of "how sick" ADRD people are, also once people diagnosed with ADRD, they will always have that disease, no matter it was billed or not. When people is too sick, the doctor may not bother billing ADRD instead of other fatal diseases (such as organ failure)
+- instead of extracting all hospitalization records with ADRD code as in [01extractADRDhospital.R](https://github.com/ShuxinD/airPollution_ADRD/blob/main/codes/00generate_data/01extractADRDhospital.R), we extracted all hospitalization records for ADRD people based on qid in `EnrolledInfo.csv`.
+- subset the hospitalization records for each ADRD patient to the records after their first ADRD hospitalizatoin, and the minimum of admission year would be the `firstRdADyr`
+- export `ReAdissionInfo.csv`, only containing `QID` and `firstReAdyr`(second hospitalization admission year), one-row-per-person
 - subset `ADRDcohort_clean.fst` based on `ReAdmission.csv` for time-to-readmission analysis
