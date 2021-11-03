@@ -108,11 +108,11 @@ HR <- cbind(HR,IQRunit)
 cat("output HR for cox 3-pollutant model \n")
 HR[, `:=`(HR_IQR = exp(coef*IQRunit),
           HR_lci = exp((coef-1.96*`robust se`)*IQRunit),
-          HR_uci = exp((coef+1.96*`robust se)`)*IQRunit))][]
+          HR_uci = exp((coef+1.96*`robust se`)*IQRunit))][]
 fwrite(HR, paste0(dir_out, "cox_mortality_all3_HR.csv"))
 
 cat("estimate cox for 2-pollutant model \n")
-cox_all2 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead) ~ 
+cox_all2 <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = dead) ~ 
                     pm25 + ox +
                     mean_bmi + smoke_rate + 
                     hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
@@ -122,7 +122,7 @@ cox_all2 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = de
                   data = dt,
                   tie = c("efron"), 
                   na.action = na.omit)
-tb <- summary(cox_1_all2)$coefficients
+tb <- summary(cox_all2)$coefficients
 tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)[]
 fwrite(tb, paste0(dir_out, "cox_mortality_all2.csv"))
@@ -136,7 +136,7 @@ HR[, `:=`(HR_IQR = exp(coef*IQRunit),
           HR_uci = exp((coef+1.96*`robust se`)*IQRunit))][]
 fwrite(HR, paste0(dir_out, "cox_mortality_all2_HR.csv"))
 
-## 3. splines ----
+## splines ----
 cox_splines <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = dead) ~ 
                        pspline(pm25, df=4) + 
                        pspline(no2, df=4) + 
