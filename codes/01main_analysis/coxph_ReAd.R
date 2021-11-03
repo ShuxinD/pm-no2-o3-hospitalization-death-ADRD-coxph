@@ -165,12 +165,12 @@ cox_all2 <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = 
                     hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
                     summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                     as.factor(year) +  as.factor(region) +
-                    strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
+                    strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
                   weights = deadipw_all2,
                   data = dt,
                   tie = "efron", 
                   na.action = na.omit)
-tb <- summary(cox_1_all2)$coefficients
+tb <- summary(cox_all2)$coefficients
 tb <- as.data.frame(tb)
 setDT(tb, keep.rownames = TRUE)[]
 fwrite(tb, paste0(dir_out, "cox_ReAd_all2.csv"))
