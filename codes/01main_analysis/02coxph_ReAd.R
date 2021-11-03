@@ -1,54 +1,59 @@
-#' Project: Air Pollution and mortality / readmission in AD/ADRD Medicare
-#' Code: Cox PH model
-#' Input: "ADRD_for_ReAd.csv"                                                  
-#' Output: ...
+#' Project: airPollution_ADRD
+#' Code: cox ph model for readmission
+#' Input: "ADRDcohort_ReAd.fst"                                                  
+#' Output: model specific results
 #' Author: Shuxin Dong
 #' First create date: 2021-02-17
 
-############################# 0. Setup ########################################
+# setup ----
 rm(list = ls())
 gc()
 
 library(data.table)
+library(fst)
 setDTthreads(threads = 0)
 library(survival)
 
 setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/")
 dir_data <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
 
-dt <- fread(paste0(dir_data, "ADRD_for_ReAd.csv"), colClasses = c("zip"="character"))
+## load data ----
+dt <- read_fst(paste0(dir_data, "ADRDcohort_ReAd.fst"), as.data.table = T)
 names(dt)
-# [1] "qid"                "zip"                "year"               "sex"                "race"               "age"               
-# [7] "dual"               "statecode"          "dead"               "mean_bmi"           "smoke_rate"         "hispanic"          
-# [13] "pct_blk"            "medhouseholdincome" "medianhousevalue"   "poverty"            "education"          "popdensity"        
-# [19] "pct_owner_occ"      "summer_tmmx"        "winter_tmmx"        "summer_rmax"        "winter_rmax"        "firstADRDyr"       
-# [25] "pm25"               "no2"                "ozone"              "ozone_summer"       "entry_age"          "entry_age_break"   
-# [31] "race_collapsed"     "ox"                 "first_ReAdyr"       "ReAd"     
 
-dt[, followupyr := (year - firstADRDyr)]
-dt[, followupyr_plusone := followupyr +1]
-dt[, statecode := as.factor(statecode)]
-
-NORTHEAST <- c("NY", "MA", "PA", "RI", "NH", "ME", "VT", "CT", "NJ")  
-SOUTH <- c("DC", "VA", "NC", "WV", "KY", "SC", "GA", "FL", "AL", "TN", "MS", 
-           "AR", "MD", "DE", "OK", "TX", "LA")
-MIDWEST <- c("OH", "IN", "MI", "IA", "MO", "WI", "MN", "SD", "ND", "IL", "KS", "NE")
-WEST <- c("MT", "CO", "WY", "ID", "UT", "NV", "CA", "OR", "WA", "AZ", "NM")
-
-dt$region <- ifelse(dt$statecode %in% NORTHEAST, "NORTHEAST",
-                    ifelse(dt$statecode %in% SOUTH, "SOUTH",
-                           ifelse(dt$statecode  %in% MIDWEST, "MIDWEST",
-                                  ifelse(dt$statecode  %in% WEST, "WEST",
-                                         NA))))
-dt[, region:=as.factor(region)]
-head(dt)
-gc()
+dt[, dual := as.numeric(dual)]
+dt[, followupyr_start := (year - firstADRDyr - 1)]
+dt[, followupyr_end := (year - firstADRDyr)]
 
 IQRs <- data.table(IQR(dt$pm25), IQR(dt$no2), IQR(dt$ozone), IQR(dt$ox), IQR(dt$ozone_summer))
 colnames(IQRs) <- c("pm25", "no2", "ozone", "ox", "ozone_summer")
 print(IQRs)
 
-# 1. single-pollutants model ----
+## calculate IP weights to account for competing risks of mortality ----
+#' create "dead_cr" to fix death when occuring at the same year as ReAd
+dt[, dead_cr := ifelse((dead)&(ReAd),0,dead)]
+#' propensity score models for mortality
+for (pollutants_i in pollutants){
+  cat("fit ps model for mortality with", pollutants_i, "\n")
+  denom.death <- glm(dead_cr ~ get(pollutants_i) + 
+                       mean_bmi + smoke_rate + 
+                       hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
+                       summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+                       as.factor(year) +  as.factor(region) +
+                       as.factor(entry_age_break) + as.factor(sex) + as.factor(race_collapsed) + as.factor(dual),
+                     data = dt, family = binomial(link = "logit"))
+  p_denom.death <- 1 - predict(denom.death, type = "response")
+  num.death <- glm(dead_cr ~ get(pollutants_i),
+                   data = dt, family = binomial(link = "logit"))
+  p_num.death <- 1 - predict(num.death, type = "response")
+  assign(paste0("deadipw_", pollutants_i), p_denom.death/p_denom.death)
+}
+
+
+survstroke1$death.weight.pm<-p.num.death.pm/p.denom.death
+#' calculate IP weights and merged into the dataset
+
+## 1. single-pollutants model ----
 dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/airPollution_ADRD/results/main_analyses/coxph_ReAd/"
 pollutants <- c("pm25", "no2", "ozone_summer", "ox")
 
