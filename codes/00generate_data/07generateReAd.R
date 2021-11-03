@@ -11,16 +11,79 @@ gc()
 
 library(data.table)
 library(fst)
+library(lubridate)
+library(NSAPHutils)
 setDTthreads(threads = 0)
 
 dir_in <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
 dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
 
-## load data ---
+## load cohort enrollment info ----
+enrollInfo <- fread(paste0(dir_in, "EnrolledInfo.csv"))
+head(enrollInfo)
+
+## load inpatient records ----
+dir_hospital <- "/nfs/home/S/shd968/shared_space/ci3_health_data/medicare/gen_admission/1999_2016/targeted_conditions/cache_data/admissions_by_year/"
+dir_cohortAd <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/ADRDcohort_hospitalization/"
+
+for (year_ in 2000:2016) {
+  admissions <- read_data(dir_hospital, years = year_,
+                          columns = c("QID",
+                                      "ADATE",
+                                      "DDATE"))
+  admissions <- admissions[QID %in% enrollInfo[,QID]]
+  admissions[, ADATE := dmy(ADATE)]
+  admissions[, DDATE := dmy(DDATE)]
+  admissions[, year := year(ADATE)]
+  admissions <- admissions[year %in% 2000:2016]
+  cat("Loading", year_, "hospitalization file... \n")
+  
+  write_fst(admissions, paste0(dir_cohortAd, "ADRDcohort_hospitalization", year_, ".fst"))
+}
+
+## combine cohort hospitalization files together ----
+ADRDcohort_hosp <- NULL
+for (i in 2000:2016) {
+  adm_ <- read_fst( paste0(dir_cohortAd, "ADRDcohort_hospitalization", year_, ".fst"))
+  ADRDcohort_hosp <- rbind(ADRDcohort_hosp, adm_)
+  cat("finish loading file:", "ADRDsecondary_", i,".fst", "\n")
+}
+rm(adm_)
+gc()
+
+## clean the ADRD cohort inpatient records ----
+setDT(ADRDcohort_hosp)
+names(ADRDcohort_hosp)
+#' year as Admission year
+dim(ADRDcohort_hosp) # [1] 16190443       31
+
+any(duplicated(ADRDcohort_hosp))  # TRUE
+sum(duplicated(ADRDcohort_hosp)) # 1441 number of duplicates
+ADRDcohort_hosp <- unique(ADRDcohort_hosp) # remove all the duplicates
+dim(ADRDcohort_hosp) # [1] 16189002       31 # dimention after removing duplicates
+gc()
+
+ADRDcohort_hosp_time <- ADRDhosp[,.(QID, year)] # drop all diagnosis codes, only save QID, admission year
+gc()
+head(ADRDcohort_hosp_time)
+ADRDcohort_hosp_time <- unique(ADRDcohort_hosp_time) # remove duplicate of Admission year (some may be admitted several times in one year)
+dim(ADRDcohort_hosp_time) # [1] 11843820        2
+gc()
+
+ADRDcohort_hosp_time <- merge(ADRDcohort_hosp_time, enrollInfo, by = "QID", all.x=T) # merge firstADRDyr to cohort hospitalization
+ADRDcohort_hosp_time[year>firstADRDyr] #subset to those admitted after firstADRDyr
+ADRDcohort_hosp_time[year>firstADRDyr] <- ADRDcohort_hosp_time[year>firstADRDyr]
+
+## generate ReAd info ----
+setorder(ADRDcohort_hosp_time, QID, year)
+ReAdInfo <- ADRDcohort_hosp_time[, .(firstReAdyr = min(year)), by = QID]
+dim(ReAdInfo)
+
+table(ReAdInfo[,firstReAdyr])
+fwrite(ReAdInfo, paste0(dir_in, "ReAdmissionInfo.csv"))
+
+## load ADRD cohort data ---
 cohort <- read_fst(paste0(dir_in, "ADRDcohort_clean.fst"), as.data.table = T)
-ReAdInfo <- fread(paste0(dir_in, "ReAdmissionInfo.csv"))
-head(ReAdInfo)
-names(ReAdInfo)
 
 ## subset ----
 dt_ReAd_event <- cohort[qid %in% ReAdInfo[,QID],]
@@ -29,13 +92,16 @@ dt_ReAd_event <- cohort[qid %in% ReAdInfo[,QID],]
 dt_ReAd_event <- merge(dt_ReAd_event, ReAdInfo, by.x = "qid", by.y = "QID", all.x = TRUE)
 head(dt_ReAd_event)
 dt_ReAd_event$ReAd <- FALSE
-dt_ReAd_event[year==first_ReAdyr, ReAd:=TRUE][]
+dt_ReAd_event[year==firstReAdyr, ReAd:=TRUE][]
 dt_ReAd_event <- dt_ReAd_event[year<=first_ReAdyr, ]
 
 dt_ReAd_noevent <- cohort[!(qid %in% ReAdInfo[,QID]),]
 head(dt_ReAd_noevent)
-dt_ReAd_noevent[, first_ReAdyr := 0000][]
+dt_ReAd_noevent[, firstReAdyr := 0000][]
 dt_ReAd_noevent[, ReAd := FALSE]
 
-dt_ReAD <- rbind(dt_ReAd_event, dt_ReAd_noevent)
-write_fst(dt_ReAD, paste0(dir_out, "ADRDcohort_ReAd.fst"))
+dt_ReAd <- rbind(dt_ReAd_event, dt_ReAd_noevent)
+
+dt_ReAd[(dead)&(ReAd),]
+
+write_fst(dt_ReAd, paste0(dir_out, "ADRDcohort_ReAd.fst"))
