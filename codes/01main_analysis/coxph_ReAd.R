@@ -31,10 +31,13 @@ print(IQRs)
 
 ## calculate IP weights to account for competing risks of mortality ----
 #' create "dead_cr" to fix death when occuring at the same year as ReAd
-dt[, dead_cr := ifelse((dead)&(ReAd),0,dead)]
-#' propensity score models for mortality
+dt[, dead_cr := ifelse((dead)&(ReAd),F,dead)]
+#' construct PS model and calculate IP weights
+## single-pollutant
+pollutants <- c("pm25", "no2", "ozone", "ozone_summer", "ox")
 for (pollutants_i in pollutants){
   cat("fit ps model for mortality with", pollutants_i, "\n")
+  # P(D=0|A,L)
   denom.death <- glm(dead_cr ~ get(pollutants_i) + 
                        mean_bmi + smoke_rate + 
                        hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
@@ -43,31 +46,74 @@ for (pollutants_i in pollutants){
                        as.factor(entry_age_break) + as.factor(sex) + as.factor(race_collapsed) + as.factor(dual),
                      data = dt, family = binomial(link = "logit"))
   p_denom.death <- 1 - predict(denom.death, type = "response")
+  # P(D=0|A)
   num.death <- glm(dead_cr ~ get(pollutants_i),
                    data = dt, family = binomial(link = "logit"))
   p_num.death <- 1 - predict(num.death, type = "response")
-  assign(paste0("deadipw_", pollutants_i), p_denom.death/p_denom.death)
+  assign(paste0("deadipw_", pollutants_i), p_num.death/p_denom.death)
 }
+rm(p_denom.death)
+rm(p_num.death)
+gc()
+## multi-pollutant pm25 no2 and ozone
+cat("fit ps model for mortality with pm25 no2 and ozone \n")
+# P(D=0|A,L)
+denom.death <- glm(dead_cr ~ pm25 + no2 + ozone_summer +  
+                       mean_bmi + smoke_rate + 
+                       hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
+                       summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+                       as.factor(year) +  as.factor(region) +
+                       as.factor(entry_age_break) + as.factor(sex) + as.factor(race_collapsed) + as.factor(dual),
+                   data = dt, family = binomial(link = "logit"))
+p_denom.death <- 1 - predict(denom.death, type = "response")
+# P(D=0|A)
+num.death <- glm(dead_cr ~ pm25 + no2 + ozone_summer,
+                   data = dt, family = binomial(link = "logit"))
+p_num.death <- 1 - predict(num.death, type = "response")
+assign(paste0("deadipw_all3"), p_num.death/p_denom.death)
+## multi-pollutant pm25 and ox
+cat("fit ps model for mortality with pm25 and ox \n")
+# P(D=0|A,L)
+denom.death <- glm(dead_cr ~ pm25 + ox +  
+                     mean_bmi + smoke_rate + 
+                     hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
+                     summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+                     as.factor(year) +  as.factor(region) +
+                     as.factor(entry_age_break) + as.factor(sex) + as.factor(race_collapsed) + as.factor(dual),
+                   data = dt, family = binomial(link = "logit"))
+p_denom.death <- 1 - predict(denom.death, type = "response")
+# P(D=0|A)
+num.death <- glm(dead_cr ~ pm25 + ox,
+                 data = dt, family = binomial(link = "logit"))
+p_num.death <- 1 - predict(num.death, type = "response")
+assign(paste0("deadipw_all2"), p_num.death/p_denom.death)
+#' merged into the dataset
+dt[, `:=` (deadipw_pm25 = deadipw_pm25,
+           deadipw_no2 = deadipw_no2,
+           deadipw_ozone = deadipw_ozone,
+           deadipw_ozone_summer = deadipw_ozone_summer,
+           deadipw_ox = deadipw_ox,
+           deadipw_all3 = deadipw_all3,
+           deadipw_all2 = deadipw_all2)]
+#' save ipws just in case
+write_fst(dt[,.(qid, year, deadipw_pm25, deadipw_no2, deadipw_ozone, deadipw_ozone_summer, deadipw_ox, deadipw_all3, deadipw_all2)], paste0(dir_data,"ADRDcohort_ReAd_deadipw.fst"))
 
-
-survstroke1$death.weight.pm<-p.num.death.pm/p.denom.death
-#' calculate IP weights and merged into the dataset
-
-## 1. single-pollutants model ----
+## single-pollutants model ----
 dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/airPollution_ADRD/results/main_analyses/coxph_ReAd/"
 pollutants <- c("pm25", "no2", "ozone_summer", "ox")
 
 for (pollutants_i in pollutants){
   cat("fit coxph model", pollutants_i, "\n")
-  cox <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = ReAd) ~ 
+  cox <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = ReAd) ~ 
                  get(pollutants_i) + 
                  mean_bmi + smoke_rate + 
                  hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
                  summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                  as.factor(year) +  as.factor(region) +
-                 strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
+                 strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+               weights = get(paste0("deadipw_",pollutants_i)),
                data = dt,
-               tie = c("efron"), 
+               tie = "efron", 
                na.action = na.omit)
   tb <- summary(cox)$coefficients
   tb <- as.data.frame(tb)
@@ -77,23 +123,24 @@ for (pollutants_i in pollutants){
   HR <- tb[1,]
   HR <- cbind(HR, IQRs[, get(pollutants_i)])
   HR[, `:=`(HR_IQR = exp(coef*IQRs[, get(pollutants_i)]),
-            HR_lci = exp((coef-1.96*`se(coef)`)*IQRs[, get(pollutants_i)]),
-            HR_uci = exp((coef+1.96*`se(coef)`)*IQRs[, get(pollutants_i)]))][]
+            HR_lci = exp((coef-1.96*`robust se`)*IQRs[, get(pollutants_i)]),
+            HR_uci = exp((coef+1.96*`robust se`)*IQRs[, get(pollutants_i)]))][]
   fwrite(HR, paste0(dir_out, "cox_ReAd_", pollutants_i, "_HR.csv"))
   cat("save HR for cox ReAd", pollutants_i, "\n")
 }
 
-# 2. multi-pollutants model ----
+## multi-pollutants model ----
 dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/airPollution_ADRD/results/main_analyses/coxph_ReAd/"
 
 cat("estimate cox for 3-pollutant model \n")
-cox_all3 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = ReAd) ~ 
+cox_all3 <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = ReAd) ~ 
                     pm25 + no2 + ozone_summer + 
                     mean_bmi + smoke_rate + 
                     hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
                     summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                     as.factor(year) +  as.factor(region) +
-                    strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
+                    strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+                  weights = deadipw_all3,
                   data = dt,
                   tie = c("efron"), 
                   na.action = na.omit)
@@ -107,20 +154,21 @@ HR <- tb[1:3,]
 HR <- cbind(HR,IQRunit)
 cat("output HR for cox 3-pollutant model \n")
 HR[, `:=`(HR_IQR = exp(coef*IQRunit),
-          HR_lci = exp((coef-1.96*`se(coef)`)*IQRunit),
-          HR_uci = exp((coef+1.96*`se(coef)`)*IQRunit))][]
+          HR_lci = exp((coef-1.96*`robust se`)*IQRunit),
+          HR_uci = exp((coef+1.96*`robust se`)*IQRunit))][]
 fwrite(HR, paste0(dir_out, "cox_ReAd_all3_HR.csv"))
 
 cat("estimate cox for 2-pollutant model \n")
-cox_all2 <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = ReAd) ~ 
+cox_all2 <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = ReAd) ~ 
                     pm25 + ox +
                     mean_bmi + smoke_rate + 
                     hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
                     summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                     as.factor(year) +  as.factor(region) +
                     strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
+                  weights = deadipw_all2,
                   data = dt,
-                  tie = c("efron"), 
+                  tie = "efron", 
                   na.action = na.omit)
 tb <- summary(cox_1_all2)$coefficients
 tb <- as.data.frame(tb)
@@ -132,24 +180,23 @@ HR <- tb[1:2,]
 HR <- cbind(HR,IQRunit)
 cat("output HR for cox 3-pollutant model \n")
 HR[, `:=`(HR_IQR = exp(coef*IQRunit),
-          HR_lci = exp((coef-1.96*`se(coef)`)*IQRunit),
-          HR_uci = exp((coef+1.96*`se(coef)`)*IQRunit))][]
+          HR_lci = exp((coef-1.96*`robust se`)*IQRunit),
+          HR_uci = exp((coef+1.96*`robust se`)*IQRunit))][]
 fwrite(HR, paste0(dir_out, "cox_ReAd_all2_HR.csv"))
 
-# 3. splines ----
-cox_splines <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = ReAd) ~ 
-                       pspline(pm25, df=4) + 
-                       pspline(no2, df=4) + 
-                       pspline(ozone, df=4) + 
-                       mean_bmi + smoke_rate + hispanic + pct_blk + 
-                       medhouseholdincome + medianhousevalue +  
-                       poverty + education + popdensity + pct_owner_occ +
-                       summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
-                       as.factor(year) +  as.factor(region) +
-                       strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-                       strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
-                     data = dt,
-                     tie = c("efron"), 
-                     na.action = na.omit)
-print(cox_splines)
-termplot(cox_splines, term = 1, se=TRUE, col.term = 1, col.se = 1)
+# splines ----
+# cox_splines <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = ReAd) ~ 
+#                        pspline(pm25, df=4) + 
+#                        pspline(no2, df=4) + 
+#                        pspline(ozone, df=4) + 
+#                        mean_bmi + smoke_rate + hispanic + pct_blk + 
+#                        medhouseholdincome + medianhousevalue +  
+#                        poverty + education + popdensity + pct_owner_occ +
+#                        summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+#                        as.factor(year) +  as.factor(region) +
+#                        strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+#                      data = dt,
+#                      tie = c("efron"), 
+#                      na.action = na.omit)
+# print(cox_splines)
+# termplot(cox_splines, term = 1, se=TRUE, col.term = 1, col.se = 1)
