@@ -78,17 +78,17 @@ dim(enrolledInfo)
 ## save enrolled INFO ----
 fwrite(enrolledInfo, paste0(dir_output, "EnrolledInfo.csv"))
 
-## save readmission info ----
-ADRDhosp_time <- ADRDhosp_time[!(QID %in% probIDs[,old_id]),]
-setorder(ADRDhosp_time, QID, year)
-head(ADRDhosp_time, 10)
-ADRDhosp_time[, count:=.N, by = QID][]
-dim(ADRDhosp_time) # 11841340
-re_ADRDhosp <- ADRDhosp_time[count>1, ]
-dim(re_ADRDhosp) # 6902721
-dt <- re_ADRDhosp[, .SD[2], by = QID]
-head(dt)
-dt[, first_ReAdyr := year][]
-dt[, `:=` (count = NULL,
-           year = NULL)][]
-fwrite(dt, paste0(dir_output, "ReAdmissionInfo.csv"))
+## save readmission info: not save admision here
+# ADRDhosp_time <- ADRDhosp_time[!(QID %in% probIDs[,old_id]),]
+# setorder(ADRDhosp_time, QID, year)
+# head(ADRDhosp_time, 10)
+# ADRDhosp_time[, count:=.N, by = QID][]
+# dim(ADRDhosp_time) # 11841340
+# re_ADRDhosp <- ADRDhosp_time[count>1, ]
+# dim(re_ADRDhosp) # 6902721
+# dt <- re_ADRDhosp[, .SD[2], by = QID]
+# head(dt)
+# dt[, first_ReAdyr := year][]
+# dt[, `:=` (count = NULL,
+#            year = NULL)][]
+# fwrite(dt, paste0(dir_output, "ReAdmissionInfo.csv"))
