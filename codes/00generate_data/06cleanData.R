@@ -101,4 +101,6 @@ dt$region <- ifelse(dt$statecode %in% NORTHEAST, "NORTHEAST",
                                          NA))))
 dt[, region := as.factor(region)]
 
-write_fst(dt, paste0(dir_out, "ADRDcohort_clean.fst"))
+#' subset to firstADRDyr>=2001
+dim(dt[firstADRDyr>=2001,])#[1] 15881364       34
+write_fst(dt[firstADRDyr>=2001,], paste0(dir_out, "ADRDcohort_clean.fst"))
