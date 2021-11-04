@@ -26,37 +26,37 @@ Table1_person year\par}
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 n\cell
-\pard\qr\widctlpar\intbl\fi0\f2\fs20  17564617\cell
+\pard\qr\widctlpar\intbl\fi0\f2\fs20  20430337\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 pm25 (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20     10.55 (2.83)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20     10.53 (2.82)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 no2 (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20     20.09 (10.10)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20     20.06 (10.09)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 ozone (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20     38.56 (4.00)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20     38.56 (4.01)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 ox (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20     32.33 (3.83)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20     32.32 (3.84)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 ozone_summer (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20     45.01 (5.73)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20     44.99 (5.76)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 mean_bmi (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20     27.51 (0.95)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20     27.52 (0.95)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
@@ -76,12 +76,12 @@ Table1_person year\par}
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 medhouseholdincome (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  53478.35 (22646.87)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  53608.68 (22615.98)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 medianhousevalue (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20 201661.68 (158354.09)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20 202890.15 (158622.13)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
@@ -96,7 +96,7 @@ Table1_person year\par}
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 popdensity (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20   3592.57 (9596.58)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20   3587.04 (9541.29)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
@@ -106,22 +106,22 @@ Table1_person year\par}
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 summer_tmmx (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20    303.14 (3.41)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20    303.15 (3.43)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 winter_tmmx (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20    282.01 (7.27)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20    282.03 (7.30)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 summer_rmax (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20     88.05 (10.55)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20     87.99 (10.62)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4584\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\clbrdrb\brdrs\brdrw15\cellx1
 \clvertalt\clshdrawnil\clwWidth3295\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\clbrdrb\brdrs\brdrw15\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 winter_rmax (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20     84.62 (7.49)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20     84.58 (7.53)\cell
 \widctlpar\intbl\row
 }
 
@@ -137,12 +137,12 @@ Table1_person year\par}
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 n\cell
-\pard\qr\widctlpar\intbl\fi0\f2\fs20 5078144\cell
+\pard\qr\widctlpar\intbl\fi0\f2\fs20 4603031\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 sex = 2 (%)\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20 3348941 (65.9) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20 3022261 (65.7) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
@@ -152,27 +152,27 @@ Table1_person year\par}
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20    Black\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  565484 (11.1) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  508405 (11.0) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20    Hispanic\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  100046 ( 2.0) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20   93542 ( 2.0) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20    Others\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20   97273 ( 1.9) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20   91973 ( 2.0) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20    White\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20 4315341 (85.0) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20 3909111 (84.9) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 age (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20   82.85 (7.26)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20   81.90 (7.30)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
@@ -182,57 +182,57 @@ Table1_person year\par}
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20    [65,70)\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  239895 ( 4.7) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  285974 ( 6.2) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20    [70,75)\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  476331 ( 9.4) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  488142 (10.6) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20    [75,80)\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  868723 (17.1) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  860204 (18.7) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20    [80,85)\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20 1276784 (25.1) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20 1193954 (25.9) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20    [85,90)\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20 1275082 (25.1) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20 1084877 (23.6) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20    [90,95)\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  711784 (14.0) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  541033 (11.8) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20    [95,100)\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  219529 ( 4.3) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  143066 ( 3.1) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20    [100,105)\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20    9464 ( 0.2) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20    5467 ( 0.1) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20    [105,110)\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20     530 ( 0.0) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20     303 ( 0.0) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20    [110,115)\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20      22 ( 0.0) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20      11 ( 0.0) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
-\pard\ql\widctlpar\intbl\fi0\f2\fs20 dual = 1 (%)\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20 1533194 (30.2) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20 dual = 2 (%)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20 1226554 (26.6) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
@@ -242,22 +242,22 @@ Table1_person year\par}
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20    MIDWEST\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20 1214021 (23.9) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20 1093273 (23.8) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20    NORTHEAST\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20 1076663 (21.2) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  976017 (21.2) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20    SOUTH\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20 2098275 (41.3) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20 1905341 (41.4) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20    WEST\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  689185 (13.6) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  628400 (13.7) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
@@ -267,92 +267,87 @@ Table1_person year\par}
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\qr\widctlpar\intbl\fi0\f2\fs20    2001\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  467798 ( 9.2) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  400105 ( 8.7) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\qr\widctlpar\intbl\fi0\f2\fs20    2002\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  400422 ( 7.9) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  377586 ( 8.2) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\qr\widctlpar\intbl\fi0\f2\fs20    2003\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  380079 ( 7.5) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  371030 ( 8.1) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\qr\widctlpar\intbl\fi0\f2\fs20    2004\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  371255 ( 7.3) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  360193 ( 7.8) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\qr\widctlpar\intbl\fi0\f2\fs20    2005\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  360302 ( 7.1) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  351226 ( 7.6) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\qr\widctlpar\intbl\fi0\f2\fs20    2006\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  351704 ( 6.9) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  338008 ( 7.3) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\qr\widctlpar\intbl\fi0\f2\fs20    2007\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  338596 ( 6.7) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  336606 ( 7.3) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\qr\widctlpar\intbl\fi0\f2\fs20    2008\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  337326 ( 6.6) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  326398 ( 7.1) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\qr\widctlpar\intbl\fi0\f2\fs20    2009\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  327174 ( 6.4) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  314579 ( 6.8) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\qr\widctlpar\intbl\fi0\f2\fs20    2010\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  314865 ( 6.2) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  330090 ( 7.2) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\qr\widctlpar\intbl\fi0\f2\fs20    2011\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  330603 ( 6.5) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  344634 ( 7.5) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\qr\widctlpar\intbl\fi0\f2\fs20    2012\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  344948 ( 6.8) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  181153 ( 3.9) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\qr\widctlpar\intbl\fi0\f2\fs20    2013\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  181331 ( 3.6) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  161658 ( 3.5) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\qr\widctlpar\intbl\fi0\f2\fs20    2014\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  161784 ( 3.2) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  156227 ( 3.4) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\qr\widctlpar\intbl\fi0\f2\fs20    2015\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  156298 ( 3.1) \cell
-\widctlpar\intbl\row
-\trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
-\clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
-\pard\qr\widctlpar\intbl\fi0\f2\fs20    2016\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20  253659 ( 5.0) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20  253538 ( 5.5) \cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 followup_duration (mean (sd))\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20    3.46 (2.67)\cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20    3.44 (2.64)\cell
 \widctlpar\intbl\row
 \trowd\trgaph100\trleft0\clvertalt\clshdrawnil\clwWidth4441\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\clbrdrb\brdrs\brdrw15\cellx1
 \clvertalt\clshdrawnil\clwWidth2436\clftsWidth3\clheight260\clpadl100\clpadr100\gaph\clbrdrb\brdrs\brdrw15\cellx2
 \pard\ql\widctlpar\intbl\fi0\f2\fs20 dead_end = Yes (%)\cell
-\pard\ql\widctlpar\intbl\fi0\f2\fs20 4341146 (85.5) \cell
+\pard\ql\widctlpar\intbl\fi0\f2\fs20 3866957 (84.0) \cell
 \widctlpar\intbl\row
 }
 
