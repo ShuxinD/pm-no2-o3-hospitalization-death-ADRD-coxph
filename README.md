@@ -8,7 +8,7 @@ air pollution and mortality/readmission in Medicare ADRD
 - searched with both ICD-9 and ICD-10 ADRD codes - though ICD codes changed to the 10th version after 2015, in our dataset there are still some mix-ups of the 9th and 10th versions. ADRD diagnosis codes were based on [**Using Medicare claims in identifying Alzheimer’s disease and related dementias**](https://alz-journals.onlinelibrary.wiley.com/doi/10.1002/alz.12199) and [**Identifying Medicare beneficiaries with dementia**](https://agsjournals.onlinelibrary.wiley.com/doi/10.1111/jgs.17183); codes are modified from [a previous one](https://github.com/NSAPH/data_requests/blob/master/request_projects/jan2021_whanhee_fisrt_hosps/code/2_id_hospitalizations.R).
 - `primary` fst file contains hospitalization records with first diagnosis code (`DIAG1`) as ADRD, and `secondary` fst file contains those with any of codes (1-25) as ADRD. (`secondary` file contains `primary`); export several `.fst` files named as `ADRD'type'_'year'.fst`, e.g. `ADRDprimary_2000.fst`
 
-### generate ADRD cohort enrollment info and readmission info based on hospilization record
+### generate ADRD cohort enrollment info based on hospilization record
 [02getEnrolledInfo.R](https://github.com/ShuxinD/airPollution_ADRD/blob/main/codes/00generate_data/02getEnrolledInfo.R) 
 - the qid changed after a certain time, but there is a crosswalk file linking qids. According to Ben, QIDs in raw dataset have been converted to one single formmat
 - still, some qids weren't matched. We excluded those problemetic qids based on the .csv file Ben provided.
@@ -35,6 +35,7 @@ air pollution and mortality/readmission in Medicare ADRD
 
 ### clean data
 [06cleanData.R](https://github.com/ShuxinD/airPollution_ADRD/blob/main/code/00generate_data/06cleanData.R)
+- due to the index event bias, we need the exposure info when people entering the cohort, the earlist exposure info starts from 2000, then the earlist year of entering cohort should be 2001, the earlist year of starting follow-up should be 2002 --> subset to `firstADRDyr>=2001`
 - clean `ADRDcohort.fst`: remove NAs; remove those without complete follow-up
 - add necessary variables into the dataset: `entry_age_break`, `race_collapsed`, `ox`, `region`
 - export `ADRDcohort_clean.fst`
