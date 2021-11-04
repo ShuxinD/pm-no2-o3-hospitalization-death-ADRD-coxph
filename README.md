@@ -24,8 +24,9 @@ air pollution and mortality/readmission in Medicare ADRD
 ### merge air pollution by ZIP code and calendar year
 [04mergeExposure.R](https://github.com/ShuxinD/airPollution_ADRD/blob/main/codes/00generate_data/04mergeExposure.R) 
 - PM2.5, NO2, ozone, summer ozone
-- merge by the previous year of follow-up year
-- export `ADRDcohort.fst`
+- merge by the previous year of calendar year apprearing in the dataset
+- calculate Ox
+- export `ADRDcohort.fst` (contains all the information starting from firstADRDyr, though we don't need `year==firstADRDyr` rows in survival analysis itself, we do need it for correcting index event bias, should contains all the info we need in the future analysis)
 
 ### check the completeness of follow-up
 [05checkFollowupCompleteness.md](https://github.com/ShuxinD/airPollution_ADRD/blob/main/codes/00generate_data/05checkFollowupCompleteness.md)
@@ -37,7 +38,7 @@ air pollution and mortality/readmission in Medicare ADRD
 [06cleanData.R](https://github.com/ShuxinD/airPollution_ADRD/blob/main/code/00generate_data/06cleanData.R)
 - due to the index event bias, we need the exposure info when people entering the cohort, the earlist exposure info starts from 2000, then the earlist year of entering cohort should be 2001, the earlist year of starting follow-up should be 2002 --> subset to `firstADRDyr>=2001`
 - clean `ADRDcohort.fst`: remove NAs; remove those without complete follow-up
-- add necessary variables into the dataset: `entry_age_break`, `race_collapsed`, `ox`, `region`
+- add necessary variables into the dataset: `entry_age_break`, `race_collapsed`, `region`
 - export `ADRDcohort_clean.fst`
 
 ### prepare datasets for event analysis (death and readmission)
