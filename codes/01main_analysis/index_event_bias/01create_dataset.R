@@ -1,5 +1,4 @@
-###############################################################################
-#' Project: Air Pollution on mortality and readmission in Medicare AD/ADRD
+#' Project: airPollution_ADRD
 #' Code: create datasets to solve index event bias
 #' Input: ...
 #' Output: "index_event_bias_dt_mortality.csv" 

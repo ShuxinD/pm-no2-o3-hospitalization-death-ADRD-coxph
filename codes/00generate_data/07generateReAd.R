@@ -73,19 +73,18 @@ dim(ADRDcohort_hosp_time) # [1] 23986044        2
 gc()
 
 ADRDcohort_hosp_time <- merge(ADRDcohort_hosp_time, enrollInfo, by = "QID", all.x=T) # merge firstADRDyr to cohort hospitalization
-ADRDcohort_hosp_time[year>firstADRDyr] #subset to those admitted after firstADRDyr
-ADRDcohort_hosp_time <- ADRDcohort_hosp_time[year>firstADRDyr]
+ADRDcohort_hosp_time[year>firstADRDyr,] #subset to those admitted after firstADRDyr
+ADRDcohort_hosp_time <- ADRDcohort_hosp_time[year>firstADRDyr,]
 
 ## generate ReAd info ----
 setorder(ADRDcohort_hosp_time, QID, year)
 ReAdInfo <- ADRDcohort_hosp_time[, .(firstReAdyr = min(year)), by = QID]
 dim(ReAdInfo)
+# [1] 3733533       2
 
 table(ReAdInfo[,firstReAdyr])
-# 2001   2002   2003   2004   2005   2006   2007   2008   2009   2010   2011   2012   2013   2014   2015 
-# 229983 263921 276067 275412 280113 269290 262623 255965 246445 247963 249083 253281 178504 147539 134839 
-# 2016 
-# 162505
+# 2001   2002   2003   2004   2005   2006   2007   2008   2009   2010   2011   2012   2013   2014   2015   2016 
+# 229983 263921 276067 275412 280113 269290 262623 255965 246445 247963 249083 253281 178504 147539 134839 162505 
 fwrite(ReAdInfo, paste0(dir_in, "ReAdmissionInfo.csv"))
 
 ## load ADRD cohort data ---
@@ -100,7 +99,7 @@ dt_ReAd_event <- merge(dt_ReAd_event, ReAdInfo, by.x = "qid", by.y = "QID", all.
 head(dt_ReAd_event)
 summary(dt_ReAd_event[,firstReAdyr]- dt_ReAd_event[,firstADRDyr])
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 1.00    1.00    2.00    2.24    3.00   16.00 
+# 1.000   1.000   1.000   2.136   3.000  15.000  
 dt_ReAd_event$ReAd <- FALSE
 dt_ReAd_event[year==firstReAdyr, ReAd:=TRUE][]
 dt_ReAd_event <- dt_ReAd_event[year<=firstReAdyr, ]
@@ -114,5 +113,5 @@ dt_ReAd_noevent[, ReAd := FALSE]
 dt_ReAd <- rbind(dt_ReAd_event, dt_ReAd_noevent)
 
 dim(dt_ReAd[(dead)&(ReAd),]) # the person-year death and readmission happened at the same time
-# [1] 1186923      36
+# [1] 1057109      36
 write_fst(dt_ReAd, paste0(dir_out, "ADRDcohort_ReAd.fst"))

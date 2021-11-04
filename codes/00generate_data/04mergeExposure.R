@@ -61,22 +61,22 @@ rm(summer_ozone_data)
 gc()
 
 dim(ADRDpeople) # 25787050
-#' remove the denominator info of the firstADRD yr, followed them from the next year of
-ADRDcohort <- ADRDpeople[year!=firstADRDyr,]
-ADRDcohort[,year_prev:=year-1]
+#' though followup starting from the next year of firstADRDyr, we need the covariates info to correct index event bias
+# ADRDcohort <- ADRDpeople[year!=firstADRDyr,]
+ADRDpeople[,year_prev:=year-1]
 
-combined <- merge(ADRDcohort, exposure, by.x = c("zip", "year_prev"), by.y = c("ZIP", "year"), all.x = TRUE) # merge on the previous year of calendar follow-up year
+combined <- merge(ADRDpeople, exposure, by.x = c("zip", "year_prev"), by.y = c("ZIP", "year"), all.x = T) # merge on the previous year of calendar follow-up year
 head(combined,100)
-# > summary(combined[,pm25])
-# Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
-#    0.28    8.67   10.40   10.53   12.40   30.92   51422 
-# > summary(combined[,no2])
-#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
-# 0.01   11.89   18.00   19.90   26.42  127.63   51422 
-# > summary(combined[,ozone])
-# Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
-#   13.38   36.44   38.64   38.60   40.80   65.09   51422 
-# > summary(combined[,ozone_summer])
-#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
-# 8.81   41.90   45.02   45.02   48.54   80.76   51422 
+
+#' generate Ox based on no2 and ozone
+combined[, ox := (1.07*no2 + 2.075*ozone)/3.14]
+summary(combined[,.(pm25,no2,ozone,ozone_summer,ox)])
+# pm25             no2             ozone         ozone_summer          ox        
+# Min.   : 0.3     Min.   :  0.0    Min.   :13.4     Min.   : 8.8     Min.   : 9.8    
+# 1st Qu.: 8.7     1st Qu.: 12.0    1st Qu.:36.4     1st Qu.:41.9     1st Qu.:29.8    
+# Median :10.5     Median : 18.3    Median :38.6     Median :45.1     Median :32.1    
+# Mean   :10.6     Mean   : 20.1    Mean   :38.6     Mean   :45.1     Mean   :32.4    
+# 3rd Qu.:12.6     3rd Qu.: 26.8    3rd Qu.:40.8     3rd Qu.:48.6     3rd Qu.:34.6    
+# Max.   :30.9     Max.   :127.6    Max.   :65.1     Max.   :80.8     Max.   :70.8    
+# NA's   :765980   NA's   :765980   NA's   :765980   NA's   :765980   NA's   :765980  
 write_fst(combined, paste0(dir_out, "ADRDcohort.fst"))

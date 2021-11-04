@@ -26,42 +26,41 @@ names(ADRDcohort)
 # [17] "poverty"            "education"          "popdensity"         "pct_owner_occ"     
 # [21] "summer_tmmx"        "winter_tmmx"        "summer_rmax"        "winter_rmax"       
 # [25] "firstADRDyr"        "pm25"               "no2"                "ozone"             
-# [29] "ozone_summer" 
+# [29] "ozone_summer"       "ox"
 dim(ADRDcohort)
-# [1] 18150478       29
+# [1] 25787050       30
 uniqueN(ADRDcohort[,qid]) # study population individuals
-# [1] 5226549
+# [1] 7638546
 
 ## omit ----
 #' first: remove NAs
 dt <- na.omit(ADRDcohort) # remove NAs
 dim(dt) # person-year
-# [1] 17702025       29
+# [1] 24478723       30
 uniqueN(dt[,qid]) # number of subjects
-# [1] 5114720
+# [1] 7276514
 
 #' second: remove those without complete follow-ups
-omitInfo <- read.csv(paste0(dir_in,"omitInfo.csv"))
+omitInfo <- fread(paste0(dir_in,"omitInfo.csv"))
 dt <- dt[!(qid %in% omitInfo$qid),]
 dim(dt) # person-year
-# [1] 17603959       29
+# [1] 20473141       30
 uniqueN(dt[,qid]) # number of subjects
-# [1] 5090939
+# [1] 4613668
 
 #' third: race==unknow
 uniqueN(dt[race==0,qid]) # number subjects with unknown race info
-# [1] 12795
+# [1] 10637
 dt <- dt[!(qid %in% dt[race==0,qid]),]
 dim(dt) # person-year
-# [1] 17564617       29
+# [1] 20430337       30
 uniqueN(dt[,qid]) # number of subjects
-# [1] 5078144
-
+# [1] 4603031
 
 dim(dt) # final
-# [1] 17564617       29
+# [1] 20430337       29
 uniqueN(dt, by = "qid") #final # of subjects
-# [1] 5078144
+# [1] 4603031
 
 ## add necessary variables ----
 #' create entry_age variable, 5 years as a break
@@ -84,10 +83,6 @@ dt$race_collapsed[dt$race==2] <- "Black"
 dt$race_collapsed[dt$race==5] <- "Hispanic"
 dt[, race_collapsed:=as.factor(race_collapsed)]
 
-#' generate Ox based on no2 and ozone
-dt[, ox := (1.07*no2 + 2.075*ozone)/3.14]
-head(dt)
-
 #' generate region based on statecode
 NORTHEAST <- c("NY", "MA", "PA", "RI", "NH", "ME", "VT", "CT", "NJ")  
 SOUTH <- c("DC", "VA", "NC", "WV", "KY", "SC", "GA", "FL", "AL", "TN", "MS", 
@@ -101,6 +96,10 @@ dt$region <- ifelse(dt$statecode %in% NORTHEAST, "NORTHEAST",
                                          NA))))
 dt[, region := as.factor(region)]
 
+#' check variable class ----
+summary(dt)
+dt[, `:=`(dual = as.factor(dual))]
+
 #' subset to firstADRDyr>=2001
-dim(dt[firstADRDyr>=2001,])#[1] 15881364       34
+dim(dt[firstADRDyr>=2001,])#[1] 20430337       34
 write_fst(dt[firstADRDyr>=2001,], paste0(dir_out, "ADRDcohort_clean.fst"))

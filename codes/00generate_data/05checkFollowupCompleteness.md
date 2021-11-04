@@ -1,14 +1,14 @@
 Check the completeness of follow-up in the ADRD population
 ================
 
-The dataset `ADRDpeople.csv` was directly generated from the denominator
+The dataset `ADRDcohort.fst` was directly generated from the denominator
 files, which follow the ADRD people till their death or the end of 2016.
 
 ## Setup and load data
 
     ##          used (Mb) gc trigger (Mb) max used (Mb)
-    ## Ncells 403454 21.6     831407 44.5   642637 34.4
-    ## Vcells 774057  6.0    8388608 64.0  1825873 14.0
+    ## Ncells 403487 21.6     831501 44.5   642637 34.4
+    ## Vcells 774270  6.0    8388608 64.0  1825873 14.0
 
     ## 
     ## Attaching package: 'dplyr'
@@ -30,10 +30,10 @@ files, which follow the ADRD people till their death or the end of 2016.
 Our final dataset should:
 
   - be one row per person-year (long format)
-  - have follow-up info for every year after the year they were
-    hospitalized with ADRD for the first time (`firstADRDyr`) till the
-    end of study period (2016) or death or leaving the US, whichever
-    comes first.
+  - have follow-up info for every year starting from `firstADRDyr` till
+    the end of study period (2016) or death or leaving the US, whichever
+    comes first (though we do not need the info for `year==firstADRDyr`
+    in survival analysis, we do need it for correcting index event bias)
 
 ### 1\. basic info of original ADRD dataset
 
@@ -42,17 +42,26 @@ Our final dataset should:
 uniqueN(ADRDcohort[,qid])
 ```
 
-    ## [1] 5226549
+    ## [1] 7638546
 
 ``` r
 # number of subjects in cohorts after removing NAs
 uniqueN(na.omit(ADRDcohort)[,qid])
 ```
 
-    ## [1] 5114720
+    ## [1] 7276514
+
+Those who admitted for the first time with ADRD code and died in the
+same year don’t contribute to the risk set. Delete those
 
 ``` r
-temp <- na.omit(ADRDcohort) # remove all the NAs
+A <- ADRDcohort[, .(end_yr = max(year)), by = qid]
+A <- A[enrolledInfo, on = .(qid=QID)]
+no_contribution <- subset(A, end_yr==firstADRDyr)
+```
+
+``` r
+temp <- na.omit(ADRDcohort[!(qid %in% no_contribution[,qid])]) # remove all the NAs and those without contribution to risk set
 sum_temp <- temp[, .(start_yr = min(year),
                      end_yr = max(year),
                      count = uniqueN(year)), by = qid]
@@ -60,29 +69,33 @@ sum_temp <- merge(sum_temp, enrolledInfo, by.x = "qid", by.y = "QID", all.x = TR
 ```
 
 We constructed a temporary dataset named `temp` which is a subset of
-`ADRDcohort` after removing NA (natually had removed rows whose
-`year==firstADRDyr` when merging with exposures), and summarize each
-person as one row with 5114720 subjects: - generated `start_yr` as the
-minimum of calendar year - `end_yr` as the maximum of calendar year -
-`count` as the count number of unique calendar year for each subject.
+`ADRDcohort` after removing NA (not remove rows with
+`year==firstADRDyr`), and summarize each person as one row in total
+5121692 subjects:
 
-We also merged the enroll information (`firstADRDyear`) to `temp`.
-(`firstADRDyr`+1) indicates the year that subjects should start to be
+  - generated `start_yr` as the minimum of calendar year (should equal
+    to `firstADRDyr`)
+  - `end_yr` as the maximum of calendar year
+  - `count` as the count number of unique calendar year for each
+    subject.
+
+We also merged the enroll information (`firstADRDyear`) to `sum_temp`.
+`firstADRDyr` indicates the year that subjects should start to be
 followed-up.
 
 `sum_temp` is a one-row-per-person dataset, looks like:
 
     ##          qid start_yr end_yr count firstADRDyr
     ## 1: 003050048     2001   2004     4        2000
-    ## 2: 003628694     2003   2005     3        2002
-    ## 3: 003749417     2006   2006     1        2005
-    ## 4: 004402139     2005   2005     1        2004
+    ## 2: 003628694     2002   2005     4        2002
+    ## 3: 003749417     2005   2006     2        2005
+    ## 4: 004402139     2004   2005     2        2004
     ## 5: 012472193     2001   2004     4        2000
-    ## 6: 014929014     2006   2006     1        2005
+    ## 6: 014929014     2005   2006     2        2005
 
-    ## the number of subjects in ADRDpeople(removed NAs) is 5114720
+    ## the number of subjects in ADRD cohort (removed NAs, and non-contribution subjects) is 5121692
 
-    ## the number of person-years in ADRDpeople(removed NAs) is 17702025
+    ## the number of person-years in ADRD cohort (removed NAs, and non-contribution subjects) is 22323901
 
     ## is there any duplication of the combination of `qid` and calendar year:  FALSE
 
@@ -91,100 +104,100 @@ followed-up.
 ### 2\. check whether all people were followed-up from the year following firstADRDyr
 
 ``` r
-sum_temp[start_yr != (firstADRDyr+1)]
+sum_temp[start_yr != (firstADRDyr)]
 ```
 
-    ##                    qid start_yr end_yr count firstADRDyr
-    ##     1:       037641248     2004   2004     1        2002
-    ##     2:       A00109981     2002   2002     1        2000
-    ##     3:       A00536277     2002   2002     1        2000
-    ##     4:       A00539663     2002   2002     1        2000
-    ##     5:       A00977147     2002   2002     1        2000
-    ##    ---                                                  
-    ## 17993: lllllllooooO7Xo     2007   2007     1        2005
-    ## 17994: lllllllooooXoS7     2003   2004     2        2001
-    ## 17995: lllllllooool4OO     2006   2006     1        2002
-    ## 17996: llllllloooolllX     2004   2005     2        2001
-    ## 17997: lllllllooooolU8     2006   2006     1        2000
+    ##                     qid start_yr end_yr count firstADRDyr
+    ##      1:       003050048     2001   2004     4        2000
+    ##      2:       012472193     2001   2004     4        2000
+    ##      3:       015128651     2001   2006     6        2000
+    ##      4:       029979975     2001   2003     3        2000
+    ##      5:       036300873     2001   2005     5        2000
+    ##     ---                                                  
+    ## 499812: lllllllooooo70l     2009   2012     4        2008
+    ## 499813: lllllllooooo70o     2001   2005     5        2000
+    ## 499814: lllllllooooolSX     2001   2004     4        2000
+    ## 499815: lllllllooooolU8     2006   2006     1        2000
+    ## 499816: lllllllooooolXS     2001   2012    12        2000
 
-The above subject (17997 subjects in total), were not followed-up from
+The above subject (4636381 subjects in total), were not followed-up from
 the year following firstADRDyr.
 
 Their info in denominator
     files:
 
-    ##          zip year_prev             qid year sex race age dual statecode  dead
-    ##     1: 01002      2015 llllllll874So4o 2016   2    2  87    0        MA FALSE
-    ##     2: 01010      2009 lllllll0l4784Sl 2010   1    1  89    0        MA  TRUE
-    ##     3: 01013      2008 llllllloX8oS77U 2009   1    1  74    1        MA FALSE
-    ##     4: 01013      2010 llllllloX8U8S0U 2011   2    5  86    1        MA FALSE
-    ##     5: 01013      2011 llllllloX8oS77U 2012   1    1  77    1        MA FALSE
-    ##    ---                                                                       
-    ## 64208: 99403      2008 llllllloXlSUlSS 2009   1    6  86    0        WA FALSE
-    ## 64209: 99403      2009 llllllloXlSUlSS 2010   1    6  87    0        WA FALSE
-    ## 64210: 99403      2010 llllllloXlSUlSS 2011   1    6  88    0        WA FALSE
-    ## 64211: 99403      2011 llllllloXlSUlSS 2012   1    6  89    0        WA FALSE
-    ## 64212: 99403      2012 llllllloXlSUlSS 2013   1    6  89    0        WA  TRUE
-    ##        mean_bmi smoke_rate    hispanic     pct_blk medhouseholdincome
-    ##     1: 26.57164  0.4893738 0.062395729 0.057090424           48923.00
-    ##     2: 27.96209  0.5042735 0.004006434 0.000000000           79424.07
-    ##     3: 28.08690  0.5087948 0.222230494 0.040043412           40357.86
-    ##     4: 28.10089  0.4912193 0.218793265 0.037917020           39502.00
-    ##     5: 28.30406  0.4815401 0.231234534 0.043854825           41612.00
-    ##    ---                                                               
-    ## 64208: 28.38485  0.5435685 0.031608800 0.005031452           42004.14
-    ## 64209: 27.45471  0.5045455 0.031885133 0.005108372           42003.40
-    ## 64210: 27.76113  0.4623116 0.030884512 0.004657992           41832.00
-    ## 64211: 28.49232  0.5142857 0.031891348 0.005231388           41944.00
-    ## 64212: 28.15183  0.5010794 0.033940855 0.006125420           42813.00
-    ##        medianhousevalue    poverty  education popdensity pct_owner_occ
-    ##     1:         344000.0 0.06653809 0.05760297   544.5000     0.4671060
-    ##     2:         261040.0 0.01491774 0.17235426   103.6826     0.8239247
-    ##     3:         181742.9 0.13227870 0.39036310  3945.1100     0.4755766
-    ##     4:         182600.0 0.13054341 0.39090093  3981.0760     0.4860470
-    ##     5:         181000.0 0.13465347 0.40379147  3879.9090     0.4689500
-    ##    ---                                                                
-    ## 64208:         168442.9 0.08450852 0.16526808   129.5833     0.6916009
-    ## 64209:         168373.3 0.08562909 0.16409869   129.6158     0.6894861
-    ## 64210:         167400.0 0.08572216 0.16851852   129.1871     0.7085169
-    ## 64211:         169200.0 0.08380187 0.16446858   130.0309     0.6706572
-    ## 64212:         171100.0 0.08106721 0.15386534   130.2729     0.6658240
-    ##        summer_tmmx winter_tmmx summer_rmax winter_rmax firstADRDyr     pm25
-    ##     1:    301.2432    278.2013    91.27892    83.43145        2014 4.516610
-    ##     2:    299.9531    274.1636    86.12584    80.28111        2008 6.147212
-    ##     3:    299.1525    275.3920    91.21321    88.06722        2002 9.780730
-    ##     4:    301.5910    274.7779    91.83898    86.23466        2007 7.819747
-    ##     5:    301.7805    279.3821    88.93819    77.39214        2002 9.456769
-    ##    ---                                                                     
-    ## 64208:    299.2287    277.0668    63.42863    88.93414        2006 3.714551
-    ## 64209:    297.7093    277.9926    60.52847    82.76904        2006 4.199544
-    ## 64210:    298.0834    276.8914    70.07012    87.93301        2006 4.240930
-    ## 64211:    300.1234    278.0944    68.33219    86.07601        2006 5.313538
-    ## 64212:    300.9082    276.8044    60.85726    88.92360        2006 6.048468
-    ##              no2    ozone ozone_summer
-    ##     1:  9.261477 39.83256     43.05488
-    ##     2: 10.216422 31.94758     41.27915
-    ##     3: 23.913036 36.71614     44.38763
-    ##     4: 20.711534 39.27092     44.49197
-    ##     5: 24.299117 38.36417     42.16886
-    ##    ---                                
-    ## 64208: 12.935805 39.60611     43.98285
-    ## 64209: 10.943100 40.35688     45.34238
-    ## 64210: 10.042199 38.62864     42.04486
-    ## 64211:  8.325685 39.74654     43.70882
-    ## 64212:  6.782057 40.82305     46.27007
+    ##            zip year_prev             qid year sex race age dual statecode  dead
+    ##       1: 01001      2000       A00110515 2001   2    1  91    0        MA  TRUE
+    ##       2: 01001      2000       A00127897 2001   2    1  91    1        MA  TRUE
+    ##       3: 01001      2000       A00137887 2001   2    1  85    0        MA  TRUE
+    ##       4: 01001      2000       A00137987 2001   2    1  94    0        MA FALSE
+    ##       5: 01001      2000       A00149890 2001   2    1  89    0        MA  TRUE
+    ##      ---                                                                       
+    ## 1802112: 99403      2009 llllllloXlSUlSS 2010   1    6  87    0        WA FALSE
+    ## 1802113: 99403      2010 llllllloXlSUlSS 2011   1    6  88    0        WA FALSE
+    ## 1802114: 99403      2011 llllllloXlSUlSS 2012   1    6  89    0        WA FALSE
+    ## 1802115: 99403      2012 llllllloXlSUlSS 2013   1    6  89    0        WA  TRUE
+    ## 1802116: 99403      2015 llllllloX0llXX4 2016   1    1  75    0        WA  TRUE
+    ##          mean_bmi smoke_rate   hispanic     pct_blk medhouseholdincome
+    ##       1: 26.89790  0.5155502 0.01687498 0.010627160           45761.74
+    ##       2: 26.89790  0.5155502 0.01687498 0.010627160           45761.74
+    ##       3: 26.89790  0.5155502 0.01687498 0.010627160           45761.74
+    ##       4: 26.89790  0.5155502 0.01687498 0.010627160           45761.74
+    ##       5: 26.89790  0.5155502 0.01687498 0.010627160           45761.74
+    ##      ---                                                              
+    ## 1802112: 27.45471  0.5045455 0.03188513 0.005108372           42003.40
+    ## 1802113: 27.76113  0.4623116 0.03088451 0.004657992           41832.00
+    ## 1802114: 28.49232  0.5142857 0.03189135 0.005231388           41944.00
+    ## 1802115: 28.15183  0.5010794 0.03394085 0.006125420           42813.00
+    ## 1802116: 28.24859  0.4969610 0.03814741 0.003137450           44386.00
+    ##          medianhousevalue    poverty education popdensity pct_owner_occ
+    ##       1:         122090.3 0.05763368 0.2783539  1351.4259     0.7149814
+    ##       2:         122090.3 0.05763368 0.2783539  1351.4259     0.7149814
+    ##       3:         122090.3 0.05763368 0.2783539  1351.4259     0.7149814
+    ##       4:         122090.3 0.05763368 0.2783539  1351.4259     0.7149814
+    ##       5:         122090.3 0.05763368 0.2783539  1351.4259     0.7149814
+    ##      ---                                                               
+    ## 1802112:         168373.3 0.08562909 0.1640987   129.6158     0.6894861
+    ## 1802113:         167400.0 0.08572216 0.1685185   129.1871     0.7085169
+    ## 1802114:         169200.0 0.08380187 0.1644686   130.0309     0.6706572
+    ## 1802115:         171100.0 0.08106721 0.1538653   130.2729     0.6658240
+    ## 1802116:         174300.0 0.07679012 0.1090380   131.3391     0.6577767
+    ##          summer_tmmx winter_tmmx summer_rmax winter_rmax firstADRDyr      pm25
+    ##       1:    301.3939    275.2712    87.79336    88.40830        2000 11.669156
+    ##       2:    301.3939    275.2712    87.79336    88.40830        2000 11.669156
+    ##       3:    301.3939    275.2712    87.79336    88.40830        2000 11.669156
+    ##       4:    301.3939    275.2712    87.79336    88.40830        2000 11.669156
+    ##       5:    301.3939    275.2712    87.79336    88.40830        2000 11.669156
+    ##      ---                                                                      
+    ## 1802112:    297.7093    277.9926    60.52847    82.76904        2006  4.199544
+    ## 1802113:    298.0834    276.8914    70.07012    87.93301        2006  4.240930
+    ## 1802114:    300.1234    278.0944    68.33219    86.07601        2006  5.313538
+    ## 1802115:    300.9082    276.8044    60.85726    88.92360        2006  6.048468
+    ## 1802116:    299.1663    279.0391    63.34435    83.86771        2015  6.059223
+    ##                no2    ozone ozone_summer       ox
+    ##       1: 26.183961 34.73918     39.39532 31.87918
+    ##       2: 26.183961 34.73918     39.39532 31.87918
+    ##       3: 26.183961 34.73918     39.39532 31.87918
+    ##       4: 26.183961 34.73918     39.39532 31.87918
+    ##       5: 26.183961 34.73918     39.39532 31.87918
+    ##      ---                                         
+    ## 1802112: 10.943100 40.35688     45.34238 30.39797
+    ## 1802113: 10.042199 38.62864     42.04486 28.94891
+    ## 1802114:  8.325685 39.74654     43.70882 29.10272
+    ## 1802115:  6.782057 40.82305     46.27007 29.28810
+    ## 1802116: 10.299380 42.24531     48.01473 31.42654
 
-    ## the number of person-years of related subjects is 64212
+    ## the number of person-years of related subjects is 1802116
 
-``` r
-# dead event
-summary(temp[qid %in% sum_temp[start_yr != (firstADRDyr+1),qid],.SD[.N],by=qid][,dead]) # almost the same as the general population
-```
+<!-- ```{r summarize} # dead event summary(temp[qid %in% sum_temp[start_yr != -->
 
-    ##    Mode   FALSE    TRUE 
-    ## logical    4285   13712
+<!-- firstADRDyr, qid],.SD[.N],by=qid][,dead]) # almost the same as the general -->
 
-<!-- #### fix -->
+<!-- population ``` -->
+
+<!-- <!-- #### fix -->
+
+–\>
 
 <!-- ```{r operature} -->
 
@@ -296,117 +309,114 @@ summary(temp[qid %in% sum_temp[start_yr != (firstADRDyr+1),qid],.SD[.N],by=qid][
 
 <!-- ``` -->
 
-### 3\. check whether alive people were followed-up till the end of study period (2016)
+### 3\. check whether all people have each year’s info during follow-up
 
 ``` r
-sum_temp[!(qid %in% temp[(dead),qid]), end_yr] %>% table()
+sum_temp[(end_yr-firstADRDyr+1) != count,]
 ```
 
-    ## .
-    ##   2001   2002   2003   2004   2005   2006   2007   2008   2009   2010   2011 
-    ##    514    608   1524   2251   2352   2466   1621   1447   1141   1224   1237 
-    ##   2012   2013   2014   2015   2016 
-    ##   1432   1311   1868   1252 720779
-
-We could see loads of alive subjects weren’t followed-up till 2016. This
-should be considered as right-censored subjects in the analyses.
-
-### 4\. check whether all people have each year’s info during follow-up
-
-``` r
-sum_temp[(end_yr-firstADRDyr) != count,]
-```
-
-    ##                    qid start_yr end_yr count firstADRDyr
-    ##     1:       037641248     2004   2004     1        2002
-    ##     2:       A00109981     2002   2002     1        2000
-    ##     3:       A00536277     2002   2002     1        2000
-    ##     4:       A00539663     2002   2002     1        2000
-    ##     5:       A00977147     2002   2002     1        2000
-    ##    ---                                                  
-    ## 23777: lllllllooooO7Xo     2007   2007     1        2005
-    ## 23778: lllllllooooXoS7     2003   2004     2        2001
-    ## 23779: lllllllooool4OO     2006   2006     1        2002
-    ## 23780: llllllloooolllX     2004   2005     2        2001
-    ## 23781: lllllllooooolU8     2006   2006     1        2000
+    ##                     qid start_yr end_yr count firstADRDyr
+    ##      1:       003050048     2001   2004     4        2000
+    ##      2:       012472193     2001   2004     4        2000
+    ##      3:       015128651     2001   2006     6        2000
+    ##      4:       029979975     2001   2003     3        2000
+    ##      5:       036300873     2001   2005     5        2000
+    ##     ---                                                  
+    ## 508020: lllllllooooo70l     2009   2012     4        2008
+    ## 508021: lllllllooooo70o     2001   2005     5        2000
+    ## 508022: lllllllooooolSX     2001   2004     4        2000
+    ## 508023: lllllllooooolU8     2006   2006     1        2000
+    ## 508024: lllllllooooolXS     2001   2012    12        2000
 
 ``` r
 setorder(temp,qid,year)
-summary(temp[qid%in%sum_temp[(end_yr-firstADRDyr) != count,qid],][,.SD[.N],by=qid][,dead])
+# summary(temp[qid%in%sum_temp[(end_yr-firstADRDyr+1) != count,qid],][,.SD[.N],by=qid][,dead])
 ```
-
-    ##    Mode   FALSE    TRUE 
-    ## logical    4347   19434
 
 ``` r
-## save qid without complete follow-up
-omitInfo <- sum_temp[(end_yr-firstADRDyr) != count,]
-write.csv(omitInfo, "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/omitInfo.csv")
+## save qid without complete follow-up or no contribution to risk set
+omitInfo <- rbind(sum_temp[(end_yr-firstADRDyr+1) != count, .(qid,end_yr, firstADRDyr)], no_contribution)
+fwrite(omitInfo, "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/omitInfo.csv")
 ```
 
-The above subject (23781 subjects in total) do not have each year’s info
-during follow-up. **Consider deleting them**
+The above subject (2920021 subjects in total) do not have each year’s
+info during follow-up. **Consider deleting them**
 
 Their info in denominator
     files:
 
-    ##          zip year_prev             qid year sex race age dual statecode  dead
-    ##     1: 14051      2011 llllllU78SUO7oX 2012   2    1  66    0        NY FALSE
-    ##     2: 14113      2015 llllllU78SUO7oX 2016   2    1  70    0        NY FALSE
-    ##     3: 38666      2011 llllllU7S700ol0 2012   1    2  67    1        MS FALSE
-    ##     4: 38666      2012 llllllU7S700ol0 2013   1    2  68    1        MS FALSE
-    ##     5: 38666      2013 llllllU7S700ol0 2014   1    2  69    1        MS FALSE
-    ##    ---                                                                       
-    ## 34556: 48192      2004 llllllloooXUU7O 2005   1    1  75    0        MI FALSE
-    ## 34557: 48193      2006 llllllloooXUU7O 2007   1    1  77    0        MI  TRUE
-    ## 34558: 54703      2000 llllllloooXo774 2001   2    1  83    0        WI FALSE
-    ## 34559: 54703      2001 llllllloooXo774 2002   2    1  84    0        WI FALSE
-    ## 34560: 54703      2003 llllllloooXo774 2004   2    1  86    0        WI  TRUE
-    ##        mean_bmi smoke_rate    hispanic     pct_blk medhouseholdincome
-    ##     1: 27.59694  0.5248619 0.017493147 0.015449788          103592.00
-    ##     2: 27.86503  0.5166667 0.017857143 0.000000000           45714.00
-    ##     3: 27.95404  0.4774775 0.054616385 0.599869961           33229.00
-    ##     4: 28.26844  0.4647242 0.006181925 0.620841919           29316.00
-    ##     5: 28.27037  0.4663399 0.030132641 0.586505190           30998.00
-    ##    ---                                                               
-    ## 34556: 27.90004  0.4943486 0.035408238 0.016631583           47019.67
-    ## 34557: 28.88342  0.4657702 0.051970007 0.038893404           50651.00
-    ## 34558: 26.67950  0.5925926 0.009397801 0.006132204           38079.05
-    ## 34559: 26.67208  0.5263158 0.009433991 0.006211056           38111.95
-    ## 34560: 26.95571  0.4000000 0.010078616 0.007615602           38697.89
-    ##        medianhousevalue    poverty  education popdensity pct_owner_occ
-    ##     1:        239500.00 0.03320000 0.10440000 1228.24900     0.8907777
-    ##     2:        140500.00 0.09375000 0.05208333   32.90134     0.7824427
-    ##     3:         67000.00 0.14145031 0.36199484   56.48962     0.6877076
-    ##     4:         66900.00 0.17355372 0.34400000   49.90773     0.6809141
-    ##     5:         67800.00 0.17015926 0.34331984   50.95084     0.6731485
-    ##    ---                                                                
-    ## 34556:        112000.00 0.06255710 0.37755102 3989.21867     0.7213161
-    ## 34557:        134666.67 0.05834700 0.27882257 2237.05633     0.6668248
-    ## 34558:         88583.24 0.07989014 0.26487195  515.72245     0.6356412
-    ## 34559:         88831.01 0.07980558 0.26435552  515.79792     0.6356812
-    ## 34560:         93244.44 0.07829918 0.25515653  517.14213     0.6363927
-    ##        summer_tmmx winter_tmmx summer_rmax winter_rmax firstADRDyr      pm25
-    ##     1:    300.1124    277.6702    89.59876    88.30940        2011  8.177497
-    ##     2:    299.2894    276.0806    85.67926    88.31711        2011  9.124506
-    ##     3:    309.9128    288.1695    80.80557    89.99661        2011 10.740772
-    ##     4:    307.0157    287.3972    95.32682    88.48691        2011  9.802320
-    ##     5:    303.3466    283.1995    83.60630    82.37091        2011  8.357090
-    ##    ---                                                                      
-    ## 34556:    302.1786    274.1335    87.55107    86.89602        2001 13.787623
-    ## 34557:    300.2819    275.1169    81.82950    86.33153        2001 13.217335
-    ## 34558:    300.3420    267.3696    87.24791    90.47155        2000 10.718763
-    ## 34559:    300.4331    274.2678    89.17513    92.70893        2000 10.499985
-    ## 34560:    297.5410    270.2341    88.19340    86.28922        2000 10.101603
-    ##              no2    ozone ozone_summer
-    ##     1: 17.419759 38.76164     42.90785
-    ##     2: 13.927334 40.32836     44.46669
-    ##     3:  8.314814 41.24729     45.61554
-    ##     4:  9.004085 40.82845     45.62806
-    ##     5:  5.590701 36.85643     40.60377
-    ##    ---                                
-    ## 34556: 31.638605 32.50471     38.14903
-    ## 34557: 28.787421 31.01116     39.54351
-    ## 34558: 20.423165 36.99470     41.55280
-    ## 34559: 20.765969 37.71103     43.50158
-    ## 34560: 16.136598 37.54296     44.87236
+    ##            zip year_prev             qid year sex race age dual statecode  dead
+    ##       1: 07017      2000       003050048 2001   2    2  79    1        NJ FALSE
+    ##       2: 07017      2001       003050048 2002   2    2  80    1        NJ FALSE
+    ##       3: 07017      2002       003050048 2003   2    2  81    1        NJ FALSE
+    ##       4: 07017      2003       003050048 2004   2    2  82    1        NJ  TRUE
+    ##       5: 77327      2000       012472193 2001   2    1  85    1        TX FALSE
+    ##      ---                                                                       
+    ## 1850756: 44907      2007 lllllllooooolXS 2008   1    1  80    1        OH FALSE
+    ## 1850757: 44907      2008 lllllllooooolXS 2009   1    1  81    1        OH FALSE
+    ## 1850758: 44907      2009 lllllllooooolXS 2010   1    1  82    1        OH FALSE
+    ## 1850759: 43031      2010 lllllllooooolXS 2011   1    1  83    1        OH FALSE
+    ## 1850760: 43031      2011 lllllllooooolXS 2012   1    1  84    1        OH  TRUE
+    ##          mean_bmi smoke_rate    hispanic     pct_blk medhouseholdincome
+    ##       1: 27.24894  0.4459930 0.051962709 0.883559343           33433.42
+    ##       2: 26.19451  0.4215457 0.052246328 0.883450206           33479.32
+    ##       3: 26.78496  0.4287440 0.053348578 0.883026058           33657.70
+    ##       4: 27.42488  0.4233410 0.057298306 0.881506193           34296.89
+    ##       5: 28.07143  0.5107527 0.120779107 0.087200304           35894.06
+    ##      ---                                                               
+    ## 1850756: 27.31835  0.5625000 0.007510488 0.098069094           35706.67
+    ## 1850757: 27.32350  0.5000000 0.007290469 0.099607633           35880.57
+    ## 1850758: 29.26256  0.5058824 0.007291936 0.099485684           35970.27
+    ## 1850759: 27.69381  0.4619048 0.022058207 0.006458106           71121.00
+    ## 1850760: 27.57949  0.4816754 0.028479445 0.006603929           72119.00
+    ##          medianhousevalue    poverty education  popdensity pct_owner_occ
+    ##       1:        127453.41 0.12171030 0.4739187 16736.98094     0.2839382
+    ##       2:        128207.75 0.12188140 0.4731641 16730.34558     0.2839315
+    ##       3:        131139.39 0.12254639 0.4702314 16704.55818     0.2839051
+    ##       4:        141644.44 0.12492925 0.4597227 16612.15333     0.2838107
+    ##       5:         53851.46 0.15785047 0.4623461    58.51964     0.7958126
+    ##      ---                                                                
+    ## 1850756:         94066.67 0.06803827 0.2584333  1901.53067     0.6062020
+    ## 1850757:         93742.86 0.06991257 0.2553666  1897.21343     0.6073896
+    ## 1850758:         93426.67 0.07140519 0.2511322  1893.66300     0.6080344
+    ## 1850759:        192000.00 0.03815261 0.1926606   133.82100     0.8445727
+    ## 1850760:        185200.00 0.02503129 0.1546961   135.96480     0.8536642
+    ##          summer_tmmx winter_tmmx summer_rmax winter_rmax firstADRDyr     pm25
+    ##       1:    302.3111    277.3330    87.94717    81.19625        2000 15.28591
+    ##       2:    303.0856    282.2298    84.72578    79.19652        2000 14.22669
+    ##       3:    301.1065    275.7024    91.76800    77.11076        2000 13.49739
+    ##       4:    300.9977    276.9084    90.33487    72.49658        2000 15.52122
+    ##       5:    306.2512    288.8942    99.55182    92.00179        2000 11.50066
+    ##      ---                                                                     
+    ## 1850756:    299.9805    274.8892    85.53203    90.50627        2000 13.67321
+    ## 1850757:    298.7652    273.8026    90.26439    94.50513        2000 11.23732
+    ## 1850758:    301.0449    272.6778    87.79951    90.86286        2000 11.31354
+    ## 1850759:    302.1135    273.5917    96.21930    92.53259        2000 12.39964
+    ## 1850760:    303.7150    278.7491    87.26368    90.17001        2000 12.25752
+    ##               no2    ozone ozone_summer       ox
+    ##       1: 44.39516 31.67699     40.99779 36.06133
+    ##       2: 45.83957 34.36022     46.48215 38.32669
+    ##       3: 44.00760 33.02408     44.15771 36.81946
+    ##       4: 45.49518 30.68789     40.23328 35.78255
+    ##       5: 16.53659 39.78638     46.79837 31.92703
+    ##      ---                                        
+    ## 1850756: 17.80304 40.49826     50.25581 32.82903
+    ## 1850757: 15.71246 39.37103     48.60567 31.37173
+    ## 1850758: 15.23600 37.96943     45.41263 30.28315
+    ## 1850759: 13.20786 42.58013     50.88687 32.63891
+    ## 1850760: 12.44414 40.70178     48.20580 31.13739
+
+### 4\. check whether alive people were followed-up till the end of study period (2016) after excluding those without complete follow-up
+
+``` r
+sum_temp[!(qid %in% temp[(dead),qid]), ][!(qid %in% omitInfo[,qid]),end_yr] %>% table()
+```
+
+    ## .
+    ##   2001   2002   2003   2004   2005   2006   2007   2008   2009   2010   2011 
+    ##    653    861   1572   2440   2588   2778   1891   1589   1453   1543   1493 
+    ##   2012   2013   2014   2015   2016 
+    ##   1549   1400   1966   1631 712312
+
+We could see loads of alive subjects weren’t followed-up till 2016. This
+should be considered as right-censored subjects in the analyses.
