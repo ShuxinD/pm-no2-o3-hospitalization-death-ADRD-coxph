@@ -24,7 +24,7 @@ air pollution and mortality/readmission in Medicare ADRD
 ### merge air pollution by ZIP code and calendar year
 [04mergeExposure.R](https://github.com/ShuxinD/airPollution_ADRD/blob/main/codes/00generate_data/04mergeExposure.R) 
 - PM2.5, NO2, ozone, summer ozone
-- merge by the previous year of calendar year apprearing in the dataset
+- merge by calendar year and zip code
 - calculate Ox
 - export `ADRDcohort.fst` (contains all the information starting from firstADRDyr, though we don't need `year==firstADRDyr` rows in survival analysis itself, we do need it for correcting index event bias, should contains all the info we need in the future analysis)
 

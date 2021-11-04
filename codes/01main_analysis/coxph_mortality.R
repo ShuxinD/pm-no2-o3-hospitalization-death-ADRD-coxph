@@ -78,7 +78,8 @@ for (pollutants_i in pollutants){
   HR <- cbind(HR, IQRs[, get(pollutants_i)])
   HR[, `:=`(HR_IQR = exp(coef*IQRs[, get(pollutants_i)]),
             HR_lci = exp((coef-qnorm(0.975)*`robust se`)*IQRs[, get(pollutants_i)]),
-            HR_uci = exp((coef+qnorm(0.975)*`robust se`)*IQRs[, get(pollutants_i)]))][]
+            HR_uci = exp((coef+qnorm(0.975)*`robust se`)*IQRs[, get(pollutants_i)]))]
+  print(HR)
   fwrite(HR, paste0(dir_out, "cox_mortality_", pollutants_i, "_HR.csv"))
   cat("save HR for cox mortality", pollutants_i, "\n")
 }
@@ -137,17 +138,17 @@ HR[, `:=`(HR_IQR = exp(coef*IQRunit),
 fwrite(HR, paste0(dir_out, "cox_mortality_all2_HR.csv"))
 
 ## splines ----
-cox_splines <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = dead) ~ 
-                       pspline(pm25, df=4) + 
-                       pspline(no2, df=4) + 
-                       pspline(ozone, df=4) + 
-                       mean_bmi + smoke_rate + hispanic + pct_blk + 
-                       medhouseholdincome + medianhousevalue +  
-                       poverty + education + popdensity + pct_owner_occ +
-                       summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
-                       as.factor(year) +  as.factor(region) +
-                       strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
-                     data = dt,
-                     tie = c("efron"), 
-                     na.action = na.omit)
-termplot(cox_splines, term = 1, se=TRUE, col.term = 1, col.se = 1)
+# cox_splines <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = dead) ~ 
+#                        pspline(pm25, df=4) + 
+#                        pspline(no2, df=4) + 
+#                        pspline(ozone, df=4) + 
+#                        mean_bmi + smoke_rate + hispanic + pct_blk + 
+#                        medhouseholdincome + medianhousevalue +  
+#                        poverty + education + popdensity + pct_owner_occ +
+#                        summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+#                        as.factor(year) +  as.factor(region) +
+#                        strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+#                      data = dt,
+#                      tie = c("efron"), 
+#                      na.action = na.omit)
+# termplot(cox_splines, term = 1, se=TRUE, col.term = 1, co

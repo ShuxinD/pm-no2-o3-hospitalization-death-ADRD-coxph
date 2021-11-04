@@ -44,8 +44,9 @@ Those who admitted for the first time with ADRD code and died in the same year d
 
 ```{r}
 A <- ADRDcohort[, .(end_yr = max(year)), by = qid]
-A <- A[enrolledInfo, on = .(qid=QID)]
-no_contribution <- subset(A, end_yr==firstADRDyr)
+A <- merge(A, enrolledInfo, by.x = "qid", by.y = "QID")
+no_contribution <- A[end_yr==firstADRDyr,]
+dim(no_contribution)
 ```
 
 ```{r}

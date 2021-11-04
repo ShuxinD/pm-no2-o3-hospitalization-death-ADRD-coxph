@@ -24,7 +24,7 @@ dir_denom <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
 
 dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
 
-## merge ----
+## load ADRD denominator files ----
 ADRDpeople <- read_fst(paste0(dir_denom, "ADRDpeople_denom.fst"), as.data.table = T)
 names(ADRDpeople)
 # [1] "qid"                "year"               "zip"                "sex"                "race"              
@@ -34,6 +34,7 @@ names(ADRDpeople)
 # [21] "winter_tmmx"        "summer_rmax"        "winter_rmax"        "firstADRDyr"  
 class(ADRDpeople[,zip])
 
+## load exposure data ----
 pm25_data <- fread(paste0(dir_pm25, "all_years.csv"))
 head(pm25_data)
 pm25_data[, ZIP := int_to_zip_str(ZIP)]
@@ -60,12 +61,11 @@ rm(ozone_data)
 rm(summer_ozone_data)
 gc()
 
-dim(ADRDpeople) # 25787050
-#' though followup starting from the next year of firstADRDyr, we need the covariates info to correct index event bias
-# ADRDcohort <- ADRDpeople[year!=firstADRDyr,]
-ADRDpeople[,year_prev:=year-1]
+## merge ----
+dim(ADRDpeople) # 25787050 
+#' though followup starting from the next year of firstADRDyr, we need the exposure info to correct index event bias
 
-combined <- merge(ADRDpeople, exposure, by.x = c("zip", "year_prev"), by.y = c("ZIP", "year"), all.x = T) # merge on the previous year of calendar follow-up year
+combined <- merge(ADRDpeople, exposure, by.x = c("zip", "year"), by.y = c("ZIP", "year"), all.x = T) # merge on the previous year of calendar follow-up year
 head(combined,100)
 
 #' generate Ox based on no2 and ozone

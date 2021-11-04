@@ -36,15 +36,15 @@ uniqueN(ADRDcohort[,qid]) # study population individuals
 #' first: remove NAs
 dt <- na.omit(ADRDcohort) # remove NAs
 dim(dt) # person-year
-# [1] 24478723       30
+# [1] 25167394       29
 uniqueN(dt[,qid]) # number of subjects
-# [1] 7276514
+# [1] 7480702
 
 #' second: remove those without complete follow-ups
 omitInfo <- fread(paste0(dir_in,"omitInfo.csv"))
 dt <- dt[!(qid %in% omitInfo$qid),]
 dim(dt) # person-year
-# [1] 20473141       30
+# [1] 22661618       29
 uniqueN(dt[,qid]) # number of subjects
 # [1] 4613668
 
@@ -53,14 +53,14 @@ uniqueN(dt[race==0,qid]) # number subjects with unknown race info
 # [1] 10637
 dt <- dt[!(qid %in% dt[race==0,qid]),]
 dim(dt) # person-year
-# [1] 20430337       30
+# [1] 22609292       29
 uniqueN(dt[,qid]) # number of subjects
-# [1] 4603031
+# [1] 5075863
 
 dim(dt) # final
-# [1] 20430337       29
+# [1] 22609292       29
 uniqueN(dt, by = "qid") #final # of subjects
-# [1] 4603031
+# [1] 5075863
 
 ## add necessary variables ----
 #' create entry_age variable, 5 years as a break
@@ -97,9 +97,9 @@ dt$region <- ifelse(dt$statecode %in% NORTHEAST, "NORTHEAST",
 dt[, region := as.factor(region)]
 
 #' check variable class ----
-summary(dt)
+# summary(dt)
 dt[, `:=`(dual = as.factor(dual))]
 
-#' subset to firstADRDyr>=2001
-dim(dt[firstADRDyr>=2001,])#[1] 20430337       34
-write_fst(dt[firstADRDyr>=2001,], paste0(dir_out, "ADRDcohort_clean.fst"))
+dim(dt)[1] # 22609292
+
+write_fst(dt, paste0(dir_out, "ADRDcohort_clean.fst"))

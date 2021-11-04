@@ -89,6 +89,7 @@ fwrite(ReAdInfo, paste0(dir_in, "ReAdmissionInfo.csv"))
 
 ## load ADRD cohort data ---
 cohort <- read_fst(paste0(dir_in, "ADRDcohort_clean.fst"), as.data.table = T)
+ReAdInfo <- fread(paste0(dir_in, "ReAdmissionInfo.csv"))
 
 ## subset ----
 #' those with ReAd, followup until ReAd
@@ -99,7 +100,7 @@ dt_ReAd_event <- merge(dt_ReAd_event, ReAdInfo, by.x = "qid", by.y = "QID", all.
 head(dt_ReAd_event)
 summary(dt_ReAd_event[,firstReAdyr]- dt_ReAd_event[,firstADRDyr])
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 1.000   1.000   1.000   2.136   3.000  15.000  
+# 1.000   1.000   1.000   2.144   3.000  16.000 
 dt_ReAd_event$ReAd <- FALSE
 dt_ReAd_event[year==firstReAdyr, ReAd:=TRUE][]
 dt_ReAd_event <- dt_ReAd_event[year<=firstReAdyr, ]
@@ -113,5 +114,5 @@ dt_ReAd_noevent[, ReAd := FALSE]
 dt_ReAd <- rbind(dt_ReAd_event, dt_ReAd_noevent)
 
 dim(dt_ReAd[(dead)&(ReAd),]) # the person-year death and readmission happened at the same time
-# [1] 1057109      36
+# [1] 1185403      35
 write_fst(dt_ReAd, paste0(dir_out, "ADRDcohort_ReAd.fst"))
