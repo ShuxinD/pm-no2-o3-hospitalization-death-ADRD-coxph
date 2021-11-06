@@ -124,7 +124,8 @@ for (pollutants_i in pollutants){
   HR <- cbind(HR, IQRs[, get(pollutants_i)])
   HR[, `:=`(HR_IQR = exp(coef*IQRs[, get(pollutants_i)]),
             HR_lci = exp((coef-1.96*`robust se`)*IQRs[, get(pollutants_i)]),
-            HR_uci = exp((coef+1.96*`robust se`)*IQRs[, get(pollutants_i)]))][]
+            HR_uci = exp((coef+1.96*`robust se`)*IQRs[, get(pollutants_i)]))]
+  print(HR)
   fwrite(HR, paste0(dir_out, "cox_ReAd_", pollutants_i, "_HR.csv"))
   cat("save HR for cox ReAd", pollutants_i, "\n")
 }

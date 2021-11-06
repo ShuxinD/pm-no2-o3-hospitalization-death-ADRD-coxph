@@ -151,4 +151,4 @@ fwrite(HR, paste0(dir_out, "cox_mortality_all2_HR.csv"))
 #                      data = dt,
 #                      tie = c("efron"), 
 #                      na.action = na.omit)
-# termplot(cox_splines, term = 1, se=TRUE, col.term = 1, co
+# termplot(cox_splines, term = 1, se=TRUE, col.term = 1, col.se = 1)
