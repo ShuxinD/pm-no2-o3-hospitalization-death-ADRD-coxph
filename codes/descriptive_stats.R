@@ -116,6 +116,18 @@ done(rtffile)
 
 gc()
 
+## distribution of all variables ----
+Vars <- c("pm25", "no2", "ozone", "ozone_summer", "ox",
+          "summer_tmmx", "winter_tmmx", "summer_rmax", "winter_rmax",
+          "mean_bmi", "smoke_rate", 
+          "medhouseholdincome", "medianhousevalue", "poverty",
+          "education","pct_owner_occ", "hispanic", "pct_blk","popdensity")
+summary <- rbind(dt[,..Vars][, lapply(.SD, mean)], dt[,..Vars][, lapply(.SD, sd)],
+                 dt[,..Vars][, lapply(.SD, quantile)])
+rownames(summary) <- c("mean", "sd", "0percentile", "25percentile", "50percentile","75percentile", "100percentile")
+print(summary)
+write.csv(summary, paste0(dir_out, "tableone_mortality_cohort_spatial.csv"))
+
 ## load read data----
 dt <- read_fst(paste0(dir_in, "ADRDcohort_ReAd.fst"), as.data.table = T)
 names(dt)
@@ -199,3 +211,15 @@ addTable(rtffile, cbind(rownames(table1.personyr), table1.personyr))
 addParagraph(rtffile, "\n \n Table1_individual_ReAd")
 addTable(rtffile, cbind(rownames(table1.individual), table1.individual))
 done(rtffile)
+
+## distribution of all variables ----
+Vars <- c("pm25", "no2", "ozone", "ozone_summer", "ox",
+          "summer_tmmx", "winter_tmmx", "summer_rmax", "winter_rmax",
+          "mean_bmi", "smoke_rate", 
+          "medhouseholdincome", "medianhousevalue", "poverty",
+          "education","pct_owner_occ", "hispanic", "pct_blk","popdensity")
+summary <- rbind(dt[,..Vars][, lapply(.SD, mean)], dt[,..Vars][, lapply(.SD, sd)],
+                 dt[,..Vars][, lapply(.SD, quantile)])
+rownames(summary) <- c("mean", "sd", "0percentile", "25percentile", "50percentile","75percentile", "100percentile")
+print(summary)
+write.csv(summary, paste0(dir_out, "tableone_ReAd_cohort_spatial.csv"))
