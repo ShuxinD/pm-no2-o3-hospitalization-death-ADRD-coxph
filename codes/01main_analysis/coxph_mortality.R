@@ -40,7 +40,7 @@ colnames(IQRs) <- c("pm25", "no2", "ozone", "ox", "ozone_summer")
 print(IQRs)
 
 ## single-pollutants model ----
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/airPollution_ADRD/results/main_analyses/coxph_mortality/"
+dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/airPollution_ADRD/results/main_analyses/plain/coxph_mortality/"
 pollutants <- c("pm25", "no2", "ozone_summer", "ox")
 
 # for (pollutants_i in pollutants){
