@@ -51,6 +51,7 @@ for (pollutants_i in pollutants){
 
 for (pollutants_i in pollutants){
   cat("fit coxph model", pollutants_i, "\n")
+  temp <- dt[, get(paste0("deadipw_",pollutants_i))]*dt[,get(paste0("ipw_ieb_",pollutants_i))]
   cox <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = ReAd) ~ 
                  get(pollutants_i) + 
                  mean_bmi + smoke_rate + 
@@ -58,7 +59,7 @@ for (pollutants_i in pollutants){
                  summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                  as.factor(year) +  as.factor(region) +
                  strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
-               weights = get(paste0("deadipw_",pollutants_i)),
+               weights = temp,
                data = dt,
                tie = "efron", 
                na.action = na.omit)
