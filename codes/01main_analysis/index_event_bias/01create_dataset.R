@@ -93,7 +93,12 @@ IPWs <- data.table(qid = dt_mortality[,qid],
                    ipw_ieb_no2 = truncate_ipw(ipw_ieb_no2, 0.985, 0.015),
                    ipw_ieb_ozone = truncate_ipw(ipw_ieb_ozone, 0.99, 0.01),
                    ipw_ieb_ozone_summer = truncate_ipw(ipw_ieb_ozone_summer, 0.99, 0.01),
-                   ipw_ieb_ox = truncate_ipw(ipw_ieb_ox, 0.99, 0.01))
+                   ipw_ieb_ox = truncate_ipw(ipw_ieb_ox, 0.99, 0.01),
+                   ipw_ieb_pm25_raw = ipw_ieb_pm25,
+                   ipw_ieb_no2_raw = ipw_ieb_no2,
+                   ipw_ieb_ozone_raw = ipw_ieb_ozone,
+                   ipw_ieb_ozone_summer_raw = ipw_ieb_ozone_summer,
+                   ipw_ieb_ox_raw = ipw_ieb_ox)
 write_fst(IPWs, paste0(dir_data, "ADRDcohort_mortality_ipw_ieb.fst"))
 
 gc()
@@ -154,7 +159,12 @@ IPWs <- data.table(qid = dt_ReAd[,qid],
                    ipw_ieb_no2 = truncate_ipw(ipw_ieb_no2, 0.985, 0.015),
                    ipw_ieb_ozone = truncate_ipw(ipw_ieb_ozone, 0.99, 0.01),
                    ipw_ieb_ozone_summer = truncate_ipw(ipw_ieb_ozone_summer, 0.99, 0.01),
-                   ipw_ieb_ox = truncate_ipw(ipw_ieb_ox, 0.99, 0.01))
+                   ipw_ieb_ox = truncate_ipw(ipw_ieb_ox, 0.99, 0.01),
+                   ipw_ieb_pm25_raw = ipw_ieb_pm25,
+                   ipw_ieb_no2_raw = ipw_ieb_no2,
+                   ipw_ieb_ozone_raw = ipw_ieb_ozone,
+                   ipw_ieb_ozone_summer_raw = ipw_ieb_ozone_summer,
+                   ipw_ieb_ox_raw = ipw_ieb_ox)
 write_fst(IPWs, paste0(dir_data, "ADRDcohort_ReAd_ipw_ieb.fst"))
 
 
