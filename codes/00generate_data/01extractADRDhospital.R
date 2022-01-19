@@ -23,8 +23,17 @@ dir_output <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/ADRDhosp
 ## ICD code info ----
 outcomes <- list()
 outcomes[["ADRD"]] <- list()
-outcomes[["ADRD"]][["icd9"]] <- c("3310", "33100", "3311", "33110", "3312", "33120", "3317", "33170", "2900", "29000", children("2901"), children("2902"), "2903", "29030", children("2904"), "2940","29400", children("2941"), "2948","29480", "797", "7970", "79700")
-outcomes[["ADRD"]][["icd10"]] <- c(children("F01"), children("F02"), "F0390", children("G30"), children("G310"), "G311", "G312", "R4181")
+outcomes[["ADRD"]][["icd9"]] <- c("3310", "33100", 
+                                  "3311", "33110", "3312", "33120", "3317", "33170", 
+                                  "2900", "29000", children("2901"), children("2902"), "2903", "29030", children("2904"), 
+                                  "2940","29400", children("2941"), "2948","29480", 
+                                  "797", "7970", "79700")
+outcomes[["ADRD"]][["icd10"]] <- c(children("F01"), 
+                                   children("F02"),
+                                   "F0390", 
+                                   children("G30"), 
+                                   children("G310"), "G311", "G312", 
+                                   "R4181")
 
 ## extract hospitalization info ----
 #' clear out old data in case of re-run
@@ -75,6 +84,7 @@ for (year_ in 2000:2016) {
                           columns = c("QID",
                                       "ADATE",
                                       "DDATE",
+                                      "zipcode_R",
                                       "DIAG1",
                                       "DIAG2",
                                       "DIAG3",
@@ -164,6 +174,7 @@ for (year_ in 2000:2016) {
   for (type in c("primary", "secondary")) {
     varname <- paste0("ADRD_", type)
     write_fst(admissions[(get(varname)),], paste0(dir_output, "ADRD", type, "_", year_, ".fst"))
+    gc()
   }
   
   
@@ -184,6 +195,5 @@ for (year_ in 2000:2016) {
   #   }
   # }
 }
-gc()
 gc()
 
