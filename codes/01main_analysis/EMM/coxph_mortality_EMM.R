@@ -1,181 +1,223 @@
-###############################################################################
-# Project: Air Pollution and mortality / readmission in AD/ADRD Medicare      
-# Code: Cox PH model with effect modification
-# Input: "ADRD_mortality.csv"                                                  
-# Output: 
-# Author: Shuxin Dong                                                         
-# Date: 2021-02-17                                                            
-###############################################################################
+## Project: airPollution_ADRD  
+## Code: Cox PH model with effect modification
+## Input: "ADRDcohort_clean.fst"                                                   
+## Output: model specific results
+## Author: Shuxin Dong                                                         
+## Date: 2021-02-17                                                            
 
-## 0. setup -------------------------------------------------------------------
+## setup ----
 rm(list = ls())
 gc()
 
 library(data.table)
+library(fst)
 setDTthreads(threads = 0)
 library(survival)
 
 setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/")
-
 dir_data <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
-dir_results <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/"
 
-dt <- fread(paste0(dir_data, "ADRD_for_mortality.csv"), colClasses = c("zip"="character"))
+dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/airPollution_ADRD/results/main_analyses/EMM/coxph_mortality/"
+
+## load data ----
+dt <- read_fst(paste0(dir_data, "ADRDcohort_clean.fst"), as.data.table = T)
 names(dt)
-#  [1] "qid"                "zip"                "year"               "sex"               
-#  [5] "race"               "age"                "dual"               "statecode"         
-#  [9] "dead"               "mean_bmi"           "smoke_rate"         "hispanic"          
-# [13] "pct_blk"            "medhouseholdincome" "medianhousevalue"   "poverty"           
-# [17] "education"          "popdensity"         "pct_owner_occ"      "summer_tmmx"       
-# [21] "winter_tmmx"        "summer_rmax"        "winter_rmax"        "firstADRDyr"       
-# [25] "pm25"               "no2"                "ozone"              "ozone_summer"      
-# [29] "entry_age"          "entry_age_break"    "race_collapsed"     "ox"    
+# [1] "qid"                "zip"                "year"               "sex"                "race"              
+# [6] "age"                "dual"               "statecode"          "dead"               "mean_bmi"          
+# [11] "smoke_rate"         "hispanic"           "pct_blk"            "medhouseholdincome" "medianhousevalue"  
+# [16] "poverty"            "education"          "popdensity"         "pct_owner_occ"      "summer_tmmx"       
+# [21] "winter_tmmx"        "summer_rmax"        "winter_rmax"        "firstADRDyr"        "pm25"              
+# [26] "no2"                "ozone"              "ozone_summer"       "ox"                 "entry_age"         
+# [31] "entry_age_break"    "race_collapsed"     "region" 
 
-dt[, followupyr := (year - firstADRDyr)]
-dt[, followupyr_plusone := followupyr +1]
-dt[, statecode := as.factor(statecode)]
-
-NORTHEAST <- c("NY", "MA", "PA", "RI", "NH", "ME", "VT", "CT", "NJ")  
-SOUTH <- c("DC", "VA", "NC", "WV", "KY", "SC", "GA", "FL", "AL", "TN", "MS", 
-           "AR", "MD", "DE", "OK", "TX", "LA")
-MIDWEST <- c("OH", "IN", "MI", "IA", "MO", "WI", "MN", "SD", "ND", "IL", "KS", "NE")
-WEST <- c("MT", "CO", "WY", "ID", "UT", "NV", "CA", "OR", "WA", "AZ", "NM")
-
-dt$region <- ifelse(dt$statecode %in% NORTHEAST, "NORTHEAST",
-                    ifelse(dt$statecode %in% SOUTH, "SOUTH",
-                           ifelse(dt$statecode  %in% MIDWEST, "MIDWEST",
-                                  ifelse(dt$statecode  %in% WEST, "WEST",
-                                         NA))))
-dt[, region:=as.factor(region)]
-head(dt)
-gc()
+dt[, dual := as.numeric(dual)]
+dt[, followupyr_start := (year - firstADRDyr-1)]
+dt[, followupyr_end := (year - firstADRDyr)]
 
 IQRs <- data.table(IQR(dt$pm25), IQR(dt$no2), IQR(dt$ozone), IQR(dt$ox), IQR(dt$ozone_summer))
 colnames(IQRs) <- c("pm25", "no2", "ozone", "ox", "ozone_summer")
 print(IQRs)
 
-dt[, sex_female := sex-1]
-dt[, entry_age_over85 := entry_age>85]
+
+## EMM by sex -----
+pollutants <- c("pm25", "no2", "ozone_summer", "ox")
+
+for (pollutants_i in pollutants) {
+  cat("fit coxph model EMM sex", pollutants_i, "\n")
+  cox <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = dead) ~ 
+                 get(pollutants_i)*as.factor(sex) + 
+                 mean_bmi + smoke_rate + 
+                 hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
+                 summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+                 as.factor(year) +  as.factor(region) +
+                 strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+               data = dt,
+               tie = c("efron"),
+               na.action = na.omit)
+  tb <- summary(cox)$coefficients
+  tb <- as.data.frame(tb)
+  setDT(tb, keep.rownames = TRUE)
+  fwrite(tb, paste0(dir_out, "cox_mortality_EMM_sex_", pollutants_i, ".csv"))
+  cov_matrix <- vcov(cox)
+  cat("output coefs...\n")
+  HR_0 <- c(tb[1,coef], IQRs[, get(pollutants_i)], exp(tb[1,coef]*IQRs[, get(pollutants_i)]), exp((tb[1,coef]-tb[1,`robust se`])*IQRs[, get(pollutants_i)]), exp((tb[1,coef]+tb[1,`robust se`])*IQRs[, get(pollutants_i)]))
+  se <- sqrt(cov_matrix[1,1] + cov_matrix[dim(cov_matrix)[1],dim(cov_matrix)[1]] + 2*cov_matrix[1, dim(cov_matrix)[1]])
+  HR_1 <- c(tb[dim(cov_matrix)[1],coef], IQRs[, get(pollutants_i)], exp(tb[dim(cov_matrix)[1],coef]*IQRs[, get(pollutants_i)]), exp((tb[dim(cov_matrix)[1],coef]-se)*IQRs[, get(pollutants_i)]),  exp((tb[dim(cov_matrix)[1],coef]+se)*IQRs[, get(pollutants_i)]))
+  HR <- rbind(HR_0, HR_1)
+  print(HR)
+  HR <- as.data.frame(HR)
+  colnames(HR) <- c("coef", "IQRunit", "HR_IQR", "HR_lci", "HR_uci")
+  rownames(HR) <- paste0("level", levels(dt[,as.factor(sex)]))
+  setDT(HR, keep.rownames = T)
+  print(HR)
+  fwrite(HR, paste0(dir_out, "cox_mortality_EMM_sex_", pollutants_i, "_HR.csv"))
+  cat("save HR for cox mortality EMM sex", pollutants_i, "\n")
+}
+
+## EMM by dual ----
+pollutants <- c("pm25", "no2", "ozone_summer", "ox")
+
+for (pollutants_i in pollutants) {
+  cat("fit coxph model EMM dual", pollutants_i, "\n")
+  cox <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = dead) ~ 
+                 get(pollutants_i)*as.factor(dual) + 
+                 mean_bmi + smoke_rate + 
+                 hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
+                 summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+                 as.factor(year) +  as.factor(region) +
+                 strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+               data = dt,
+               tie = c("efron"),
+               na.action = na.omit)
+  tb <- summary(cox)$coefficients
+  tb <- as.data.frame(tb)
+  setDT(tb, keep.rownames = TRUE)
+  fwrite(tb, paste0(dir_out, "cox_mortality_EMM_dual_", pollutants_i, ".csv"))
+  cov_matrix <- vcov(cox)
+  cat("output coefs...\n")
+  HR_0 <- c(tb[1,coef], IQRs[, get(pollutants_i)], exp(tb[1,coef]*IQRs[, get(pollutants_i)]), exp((tb[1,coef]-tb[1,`robust se`])*IQRs[, get(pollutants_i)]), exp((tb[1,coef]+tb[1,`robust se`])*IQRs[, get(pollutants_i)]))
+  se <- sqrt(cov_matrix[1,1] + cov_matrix[dim(cov_matrix)[1],dim(cov_matrix)[1]] + 2*cov_matrix[1, dim(cov_matrix)[1]])
+  HR_1 <- c(tb[dim(cov_matrix)[1],coef], IQRs[, get(pollutants_i)], exp(tb[dim(cov_matrix)[1],coef]*IQRs[, get(pollutants_i)]), exp((tb[dim(cov_matrix)[1],coef]-se)*IQRs[, get(pollutants_i)]),  exp((tb[dim(cov_matrix)[1],coef]+se)*IQRs[, get(pollutants_i)]))
+  HR <- rbind(HR_0, HR_1)
+  print(HR)
+  HR <- as.data.frame(HR)
+  colnames(HR) <- c("coef", "IQRunit", "HR_IQR", "HR_lci", "HR_uci")
+  rownames(HR) <- paste0("level", levels(dt[,as.factor(sex)]))
+  setDT(HR, keep.rownames = T)
+  print(HR)
+  fwrite(HR, paste0(dir_out, "cox_mortality_EMM_dual_", pollutants_i, "_HR.csv"))
+  cat("save HR for cox mortality EMM dual", pollutants_i, "\n")
+}
+
+## EMM by population density (above median)----
 median_popdensity <- median(dt[, popdensity])
 dt[, above_median_popdensity := popdensity>median_popdensity]
 
-## 1. effect modification for PM2.5 -------------------------------------------
-IQRunit <- IQRs[,pm25]
-### sex 0/1 -----
-cox_pm25_sex <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead) ~ 
-                        pm25 + I(pm25*sex_female) +
-                        mean_bmi + smoke_rate + hispanic + pct_blk + 
-                        medhouseholdincome + medianhousevalue +  
-                        poverty + education + popdensity + pct_owner_occ +
-                        summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
-                        as.factor(year) +  as.factor(region) +
-                        strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-                        strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
-                      data = dt,
-                      tie = c("efron"), 
-                      na.action = na.omit)
-tb <- summary(cox_pm25_sex)$coefficients
-cov_matrix <- vcov(cox_pm25_sex)
+pollutants <- c("pm25", "no2", "ozone_summer", "ox")
 
-HR_reference <- c(tb[1,1], IQRunit, exp(tb[1,1]*IQRunit),exp((tb[1,1]-tb[1,3])*IQRunit), exp((tb[1,1]+tb[1,3])*IQRunit))
-se <- sqrt(cov_matrix[1,1] + cov_matrix[2,2] + 2*cov_matrix[1,2])
-HR_level1 <- c(tb[1,1]+tb[2,1], IQRunit, exp((tb[1,1]+tb[2,1])*IQRunit), exp((tb[1,1]+tb[2,1]-se)*IQRunit), exp((tb[1,1]+tb[2,1]+se)*IQRunit))
+for (pollutants_i in pollutants) {
+  cat("fit coxph model EMM above median popdensity", pollutants_i, "\n")
+  cox <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = dead) ~ 
+                 get(pollutants_i)*as.factor(above_median_popdensity) + 
+                 mean_bmi + smoke_rate + 
+                 hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
+                 summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+                 as.factor(year) +  as.factor(region) +
+                 strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+               data = dt,
+               tie = c("efron"),
+               na.action = na.omit)
+  tb <- summary(cox)$coefficients
+  tb <- as.data.frame(tb)
+  setDT(tb, keep.rownames = TRUE)
+  fwrite(tb, paste0(dir_out, "cox_mortality_EMM_above_median_popdensity_", pollutants_i, ".csv"))
+  cov_matrix <- vcov(cox)
+  cat("output coefs...\n")
+  HR_0 <- c(tb[1,coef], IQRs[, get(pollutants_i)], exp(tb[1,coef]*IQRs[, get(pollutants_i)]), exp((tb[1,coef]-tb[1,`robust se`])*IQRs[, get(pollutants_i)]), exp((tb[1,coef]+tb[1,`robust se`])*IQRs[, get(pollutants_i)]))
+  se <- sqrt(cov_matrix[1,1] + cov_matrix[dim(cov_matrix)[1],dim(cov_matrix)[1]] + 2*cov_matrix[1, dim(cov_matrix)[1]])
+  HR_1 <- c(tb[dim(cov_matrix)[1],coef], IQRs[, get(pollutants_i)], exp(tb[dim(cov_matrix)[1],coef]*IQRs[, get(pollutants_i)]), exp((tb[dim(cov_matrix)[1],coef]-se)*IQRs[, get(pollutants_i)]),  exp((tb[dim(cov_matrix)[1],coef]+se)*IQRs[, get(pollutants_i)]))
+  HR <- rbind(HR_0, HR_1)
+  print(HR)
+  HR <- as.data.frame(HR)
+  colnames(HR) <- c("coef", "IQRunit", "HR_IQR", "HR_lci", "HR_uci")
+  rownames(HR) <- paste0("level", levels(dt[,as.factor(sex)]))
+  setDT(HR, keep.rownames = T)
+  print(HR)
+  fwrite(HR, paste0(dir_out, "cox_mortality_EMM_above_median_popdensity_", pollutants_i, "_HR.csv"))
+  cat("save HR for cox mortality EMM above median popdensity", pollutants_i, "\n")
+}
 
-HR <- rbind(HR_reference, HR_level1)
-print(HR)
-HR <- as.data.frame(HR)
-colnames(HR) <- c("coef", "IQR", "HR", "HR_lci", "HR_uci")
-write.csv(HR, paste0(dir_results, "cox_mortality_pm25_sex_HR.csv"))
-tb <- as.data.frame(tb)
-setDT(tb, keep.rownames = TRUE)
-fwrite(tb, paste0(dir_results, "cox_mortality_pm25_sex_coef.csv"))
+## EMM by entry age ----
+dt[, entry_age_over85 := entry_age>85]
+pollutants <- c("pm25", "no2", "ozone_summer", "ox")
 
-### dual eligibility 0/1 ----
-cox_pm25_dual <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead) ~ 
-                         pm25 + I(pm25*dual) +
-                         mean_bmi + smoke_rate + hispanic + pct_blk + 
-                         medhouseholdincome + medianhousevalue +  
-                         poverty + education + popdensity + pct_owner_occ +
-                         summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
-                         as.factor(year) +  as.factor(region) +
-                         strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-                         strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
-                       data = dt,
-                       tie = c("efron"), 
-                       na.action = na.omit)
-tb <- summary(cox_pm25_dual)$coefficients
-cov_matrix <- vcov(cox_pm25_dual)
+for (pollutants_i in pollutants) {
+  cat("fit coxph model EMM entry_age_over85", pollutants_i, "\n")
+  cox <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = dead) ~ 
+                 get(pollutants_i)*as.factor(entry_age_over85) + 
+                 mean_bmi + smoke_rate + 
+                 hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
+                 summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+                 as.factor(year) +  as.factor(region) +
+                 strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+               data = dt,
+               tie = c("efron"),
+               na.action = na.omit)
+  tb <- summary(cox)$coefficients
+  tb <- as.data.frame(tb)
+  setDT(tb, keep.rownames = TRUE)
+  fwrite(tb, paste0(dir_out, "cox_mortality_EMM_entry_age_over85_", pollutants_i, ".csv"))
+  cov_matrix <- vcov(cox)
+  cat("output coefs...\n")
+  HR_0 <- c(tb[1,coef], IQRs[, get(pollutants_i)], exp(tb[1,coef]*IQRs[, get(pollutants_i)]), exp((tb[1,coef]-tb[1,`robust se`])*IQRs[, get(pollutants_i)]), exp((tb[1,coef]+tb[1,`robust se`])*IQRs[, get(pollutants_i)]))
+  se <- sqrt(cov_matrix[1,1] + cov_matrix[dim(cov_matrix)[1],dim(cov_matrix)[1]] + 2*cov_matrix[1, dim(cov_matrix)[1]])
+  HR_1 <- c(tb[dim(cov_matrix)[1],coef], IQRs[, get(pollutants_i)], exp(tb[dim(cov_matrix)[1],coef]*IQRs[, get(pollutants_i)]), exp((tb[dim(cov_matrix)[1],coef]-se)*IQRs[, get(pollutants_i)]),  exp((tb[dim(cov_matrix)[1],coef]+se)*IQRs[, get(pollutants_i)]))
+  HR <- rbind(HR_0, HR_1)
+  print(HR)
+  HR <- as.data.frame(HR)
+  colnames(HR) <- c("coef", "IQRunit", "HR_IQR", "HR_lci", "HR_uci")
+  rownames(HR) <- paste0("level", levels(dt[,as.factor(sex)]))
+  setDT(HR, keep.rownames = T)
+  print(HR)
+  fwrite(HR, paste0(dir_out, "cox_mortality_EMM_entry_age_over85_", pollutants_i, "_HR.csv"))
+  cat("save HR for cox mortality EMM entry_age_over85_", pollutants_i, "\n")
+}
 
-HR_reference <- c(tb[1,1], IQRunit, exp(tb[1,1]*IQRunit),exp((tb[1,1]-tb[1,3])*IQRunit), exp((tb[1,1]+tb[1,3])*IQRunit))
-se <- sqrt(cov_matrix[1,1] + cov_matrix[2,2] + 2*cov_matrix[1,2])
-HR_level1 <- c(tb[1,1]+tb[2,1], IQRunit, exp((tb[1,1]+tb[2,1])*IQRunit), exp((tb[1,1]+tb[2,1]-se)*IQRunit), exp((tb[1,1]+tb[2,1]+se)*IQRunit))
+## EMM by race ----
+pollutants <- c("pm25", "no2", "ozone_summer", "ox")
 
-HR <- rbind(HR_reference, HR_level1)
-print(HR)
-HR <- as.data.frame(HR)
-colnames(HR) <- c("coef", "IQR", "HR", "HR_lci", "HR_uci")
-write.csv(HR, paste0(dir_results, "cox_mortality_pm25_dual_HR.csv"))
-tb <- as.data.frame(tb)
-setDT(tb, keep.rownames = TRUE)
-fwrite(tb, paste0(dir_results, "cox_mortality_pm25_dual_coef.csv"))
+for (pollutants_i in pollutants) {
+  cat("fit coxph model EMM race", pollutants_i, "\n")
+  cox <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = dead) ~ 
+                 get(pollutants_i)*as.factor(race) + 
+                 mean_bmi + smoke_rate + 
+                 hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
+                 summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+                 as.factor(year) +  as.factor(region) +
+                 strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+               data = dt,
+               tie = c("efron"),
+               na.action = na.omit)
+  tb <- summary(cox)$coefficients
+  tb <- as.data.frame(tb)
+  setDT(tb, keep.rownames = TRUE)
+  fwrite(tb, paste0(dir_out, "cox_mortality_EMM_entry_age_over85_", pollutants_i, ".csv"))
+  cov_matrix <- vcov(cox)
+  cat("output coefs...\n")
+  HR_0 <- c(tb[1,coef], IQRs[, get(pollutants_i)], exp(tb[1,coef]*IQRs[, get(pollutants_i)]), exp((tb[1,coef]-tb[1,`robust se`])*IQRs[, get(pollutants_i)]), exp((tb[1,coef]+tb[1,`robust se`])*IQRs[, get(pollutants_i)]))
+  se <- sqrt(cov_matrix[1,1] + cov_matrix[dim(cov_matrix)[1],dim(cov_matrix)[1]] + 2*cov_matrix[1, dim(cov_matrix)[1]])
+  HR_1 <- c(tb[dim(cov_matrix)[1],coef], IQRs[, get(pollutants_i)], exp(tb[dim(cov_matrix)[1],coef]*IQRs[, get(pollutants_i)]), exp((tb[dim(cov_matrix)[1],coef]-se)*IQRs[, get(pollutants_i)]),  exp((tb[dim(cov_matrix)[1],coef]+se)*IQRs[, get(pollutants_i)]))
+  HR <- rbind(HR_0, HR_1)
+  print(HR)
+  HR <- as.data.frame(HR)
+  colnames(HR) <- c("coef", "IQRunit", "HR_IQR", "HR_lci", "HR_uci")
+  rownames(HR) <- paste0("level", levels(dt[,as.factor(sex)]))
+  setDT(HR, keep.rownames = T)
+  print(HR)
+  fwrite(HR, paste0(dir_out, "cox_mortality_EMM_entry_age_over85_", pollutants_i, "_HR.csv"))
+  cat("save HR for cox mortality EMM entry_age_over85_", pollutants_i, "\n")
+}
 
-### population density T/F----
-cox_pm25_popdensity <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead) ~ 
-                               pm25 + I(pm25*above_median_popdensity) +
-                               mean_bmi + smoke_rate + hispanic + pct_blk + 
-                               medhouseholdincome + medianhousevalue +  
-                               poverty + education + popdensity + pct_owner_occ +
-                               summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
-                               as.factor(year) +  as.factor(region) +
-                               strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-                               strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
-                             data = dt,
-                             tie = c("efron"), 
-                             na.action = na.omit)
-tb <- summary(cox_pm25_popdensity)$coefficients
-cov_matrix <- vcov(cox_pm25_popdensity)
-
-HR_reference <- c(tb[1,1], IQRunit, exp(tb[1,1]*IQRunit),exp((tb[1,1]-tb[1,3])*IQRunit), exp((tb[1,1]+tb[1,3])*IQRunit))
-se <- sqrt(cov_matrix[1,1] + cov_matrix[2,2] + 2*cov_matrix[1,2])
-HR_level1 <- c(tb[1,1]+tb[2,1], IQRunit, exp((tb[1,1]+tb[2,1])*IQRunit), exp((tb[1,1]+tb[2,1]-se)*IQRunit), exp((tb[1,1]+tb[2,1]+se)*IQRunit))
-
-HR <- rbind(HR_reference, HR_level1)
-print(HR)
-HR <- as.data.frame(HR)
-colnames(HR) <- c("coef", "IQR", "HR", "HR_lci", "HR_uci")
-write.csv(HR, paste0(dir_results, "cox_mortality_pm25_popdensity_HR.csv"))
-tb <- as.data.frame(tb)
-setDT(tb, keep.rownames = TRUE)
-fwrite(tb, paste0(dir_results, "cox_mortality_pm25_popdensity_coef.csv"))
-
-### entry age over85 T/F-----
-cox_pm25_entryage <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead) ~ 
-                             pm25 + I(pm25*entry_age_over85) +
-                             mean_bmi + smoke_rate + hispanic + pct_blk + 
-                             medhouseholdincome + medianhousevalue +  
-                             poverty + education + popdensity + pct_owner_occ +
-                             summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
-                             as.factor(year) +  as.factor(region) +
-                             strata(as.factor(entry_age_break)) + strata(as.factor(sex)) + 
-                             strata(as.factor(race_collapsed)) + strata(as.factor(dual)),
-                           data = dt,
-                           tie = c("efron"), 
-                           na.action = na.omit)
-tb <- summary(cox_pm25_entryage)$coefficients
-cov_matrix <- vcov(cox_pm25_entryage)
-
-HR_reference <- c(tb[1,1], IQRunit, exp(tb[1,1]*IQRunit),exp((tb[1,1]-tb[1,3])*IQRunit), exp((tb[1,1]+tb[1,3])*IQRunit))
-se <- sqrt(cov_matrix[1,1] + cov_matrix[2,2] + 2*cov_matrix[1,2])
-HR_level1 <- c(tb[1,1]+tb[2,1], IQRunit, exp((tb[1,1]+tb[2,1])*IQRunit), exp((tb[1,1]+tb[2,1]-se)*IQRunit), exp((tb[1,1]+tb[2,1]+se)*IQRunit))
-
-HR <- rbind(HR_reference, HR_level1)
-print(HR)
-HR <- as.data.frame(HR)
-colnames(HR) <- c("coef", "IQR", "HR", "HR_lci", "HR_uci")
-write.csv(HR, paste0(dir_results, "cox_mortality_pm25_entryage_HR.csv"))
-tb <- as.data.frame(tb)
-setDT(tb, keep.rownames = TRUE)
-fwrite(tb, paste0(dir_results, "cox_mortality_pm25_entryage_coef.csv"))
 
 ### race chr 4 levels ----
 cox_pm25_race <- coxph(Surv(time = followupyr, time2 = followupyr_plusone, event = dead) ~ 

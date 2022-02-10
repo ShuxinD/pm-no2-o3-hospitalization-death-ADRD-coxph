@@ -62,6 +62,7 @@ for (pollutants_i in pollutants){
             HR_lci = exp((coef-qnorm(0.975)*`robust se`)*IQRs[, get(pollutants_i)]),
             HR_uci = exp((coef+qnorm(0.975)*`robust se`)*IQRs[, get(pollutants_i)]))]
   fwrite(HR, paste0(dir_out, "cox_mortality_", pollutants_i, "_HR.csv"))
+  print(HR)
   cat("save HR for cox mortality", pollutants_i, "\n")
 }
 

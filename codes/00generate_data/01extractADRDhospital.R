@@ -19,21 +19,37 @@ setDTthreads(threads = 0)
 setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia")
 dir_hospital <- "/nfs/home/S/shd968/shared_space/ci3_health_data/medicare/gen_admission/1999_2016/targeted_conditions/cache_data/admissions_by_year/"
 dir_output <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/ADRDhospitalization/"
+# dir_output <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/ADRDhospitalization_DanList/"
 
 ## ICD code info ----
 outcomes <- list()
 outcomes[["ADRD"]] <- list()
-outcomes[["ADRD"]][["icd9"]] <- c("3310", "33100", 
-                                  "3311", "33110", "3312", "33120", "3317", "33170", 
-                                  "2900", "29000", children("2901"), children("2902"), "2903", "29030", children("2904"), 
-                                  "2940","29400", children("2941"), "2948","29480", 
+outcomes[["ADRD"]][["icd9"]] <- c("3310", "33100",
+                                  "3311", "33110", "3312", "33120", "3317", "33170",
+                                  "2900", "29000", children("2901"), children("2902"), "2903", "29030", children("2904"),
+                                  "2940","29400", children("2941"), "2948","29480",
                                   "797", "7970", "79700")
-outcomes[["ADRD"]][["icd10"]] <- c(children("F01"), 
+outcomes[["ADRD"]][["icd10"]] <- c(children("F01"),
                                    children("F02"),
-                                   "F0390", 
-                                   children("G30"), 
-                                   children("G310"), "G311", "G312", 
+                                   "F0390",
+                                   children("G30"),
+                                   children("G310"), "G311", "G312",
                                    "R4181")
+# outcomes[["ADRD"]][["icd9"]] <- c(children("290"), # Dementias
+#                                   children("2941"), # Dementia, classified elsewhere
+#                                   children("2942"), # Dementia, unspecified
+#                                   children("2948"), # Other persistent mental disorder
+#                                   children("2949"), # Unspecified persistent mental disorder
+#                                   children("331")) # Alzheimer's disease
+# outcomes[["ADRD"]][["icd10"]] <- c(children("F01"), # Vascular dementia
+#                                    children("F02"), # Dementia in other diseases
+#                                    children("F03"), # Unspecified dementia 
+#                                    children("F09"), # MCI
+#                                    children("G30"), # Alzheimer's disease
+#                                    children("G310"), # Frontotemoral dementia
+#                                    children("G311"), # Senile dementia
+#                                    "G3183", # Dementia with Lewy bodies
+#                                    "G3184") # MCI, so stated
 
 ## extract hospitalization info ----
 #' clear out old data in case of re-run
