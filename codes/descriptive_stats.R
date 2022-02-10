@@ -14,23 +14,21 @@ library(data.table)
 library(fst)
 setDTthreads(threads = 0)
 
-setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/")
+setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/")
 
-dir_in <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/airPollution_ADRD/results/descriptive_stats/"
+dir_in <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
+dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/github_repo/results/descriptive_stats/"
 
 ## load mortality data----
-dt <- read_fst(paste0(dir_in, "ADRDcohort_clean.fst"), as.data.table = T)
+dt <- read_fst(paste0(dir_in, "ADRDcohort_dead.fst"), as.data.table = T)
 names(dt)
-# [1] "qid"                "zip"                "year_prev"          "year"              
-# [5] "sex"                "race"               "age"                "dual"              
-# [9] "statecode"          "dead"               "mean_bmi"           "smoke_rate"        
-# [13] "hispanic"           "pct_blk"            "medhouseholdincome" "medianhousevalue"  
-# [17] "poverty"            "education"          "popdensity"         "pct_owner_occ"     
-# [21] "summer_tmmx"        "winter_tmmx"        "summer_rmax"        "winter_rmax"       
-# [25] "firstADRDyr"        "pm25"               "no2"                "ozone"             
-# [29] "ozone_summer"       "entry_age"          "entry_age_break"    "race_collapsed"    
-# [33] "ox"                 "region"  
+# [1] "qid"                "zip"                "year"               "sex"                "race"              
+# [6] "age"                "dual"               "statecode"          "dead"               "mean_bmi"          
+# [11] "smoke_rate"         "hispanic"           "pct_blk"            "medhouseholdincome" "medianhousevalue"  
+# [16] "poverty"            "education"          "popdensity"         "pct_owner_occ"      "summer_tmmx"       
+# [21] "winter_tmmx"        "summer_rmax"        "winter_rmax"        "firstADRDyr"        "pm25"              
+# [26] "no2"                "ozone"              "ozone_summer"       "ox"                 "entry_age"         
+# [31] "entry_age_break"    "race_collapsed"     "region"    
 dt$dual <- as.numeric(dt$dual)
 
 ## calculate corr ----
@@ -68,7 +66,7 @@ dt <- merge(dt, event, by = "qid", all.x = TRUE)
 dt$dead_end[is.na(dt$dead_end)] <- FALSE
 summary(dt$dead_end)
 # Mode    FALSE     TRUE 
-# logical  3345350 14219267 
+# logical  3952087 14562416 
 gc()
 
 setorder(dt, qid, year)
