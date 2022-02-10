@@ -18,36 +18,35 @@ library(NSAPHutils)
 library(fst)
 
 # setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia")
-dir_ADRDcohort <-  "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
-dir_enrolledInfo <-  "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
+dir_ADRDcohort <-  "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
+dir_enrolledInfo <-  "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
 
 ADRDcohort <- read_fst(paste0(dir_ADRDcohort, "ADRDcohort.fst"), as.data.table = T)
 enrolledInfo <- fread(paste0(dir_enrolledInfo, "EnrolledInfo.csv"))
 ```
-
-## Check the completeness of follow-up
 
 Our final dataset should:
 
 - be one row per person-year (long format)
 - have follow-up info for every year starting from `firstADRDyr` till the end of study period (2016) or death or leaving the US, whichever comes first (though we do not need the info for `year==firstADRDyr` in survival analysis, we do need it for correcting index event bias)
 
-### 1. basic info of original ADRD dataset
-```{r}
-# number of subjects in raw cohort
-uniqueN(ADRDcohort[,qid])
-# number of subjects in cohorts after removing NAs
-uniqueN(na.omit(ADRDcohort)[,qid])
+## Basic info of original ADRD dataset
+
+```{r echo=FALSE}
+cat("number of subjects in original ADRD cohort dataset", uniqueN(ADRDcohort[,qid]), "\n")
+cat("number of subjects in cohorts after removing NAs",uniqueN(na.omit(ADRDcohort)[,qid]),"\n")
 ```
 
-Those who admitted for the first time with ADRD code and died in the same year don't contribute to the risk set. Delete those
+Those who admitted for the first time with ADRD code and died in the same year don't contribute to the risk set. **Consider deleting those subjects**
 
-```{r}
+```{r include=FALSE}
 A <- ADRDcohort[, .(end_yr = max(year)), by = qid]
 A <- merge(A, enrolledInfo, by.x = "qid", by.y = "QID")
 no_contribution <- A[end_yr==firstADRDyr,]
-dim(no_contribution)
+# dim(no_contribution)
 ```
+
+The number of person-years/subjects considered to be deleted due to no-contribution is `r dim(no_contribution)[1]`.
 
 ```{r}
 temp <- na.omit(ADRDcohort[!(qid %in% no_contribution[,qid])]) # remove all the NAs and those without contribution to risk set
@@ -57,7 +56,7 @@ sum_temp <- temp[, .(start_yr = min(year),
 sum_temp <- merge(sum_temp, enrolledInfo, by.x = "qid", by.y = "QID", all.x = TRUE)
 ```
 
-We constructed a temporary dataset named `temp` which is a subset of `ADRDcohort` after removing NA (not remove rows with `year==firstADRDyr`), and summarize each person as one row in total `r dim(sum_temp)[1]` subjects:
+We constructed a temporary dataset named `temp` which is a subset of `ADRDcohort` after removing NA (not remove rows with `year==firstADRDyr`, but remove those making no contribution to the risk set), and summarize each person as one row in total `r dim(sum_temp)[1]` subjects:
 
 - generated `start_yr` as the minimum of calendar year (should equal to `firstADRDyr`)
 - `end_yr` as the maximum of calendar year
@@ -72,25 +71,30 @@ head(sum_temp)
 ```
 
 ```{r echo=FALSE}
-cat("the number of subjects in ADRD cohort (removed NAs, and non-contribution subjects) is", dim(sum_temp)[1], "\n")
-cat("the number of person-years in ADRD cohort (removed NAs, and non-contribution subjects) is", dim(temp)[1], "\n")
+cat("the number of subjects in ADRD cohort (after removing NAs, and non-contribution subjects) is", dim(sum_temp)[1], "\n")
+cat("the number of person-years in ADRD cohort (after removing NAs, and non-contribution subjects) is", dim(temp)[1], "\n")
 cat("is there any duplication of the combination of `qid` and calendar year: ", any(duplicated(temp[,.(qid,year)])), "\n")
 cat("is there any duplication of the combination of `qid` and age: ", any(duplicated(temp[,.(qid,age)])), "\n")
 ```
 
-### 2. check whether all people were followed-up from the year following firstADRDyr
-```{r}
+## Check the completeness of follow-up after removing no-contribution subjects
+
+### 1. how many subjects were not followed-up from `firstADRDyr`
+
+The indivudual-level info of those not followed-up from `firstADRDyr`:
+
+```{r echo=FALSE}
 sum_temp[start_yr != (firstADRDyr)]
 ```
 
-The above subject (`r dim(sum_temp[start_yr != (firstADRDyr+1)])[1]` subjects in total), were not followed-up from the year following firstADRDyr. 
-
 Their info in denominator files:
+
 ```{r echo=FALSE}
 temp[qid %in% sum_temp[start_yr != firstADRDyr, qid], ]
 ```
 
 ```{r echo=FALSE}
+cat("the number of subjects not followed from firstADRDyr is", dim(sum_temp[start_yr != (firstADRDyr)])[1], "\n")
 cat("the number of person-years of related subjects is", dim(temp[qid %in% sum_temp[start_yr != firstADRDyr, qid], ])[1], "\n")
 ```
 
@@ -163,29 +167,46 @@ cat("the number of person-years of related subjects is", dim(temp[qid %in% sum_t
 <!-- sum_temp_added <- merge(sum_temp_added, enrolledInfo, by.x = "qid", by.y = "QID", all.x = TRUE) -->
 <!-- ``` -->
 
-### 3. check whether all people have each year's info during follow-up
-```{r}
+### 2. how many people don't have each year's info
+
+The indivudual-level info of those not having each year's info (containing those from 1.):
+
+```{r echo=FALSE}
 sum_temp[(end_yr-firstADRDyr+1) != count,]
 setorder(temp,qid,year)
 # summary(temp[qid%in%sum_temp[(end_yr-firstADRDyr+1) != count,qid],][,.SD[.N],by=qid][,dead])
 ```
 
+
+```{r echo=FALSE}
+cat("the number of subjects not having each year's info (contain those from 1.) is", dim(sum_temp[(end_yr-firstADRDyr+1) != count,])[1], "\n")
+cat("the number of person-years (contain those from 1.) is", dim(temp[qid %in% sum_temp[(end_yr-firstADRDyr+1) != count,qid],])[1], "\n")
+```
+
+## Omit those without complete follow-up and contribution to the risk set
+
+```{r echo=FALSE}
+cat("the number of subjects without complete follow-up is", dim(sum_temp[(end_yr-firstADRDyr+1) != count,])[1], "\n")
+cat("the number of person-years of related subjects is", dim(temp[qid %in% sum_temp[(end_yr-firstADRDyr+1) != count,qid],])[1], "\n")
+```
+
+```{r echo=FALSE}
+cat("the number of person-years/subjects making no-contribution to the risk set is", dim(no_contribution)[1], "\n")
+```
+
 ```{r}
 ## save qid without complete follow-up or no contribution to risk set
 omitInfo <- rbind(sum_temp[(end_yr-firstADRDyr+1) != count, .(qid,end_yr, firstADRDyr)], no_contribution)
-fwrite(omitInfo, "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/omitInfo.csv")
 ```
 
-The above subject (`r dim(omitInfo)[1]` subjects in total) do not have each year's info during follow-up. **Consider deleting them**
+The above subject (`r dim(omitInfo)[1]` subjects in total) do not have each year's info during follow-up or (mostly) make no contribution to the risk set. **Deleting them**
 
-Their info in denominator files:
-```{r echo=FALSE}
-temp[qid %in% sum_temp[(end_yr-firstADRDyr+1) != count,][,qid],]
-```
+## Check right-censoring of the processed data
 
-### 4. check whether alive people were followed-up till the end of study period (2016) after excluding those without complete follow-up
+Check whether alive people were followed-up till the end of study period (2016) after excluding those without complete follow-up
+
 ```{r}
 sum_temp[!(qid %in% temp[(dead),qid]), ][!(qid %in% omitInfo[,qid]),end_yr] %>% table()
 ```
 
-We could see loads of alive subjects weren't followed-up till 2016. This should be considered as right-censored subjects in the analyses.
+We could see some alive subjects weren't followed-up till 2016. This should be considered as right-censored subjects in the analyses.

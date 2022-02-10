@@ -1,8 +1,8 @@
-#' Project: Air Pollution on mortality and readmission in Medicare AD/ADRD
+#' Project: airPollution_ADRD
 #' Code: extract ADRD population based on enrolled info from denominator files
 #' Input: "EnrolledInfo.csv"
 #' Input: denominator files
-#' Output: "ADRDpeople_denom.csv" the data extracted from denominator files
+#' Output: "ADRDpeople_denom.fst" the data extracted from denominator files
 #' Author: Shuxin Dong
 #' First create date: 2021-01-19 
 
@@ -16,10 +16,10 @@ library(dplyr)
 library(NSAPHutils)
 
 setDTthreads(threads = 0)
-setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia")
-dir_enrolledInfo <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
+setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD")
+dir_enrolledInfo <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
 dir_denominator <- "/nfs/home/S/shd968/shared_space/ci3_health_data/medicare/mortality/1999_2016/wu/cache_data/merged_by_year_v2/"
-dir_output <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
+dir_output <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
 
 f <- list.files(dir_denominator, pattern = "\\.fst", full.names = TRUE)
 # example <- read_fst(f[1])
@@ -45,7 +45,7 @@ myvars <- c("qid", "year", "zip", "sex", "race", "age", "dual", "statecode", "de
 
 enrolledInfo <- fread(paste0(dir_enrolledInfo, "EnrolledInfo.csv"))
 dim(enrolledInfo)[1]
-# [1] 7647589
+# [1] 8151247
 
 ## subset denominator files ----
 #' select denominator with ADRD based on qid
@@ -53,8 +53,8 @@ dim(enrolledInfo)[1]
 dt1_9 <- rbindlist(lapply(f[1:9],
                        read_fst,
                        columns = myvars,
-                       as.data.table = TRUE)) # 311699186 rows
-subset1_9 <- dt1_9[qid %in% enrolledInfo[,QID], ] # 54085330 rows
+                       as.data.table = TRUE))
+subset1_9 <- dt1_9[qid %in% enrolledInfo[,QID], ] # 57840364 rows
 rm(dt1_9)
 gc()
 #' read 10-18 files
@@ -62,7 +62,7 @@ dt10_18 <- rbindlist(lapply(f[10:18],
                           read_fst,
                           columns = myvars,
                           as.data.table = TRUE))
-subset10_18 <- dt10_18[qid %in% enrolledInfo[,QID], ]
+subset10_18 <- dt10_18[qid %in% enrolledInfo[,QID], ] # 31012818 rows
 rm(dt10_18)
 gc()
 
@@ -73,18 +73,18 @@ rm(subset10_18)
 gc()
 
 uniqueN(ADRDpeople[,qid]) # number of ADRD people in denominator file
-# [1] 7638776
+# [1] 8142362
 dim(ADRDpeople) # person-year
-# [1]   81080253       23     
+# [1]   88853182       23     
 
 ## merge enrollInfo into ADRD denom ----
 ADRDpeople <- merge(ADRDpeople, enrolledInfo, by.x = "qid", by.y = "QID", all = FALSE)
 setorder(ADRDpeople, qid, year)
 ADRDpeople <- ADRDpeople[year >= firstADRDyr, ] # subset from firstADRDyr
 uniqueN(ADRDpeople[,qid])
-# [1] 7638546
+# [1] 8142113
 dim(ADRDpeople)
-# [1]    25787050       24    
+# [1]    27297657       24    
 ADRDpeople[, zip := int_to_zip_str(zip)]
 
 write_fst(ADRDpeople, paste0(dir_output, "ADRDpeople_denom.fst"))

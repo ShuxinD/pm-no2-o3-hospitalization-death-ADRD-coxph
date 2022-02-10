@@ -1,5 +1,5 @@
 #' Project: airPollution_ADRD
-#' Code: merge air pollution into denominator files
+#' Code: merge air pollution into ADRD denom file
 #' Input: "ADRDpeople_denom.csv"
 #' Input: pm25 NO2 and ozone data                             
 #' Output: "ADRDcohort.fst"
@@ -19,10 +19,10 @@ library(fst)
 dir_pm25 <- "/nfs/nsaph_ci3/ci3_exposure/pm25/whole_us/annual/zipcode/qd_predictions_ensemble/ywei_aggregation/"
 dir_no2 <- "/nfs/nsaph_ci3/ci3_exposure/no2/whole_us/annual/zipcode/qd_predictions_ensemble/ywei_aggregations/"
 dir_ozone <- "/nfs/nsaph_ci3/ci3_exposure/ozone/whole_us/annual/zipcode/requaia_predictions/ywei_aggregation/"
-dir_summer_ozone <- "/nfs/nsaph_ci3/ci3_shd968/dementia/data/"
-dir_denom <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
+dir_summer_ozone <- "/nfs/nsaph_ci3/ci3_shd968/medicareADRD/data/"
+dir_denom <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
 
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
+dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
 
 ## load ADRD denominator files ----
 ADRDpeople <- read_fst(paste0(dir_denom, "ADRDpeople_denom.fst"), as.data.table = T)
@@ -62,7 +62,7 @@ rm(summer_ozone_data)
 gc()
 
 ## merge ----
-dim(ADRDpeople) # 25787050 
+dim(ADRDpeople) # 27297657 
 #' though followup starting from the next year of firstADRDyr, we need the exposure info to correct index event bias
 
 combined <- merge(ADRDpeople, exposure, by.x = c("zip", "year"), by.y = c("ZIP", "year"), all.x = T) # merge on the previous year of calendar follow-up year
@@ -71,12 +71,12 @@ head(combined,100)
 #' generate Ox based on no2 and ozone
 combined[, ox := (1.07*no2 + 2.075*ozone)/3.14]
 summary(combined[,.(pm25,no2,ozone,ozone_summer,ox)])
-# pm25             no2             ozone         ozone_summer          ox        
-# Min.   : 0.3     Min.   :  0.0    Min.   :13.4     Min.   : 8.8     Min.   : 9.8    
-# 1st Qu.: 8.7     1st Qu.: 12.0    1st Qu.:36.4     1st Qu.:41.9     1st Qu.:29.8    
-# Median :10.5     Median : 18.3    Median :38.6     Median :45.1     Median :32.1    
-# Mean   :10.6     Mean   : 20.1    Mean   :38.6     Mean   :45.1     Mean   :32.4    
-# 3rd Qu.:12.6     3rd Qu.: 26.8    3rd Qu.:40.8     3rd Qu.:48.6     3rd Qu.:34.6    
-# Max.   :30.9     Max.   :127.6    Max.   :65.1     Max.   :80.8     Max.   :70.8    
-# NA's   :765980   NA's   :765980   NA's   :765980   NA's   :765980   NA's   :765980  
+# pm25            no2             ozone        ozone_summer         ox       
+# Min.   : 0.01   Min.   :  0.01   Min.   :13.38   Min.   : 8.81   Min.   : 9.81  
+# 1st Qu.: 8.26   1st Qu.: 11.60   1st Qu.:36.54   1st Qu.:41.75   1st Qu.:29.57  
+# Median :10.05   Median : 17.54   Median :38.67   Median :44.77   Median :31.88  
+# Mean   :10.22   Mean   : 19.43   Mean   :38.64   Mean   :44.80   Mean   :32.15  
+# 3rd Qu.:12.12   3rd Qu.: 25.74   3rd Qu.:40.72   3rd Qu.:48.22   3rd Qu.:34.39  
+# Max.   :30.92   Max.   :127.63   Max.   :65.09   Max.   :80.76   Max.   :70.83  
+# NA's   :58522   NA's   :58522    NA's   :58522   NA's   :58522   NA's   :58522  
 write_fst(combined, paste0(dir_out, "ADRDcohort.fst"))
