@@ -1,6 +1,6 @@
 #' Project: airPollution_ADRD
 #' Code: Cox PH 
-#' Input: "ADRDcohort_clean.fst"                                                  
+#' Input: "ADRDcohort_dead.fst"                                                  
 #' Output: model specific results
 #' Author: Shuxin Dong
 #' First create date: 2021-02-17
@@ -14,23 +14,20 @@ library(fst)
 setDTthreads(threads = 0)
 library(survival)
 
-setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/")
-dir_data <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
+setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/")
+dir_data <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
 
 ## load data ----
-dt <- read_fst(paste0(dir_data, "ADRDcohort_clean.fst"), as.data.table = T)
+dt <- read_fst(paste0(dir_data, "ADRDcohort_dead.fst"), as.data.table = T)
 names(dt)
-# [1] "qid"                "zip"                "year_prev"          "year"              
-# [5] "sex"                "race"               "age"                "dual"              
-# [9] "statecode"          "dead"               "mean_bmi"           "smoke_rate"        
-# [13] "hispanic"           "pct_blk"            "medhouseholdincome" "medianhousevalue"  
-# [17] "poverty"            "education"          "popdensity"         "pct_owner_occ"     
-# [21] "summer_tmmx"        "winter_tmmx"        "summer_rmax"        "winter_rmax"       
-# [25] "firstADRDyr"        "pm25"               "no2"                "ozone"             
-# [29] "ozone_summer"       "entry_age"          "entry_age_break"    "race_collapsed"    
-# [33] "ox"                 "region" 
+# [1] "qid"                "zip"                "year"               "sex"                "race"              
+# [6] "age"                "dual"               "statecode"          "dead"               "mean_bmi"          
+# [11] "smoke_rate"         "hispanic"           "pct_blk"            "medhouseholdincome" "medianhousevalue"  
+# [16] "poverty"            "education"          "popdensity"         "pct_owner_occ"      "summer_tmmx"       
+# [21] "winter_tmmx"        "summer_rmax"        "winter_rmax"        "firstADRDyr"        "pm25"              
+# [26] "no2"                "ozone"              "ozone_summer"       "ox"                 "entry_age"         
+# [31] "entry_age_break"    "race_collapsed"     "region"  
 
-dt[, dual := as.numeric(dual)]
 dt[, followupyr_start := (year - firstADRDyr-1)]
 dt[, followupyr_end := (year - firstADRDyr)]
 
@@ -40,7 +37,7 @@ colnames(IQRs) <- c("pm25", "no2", "ozone", "ox", "ozone_summer")
 print(IQRs)
 
 ## single-pollutants model ----
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/airPollution_ADRD/results/main_analyses/plain/coxph_mortality/"
+dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/github_repo/results/main_analyses/plain/coxph_mortality/"
 pollutants <- c("pm25", "no2", "ozone_summer", "ox")
 
 # for (pollutants_i in pollutants){
@@ -85,7 +82,7 @@ for (pollutants_i in pollutants){
 }
 
 ## multi-pollutants model ----
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/airPollution_ADRD/results/main_analyses/coxph_mortality/"
+dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/github_repo/results/main_analyses/coxph_mortality/"
 
 cat("estimate cox for 3-pollutant model \n")
 cox_all3 <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = dead) ~ 
@@ -131,7 +128,7 @@ fwrite(tb, paste0(dir_out, "cox_mortality_all2.csv"))
 IQRunit <- c(IQRs$pm25, IQRs$ox)
 HR <- tb[1:2,]
 HR <- cbind(HR,IQRunit)
-cat("output HR for cox 3-pollutant model \n")
+cat("output HR for cox 2-pollutant model \n")
 HR[, `:=`(HR_IQR = exp(coef*IQRunit),
           HR_lci = exp((coef-1.96*`robust se`)*IQRunit),
           HR_uci = exp((coef+1.96*`robust se`)*IQRunit))][]
