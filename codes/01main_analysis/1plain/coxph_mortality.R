@@ -37,7 +37,7 @@ colnames(IQRs) <- c("pm25", "no2", "ozone", "ox", "ozone_summer")
 print(IQRs)
 
 ## single-pollutants model ----
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/github_repo/results/main_analyses/plain/coxph_mortality/"
+dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/github_repo/results/main_analysis/1plain/coxph_mortality/"
 pollutants <- c("pm25", "no2", "ozone_summer", "ox")
 
 # for (pollutants_i in pollutants){
@@ -82,7 +82,7 @@ for (pollutants_i in pollutants){
 }
 
 ## multi-pollutants model ----
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/github_repo/results/main_analyses/coxph_mortality/"
+dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/github_repo/results/main_analysis/1plain/coxph_mortality/"
 
 cat("estimate cox for 3-pollutant model \n")
 cox_all3 <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = dead) ~ 
