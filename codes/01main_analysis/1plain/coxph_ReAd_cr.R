@@ -14,14 +14,13 @@ library(fst)
 setDTthreads(threads = 0)
 library(survival)
 
-setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/")
-dir_data <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/data/"
+setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/")
+dir_data <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
 
 ## load data ----
 dt <- read_fst(paste0(dir_data, "ADRDcohort_ReAd.fst"), as.data.table = T)
 names(dt)
 
-dt[, dual := as.numeric(dual)]
 dt[, followupyr_start := (year - firstADRDyr - 1)]
 dt[, followupyr_end := (year - firstADRDyr)]
 
@@ -37,7 +36,7 @@ dt[, dead_cr := ifelse((dead)&(ReAd),F,dead)]
 pollutants <- c("pm25", "no2", "ozone", "ozone_summer", "ox")
 for (pollutants_i in pollutants){
   cat("fit ps model for mortality with", pollutants_i, "\n")
-  # P(D=0|A,L)
+  # P(D=1|A,L)
   denom.death <- glm(dead_cr ~ get(pollutants_i) + 
                        mean_bmi + smoke_rate + 
                        hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
@@ -46,7 +45,7 @@ for (pollutants_i in pollutants){
                        as.factor(entry_age_break) + as.factor(sex) + as.factor(race_collapsed) + as.factor(dual),
                      data = dt, family = binomial(link = "logit"))
   p_denom.death <- 1 - predict(denom.death, type = "response")
-  # P(D=0|A)
+  # P(D=1|A)
   num.death <- glm(dead_cr ~ get(pollutants_i),
                    data = dt, family = binomial(link = "logit"))
   p_num.death <- 1 - predict(num.death, type = "response")
@@ -57,7 +56,7 @@ rm(p_num.death)
 gc()
 ## multi-pollutant pm25 no2 and ozone
 cat("fit ps model for mortality with pm25 no2 and ozone \n")
-# P(D=0|A,L)
+# P(D=1|A,L)
 denom.death <- glm(dead_cr ~ pm25 + no2 + ozone_summer +  
                        mean_bmi + smoke_rate + 
                        hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
@@ -66,14 +65,14 @@ denom.death <- glm(dead_cr ~ pm25 + no2 + ozone_summer +
                        as.factor(entry_age_break) + as.factor(sex) + as.factor(race_collapsed) + as.factor(dual),
                    data = dt, family = binomial(link = "logit"))
 p_denom.death <- 1 - predict(denom.death, type = "response")
-# P(D=0|A)
+# P(D=1|A)
 num.death <- glm(dead_cr ~ pm25 + no2 + ozone_summer,
                    data = dt, family = binomial(link = "logit"))
 p_num.death <- 1 - predict(num.death, type = "response")
 assign(paste0("deadipw_all3"), p_num.death/p_denom.death)
 ## multi-pollutant pm25 and ox
 cat("fit ps model for mortality with pm25 and ox \n")
-# P(D=0|A,L)
+# P(D=1|A,L)
 denom.death <- glm(dead_cr ~ pm25 + ox +  
                      mean_bmi + smoke_rate + 
                      hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
@@ -82,7 +81,7 @@ denom.death <- glm(dead_cr ~ pm25 + ox +
                      as.factor(entry_age_break) + as.factor(sex) + as.factor(race_collapsed) + as.factor(dual),
                    data = dt, family = binomial(link = "logit"))
 p_denom.death <- 1 - predict(denom.death, type = "response")
-# P(D=0|A)
+# P(D=1|A)
 num.death <- glm(dead_cr ~ pm25 + ox,
                  data = dt, family = binomial(link = "logit"))
 p_num.death <- 1 - predict(num.death, type = "response")
@@ -95,11 +94,26 @@ dt[, `:=` (deadipw_pm25 = deadipw_pm25,
            deadipw_ox = deadipw_ox,
            deadipw_all3 = deadipw_all3,
            deadipw_all2 = deadipw_all2)]
+# summary(dt[,.(deadipw_pm25, deadipw_no2, deadipw_ozone, deadipw_ozone_summer, deadipw_ox, deadipw_all3, deadipw_all2)])
+# deadipw_pm25     deadipw_no2     deadipw_ozone    deadipw_ozone_summer   deadipw_ox      deadipw_all3   
+# Min.   :0.8703   Min.   :0.8980   Min.   :0.8979   Min.   :0.9014       Min.   :0.9005   Min.   :0.8670  
+# 1st Qu.:0.9643   1st Qu.:0.9633   1st Qu.:0.9632   1st Qu.:0.9632       1st Qu.:0.9632   1st Qu.:0.9643  
+# Median :0.9903   Median :0.9893   Median :0.9895   Median :0.9895       Median :0.9893   Median :0.9900  
+# Mean   :1.0030   Mean   :1.0031   Mean   :1.0031   Mean   :1.0031       Mean   :1.0031   Mean   :1.0029  
+# 3rd Qu.:1.0267   3rd Qu.:1.0269   3rd Qu.:1.0273   3rd Qu.:1.0273       3rd Qu.:1.0271   3rd Qu.:1.0264  
+# Max.   :1.7501   Max.   :1.8379   Max.   :1.8359   Max.   :1.8417       Max.   :1.8407   Max.   :1.7706  
+# deadipw_all2   
+# Min.   :0.8710  
+# 1st Qu.:0.9643  
+# Median :0.9903  
+# Mean   :1.0030  
+# 3rd Qu.:1.0267  
+# Max.   :1.7593 
 #' save ipws just in case
 write_fst(dt[,.(qid, year, deadipw_pm25, deadipw_no2, deadipw_ozone, deadipw_ozone_summer, deadipw_ox, deadipw_all3, deadipw_all2)], paste0(dir_data,"ADRDcohort_ReAd_deadipw.fst"))
 
 ## single-pollutants model ----
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/airPollution_ADRD/results/main_analyses/coxph_ReAd/"
+dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/github_repo/results/main_analysis/1plain/coxph_ReAd_cr/"
 pollutants <- c("pm25", "no2", "ozone_summer", "ox")
 
 for (pollutants_i in pollutants){
@@ -131,7 +145,7 @@ for (pollutants_i in pollutants){
 }
 
 ## multi-pollutants model ----
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/dementia/airPollution_ADRD/results/main_analyses/coxph_ReAd/"
+dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/github_repo/results/main_analysis/1plain/coxph_ReAd_cr/"
 
 cat("estimate cox for 3-pollutant model \n")
 cox_all3 <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = ReAd) ~ 
@@ -179,7 +193,7 @@ fwrite(tb, paste0(dir_out, "cox_ReAd_all2.csv"))
 IQRunit <- c(IQRs$pm25, IQRs$ox)
 HR <- tb[1:2,]
 HR <- cbind(HR,IQRunit)
-cat("output HR for cox 3-pollutant model \n")
+cat("output HR for cox 2-pollutant model \n")
 HR[, `:=`(HR_IQR = exp(coef*IQRunit),
           HR_lci = exp((coef-1.96*`robust se`)*IQRunit),
           HR_uci = exp((coef+1.96*`robust se`)*IQRunit))][]
