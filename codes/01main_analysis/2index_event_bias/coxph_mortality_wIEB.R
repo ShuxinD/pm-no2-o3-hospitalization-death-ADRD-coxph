@@ -1,6 +1,6 @@
 #' Project: airPollution_ADRD
 #' Code: Cox PH 
-#' Input: "ADRDcohort_clean.fst"                                                  
+#' Input: "ADRDcohort_dead.fst"                                                  
 #' Output: model specific results
 #' Author: Shuxin Dong
 #' First create date: 2021-02-17
@@ -107,8 +107,34 @@ HR[, `:=`(HR_IQR = exp(coef*IQRunit),
           HR_uci = exp((coef+1.96*`robust se`)*IQRunit))][]
 fwrite(HR, paste0(dir_out, "cox_mortality_all3_HR.csv"))
 
+cat("estimate cox for 2-pollutant model \n")
+ipw_ieb_all2_raw <- dt[,ipw_ieb_pm25_raw]*dt[,ipw_ieb_ox_raw]
+summary(ipw_ieb_all2_raw)
+summary(truncate_ipw(ipw_ieb_all2_raw, 0.985, 0.015))
+ipw_ieb_all2 <- truncate_ipw(ipw_ieb_all2_raw, 0.985, 0.015)
+cox_all2 <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = dead) ~
+                    pm25 + ox +
+                    mean_bmi + smoke_rate +
+                    hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
+                    summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+                    as.factor(year) +  as.factor(region) +
+                    strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+                  weights = ipw_ieb_all2,
+                  data = dt,
+                  tie = c("efron"),
+                  na.action = na.omit)
+tb <- summary(cox_all2)$coefficients
+tb <- as.data.frame(tb)
+setDT(tb, keep.rownames = TRUE)[]
+fwrite(tb, paste0(dir_out, "cox_mortality_all2.csv"))
 
-ipw_ieb_all2 <- dt[,ipw_ieb_pm25]*dt[,ipw_ieb_ox]
-summary(ipw_ieb_all2)
+IQRunit <- c(IQRs$pm25, IQRs$ox)
+HR <- tb[1:2,]
+HR <- cbind(HR,IQRunit)
+cat("output HR for cox 2-pollutant model \n")
+HR[, `:=`(HR_IQR = exp(coef*IQRunit),
+          HR_lci = exp((coef-1.96*`robust se`)*IQRunit),
+          HR_uci = exp((coef+1.96*`robust se`)*IQRunit))][]
+fwrite(HR, paste0(dir_out, "cox_mortality_all2_HR.csv"))
 
 
