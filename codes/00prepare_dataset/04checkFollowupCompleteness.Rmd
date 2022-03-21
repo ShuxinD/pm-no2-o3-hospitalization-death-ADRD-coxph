@@ -64,11 +64,7 @@ We constructed a temporary dataset named `temp` which is a subset of `ADRDcohort
 
 We also merged the enroll information (`firstADRDyear`) to `sum_temp`. `firstADRDyr` indicates the year that subjects should start to be followed-up.
 
-`sum_temp` is a one-row-per-person dataset, looks like:
-
-```{r echo=FALSE}
-head(sum_temp)
-```
+`sum_temp` is a one-row-per-person dataset.
 
 ```{r echo=FALSE}
 cat("the number of subjects in ADRD cohort (after removing NAs, and non-contribution subjects) is", dim(sum_temp)[1], "\n")
@@ -81,17 +77,9 @@ cat("is there any duplication of the combination of `qid` and age: ", any(duplic
 
 ### 1. how many subjects were not followed-up from `firstADRDyr`
 
-The indivudual-level info of those not followed-up from `firstADRDyr`:
+The number of those not followed-up from `firstADRDyr`: `r dim(sum_temp[start_yr != (firstADRDyr)])[1]`
 
-```{r echo=FALSE}
-sum_temp[start_yr != (firstADRDyr)]
-```
-
-Their info in denominator files:
-
-```{r echo=FALSE}
-temp[qid %in% sum_temp[start_yr != firstADRDyr, qid], ]
-```
+Their person-years in denominator files are: `r dim(temp[qid %in% sum_temp[start_yr != firstADRDyr, qid], ])[1]`
 
 ```{r echo=FALSE}
 cat("the number of subjects not followed from firstADRDyr is", dim(sum_temp[start_yr != (firstADRDyr)])[1], "\n")
@@ -169,10 +157,7 @@ cat("the number of person-years of related subjects is", dim(temp[qid %in% sum_t
 
 ### 2. how many people don't have each year's info
 
-The indivudual-level info of those not having each year's info (containing those from 1.):
-
 ```{r echo=FALSE}
-sum_temp[(end_yr-firstADRDyr+1) != count,]
 setorder(temp,qid,year)
 # summary(temp[qid%in%sum_temp[(end_yr-firstADRDyr+1) != count,qid],][,.SD[.N],by=qid][,dead])
 ```
