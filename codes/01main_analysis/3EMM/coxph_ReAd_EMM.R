@@ -21,16 +21,16 @@ dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/github_repo/
 
 ## load data ----
 dt <- read_fst(paste0(dir_data, "ADRDcohort_ReAd.fst"), as.data.table = T)
-names(dt)
+dt_ipwdeath <- read_fst(paste0(dir_data,"ADRDcohort_ReAd_deadipw.fst"), as.data.table = T)
+dt <- merge(dt, dt_ipwdeath, by = c("qid", "year"))
+# names(dt)
 
-# dt[, dual := as.numeric(dual)]
 dt[, followupyr_start := (year - firstADRDyr-1)]
 dt[, followupyr_end := (year - firstADRDyr)]
 
 IQRs <- data.table(IQR(dt$pm25), IQR(dt$no2), IQR(dt$ozone), IQR(dt$ox), IQR(dt$ozone_summer))
 colnames(IQRs) <- c("pm25", "no2", "ozone", "ox", "ozone_summer")
 print(IQRs)
-
 
 ## EMM by sex -----
 pollutants <- c("pm25", "no2", "ozone_summer", "ox")
@@ -44,6 +44,7 @@ for (pollutants_i in pollutants) {
                  summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                  as.factor(year) +  as.factor(region) +
                  strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+               weights = get(paste0("deadipw_",pollutants_i)),
                data = dt,
                tie = c("efron"),
                na.action = na.omit)
@@ -79,6 +80,7 @@ for (pollutants_i in pollutants) {
                  summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                  as.factor(year) +  as.factor(region) +
                  strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+               weights = get(paste0("deadipw_",pollutants_i)),
                data = dt,
                tie = c("efron"),
                na.action = na.omit)
@@ -117,6 +119,7 @@ for (pollutants_i in pollutants) {
                  summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                  as.factor(year) +  as.factor(region) +
                  strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+               weights = get(paste0("deadipw_",pollutants_i)),
                data = dt,
                tie = c("efron"),
                na.action = na.omit)
@@ -153,6 +156,7 @@ for (pollutants_i in pollutants) {
                  summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                  as.factor(year) +  as.factor(region) +
                  strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+               weights = get(paste0("deadipw_",pollutants_i)),
                data = dt,
                tie = c("efron"),
                na.action = na.omit)
@@ -188,6 +192,7 @@ for (pollutants_i in pollutants) {
                  summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                  as.factor(year) +  as.factor(region) +
                  strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+               weights = get(paste0("deadipw_",pollutants_i)),
                data = dt,
                tie = c("efron"),
                na.action = na.omit)
