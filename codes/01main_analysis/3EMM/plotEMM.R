@@ -1,11 +1,12 @@
 library(ggplot2)
 library(stringr) 
 library(data.table)
-# setwd("~/Desktop/airPollution_ADRD_main")
-# setwd("~/Documents/GitHub/airPollution_ADRD")
-# data <- read.csv("sample_EMM.csv")
+setwd("~/Desktop/airpollution_adrd_medicare/")
 
-dir_plot <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/github_repo/results/main_analysis/EMM/"
+dir_plot <- paste0(getwd(), "/github_repo/results/main_analysis/EMM/")
+
+# dir_plot <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/github_repo/results/main_analysis/EMM/"
+
 ############################
 # outcome <- "mortality"
 outcome <- "ReAd"
@@ -38,12 +39,13 @@ dt$modifier <- factor(dt$modifier, levels = c("sex", "dual", "above_median_popde
                       labels = c("Sex", "Dual \n elegibility", "Above median \n population \n density", "Entry age \n over 85", "Race"))
 dt$pollutant <- factor(dt$pollutant, levels = c("pm25", "no2", "ozone_summer", "ox"),
                        labels = c("PM[2.5]", "NO[2]", "Summer\nozone", "Ox"))
+fwrite(dt, paste0(dir_EMM_data, "EMMplot_table.csv"))
 
 plot <- ggplot(data = dt, aes(x=level, y=HR, ymin=HR_lci, ymax=HR_uci)) + 
   geom_pointrange(aes(ymin=HR_lci, ymax=HR_uci), fatten = 1) +
   #geom_hline(aes(fill=level), yintercept = 1, linetype=2) +
   #geom_pointrange(aes(col=level_num,ymin=HR_lci, ymax=HR_uci), width=0.2,cex=1) + 
-  facet_grid(pollutant~modifier, scales = "free", space = "free") + 
+  facet_grid(pollutant~modifier,scales = "free",  space = "free") + 
   scale_x_discrete(labels = function(x) str_wrap(x, width = 5))
 # theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 print(plot)
