@@ -13,8 +13,8 @@ library(data.table)
 library(fst)
 setDTthreads(threads = 0)
 
-dir_in <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
+dir_in <- paste0(getwd(),"/data/")
+dir_out <- paste0(getwd(),"/data/")
 
 ## load data ----
 ADRDcohort <- read_fst(paste0(dir_in, "ADRDcohort.fst"), as.data.table = T)

@@ -18,8 +18,8 @@ library(NSAPHutils)
 library(fst)
 
 # setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/dementia")
-dir_ADRDcohort <-  "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
-dir_enrolledInfo <-  "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
+dir_ADRDcohort <-  paste0(getwd(),"/data/")
+dir_enrolledInfo <-  paste0(getwd(),"/data/")
 
 ADRDcohort <- read_fst(paste0(dir_ADRDcohort, "ADRDcohort.fst"), as.data.table = T)
 enrolledInfo <- fread(paste0(dir_enrolledInfo, "EnrolledInfo.csv"))

@@ -15,8 +15,8 @@ library(lubridate)
 library(NSAPHutils)
 setDTthreads(threads = 0)
 
-dir_in <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
+dir_in <- paste0(getwd(),"/data/")
+dir_out <- paste0(getwd(),"/data/")
 
 ## load cohort enrollment info ----
 enrollInfo <- fread(paste0(dir_in, "EnrolledInfo.csv"))
@@ -24,7 +24,7 @@ head(enrollInfo)
 
 ## load inpatient records ----
 dir_hospital <- "/nfs/home/S/shd968/shared_space/ci3_health_data/medicare/gen_admission/1999_2016/targeted_conditions/cache_data/admissions_by_year/"
-dir_cohortAd <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/ADRDcohort_hospitalization/"
+dir_cohortAd <- paste0(getwd(),"/data/ADRDcohort_hospitalization/")
 
 file.remove(list.files(dir_cohortAd, 
                        pattern = ".fst",

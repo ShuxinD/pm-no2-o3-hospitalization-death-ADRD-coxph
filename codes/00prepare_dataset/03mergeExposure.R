@@ -19,10 +19,10 @@ library(fst)
 dir_pm25 <- "/nfs/nsaph_ci3/ci3_exposure/pm25/whole_us/annual/zipcode/qd_predictions_ensemble/ywei_aggregation/"
 dir_no2 <- "/nfs/nsaph_ci3/ci3_exposure/no2/whole_us/annual/zipcode/qd_predictions_ensemble/ywei_aggregations/"
 dir_ozone <- "/nfs/nsaph_ci3/ci3_exposure/ozone/whole_us/annual/zipcode/requaia_predictions/ywei_aggregation/"
-dir_summer_ozone <- "/nfs/nsaph_ci3/ci3_shd968/medicareADRD/data/"
-dir_denom <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
+dir_summer_ozone <- paste0(getwd(),"/data/")
+dir_denom <- paste0(getwd(),"/data/")
 
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
+dir_out <- paste0(getwd(),"/data/")
 
 ## load ADRD denominator files ----
 ADRDpeople <- read_fst(paste0(dir_denom, "ADRDpeople_denom.fst"), as.data.table = T)

@@ -16,10 +16,10 @@ library(dplyr)
 library(NSAPHutils)
 
 setDTthreads(threads = 0)
-setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD")
-dir_enrolledInfo <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
+# setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD")
+dir_enrolledInfo <- paste0(getwd(),"/data/")
 dir_denominator <- "/nfs/home/S/shd968/shared_space/ci3_health_data/medicare/mortality/1999_2016/wu/cache_data/merged_by_year_v2/"
-dir_output <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
+dir_output <- paste0(getwd(),"/data/")
 
 f <- list.files(dir_denominator, pattern = "\\.fst", full.names = TRUE)
 # example <- read_fst(f[1])
