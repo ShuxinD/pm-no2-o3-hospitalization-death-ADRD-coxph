@@ -18,8 +18,14 @@ dir_data <- paste0(getwd(),"/data/")
 
 ## load mortality cohort ----
 dt <- read_fst(paste0(dir_data, "ADRDcohort_dead.fst"), as.data.table = T)
+dt[, followupyr_start := (year - firstADRDyr-1)]
+dt[, followupyr_end := (year - firstADRDyr)]
 all_zip <- unique(dt[,zip])
 num_uniq_zip <- uniqueN(dt[,zip])
+
+IQRs <- data.table(IQR(dt$pm25), IQR(dt$no2), IQR(dt$ozone), IQR(dt$ox), IQR(dt$ozone_summer))
+colnames(IQRs) <- c("pm25", "no2", "ozone", "ox", "ozone_summer")
+saveRDS(IQRs, file = paste0(dir_data, "IQRs_mortality.rds"))
 
 ## create bootstrap data for mortality ----
 ## Save the bootstrapped data to accelerate computing
@@ -38,9 +44,15 @@ dt <- read_fst(paste0(dir_data, "ADRDcohort_ReAd.fst"), as.data.table = T)
 dt_ipw <- read_fst(paste0(dir_data, "ADRDcohort_ReAd_deadipw.fst"), as.data.table = T)
 dt[dt_ipw, on = .(qid = qid, year = year)][]
 dt <- dt[dt_ipw, on = .(qid = qid, year = year)]
+dt[, followupyr_start := (year - firstADRDyr-1)]
+dt[, followupyr_end := (year - firstADRDyr)]
 
 all_zip <- unique(dt[,zip])
 num_uniq_zip <- uniqueN(dt[,zip])
+
+IQRs <- data.table(IQR(dt$pm25), IQR(dt$no2), IQR(dt$ozone), IQR(dt$ox), IQR(dt$ozone_summer))
+colnames(IQRs) <- c("pm25", "no2", "ozone", "ox", "ozone_summer")
+saveRDS(IQRs, file = paste0(dir_data, "IQRs_ReAd.rds"))
 
 ## create bootstrap data for ReAd ----
 #' Save the bootstrapped data to accelerate computing
