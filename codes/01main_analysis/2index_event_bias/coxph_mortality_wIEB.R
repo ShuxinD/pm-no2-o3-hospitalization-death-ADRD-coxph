@@ -14,8 +14,8 @@ library(fst)
 setDTthreads(threads = 0)
 library(survival)
 
-setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/")
-dir_data <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
+# setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/")
+dir_data <- paste0(getwd(),"/data/")
 
 ## load data ----
 dt <- read_fst(paste0(dir_data, "ADRDcohort_dead.fst"), as.data.table = T)
@@ -35,7 +35,7 @@ colnames(IQRs) <- c("pm25", "no2", "ozone", "ox", "ozone_summer")
 print(IQRs)
 
 ## single-pollutants model ----
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/github_repo/results/main_analysis/2index_event_bias/coxph_mortality/"
+dir_out <- paste0(getwd(),"/results/main_analysis/2index_event_bias/coxph_mortality/")
 pollutants <- c("pm25", "no2", "ozone_summer", "ox")
 
 for (pollutants_i in pollutants){
@@ -75,7 +75,7 @@ truncate_ipw <- function(ipw_raw, upper_bound_percentile, lower_bound_percentile
   ipw <- ifelse(ipw_raw>up_bound, up_bound, ifelse(ipw_raw<low_bound, low_bound, ipw_raw))
   return(ipw) # output truncated ipw
 }
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/github_repo/results/main_analysis/2index_event_bias/coxph_mortality/"
+dir_out <- paste0(getwd(),"/results/main_analysis/2index_event_bias/coxph_mortality/")
 
 cat("estimate cox for 3-pollutant model \n")
 ipw_ieb_all3_raw <- dt[,ipw_ieb_pm25_raw]*dt[,ipw_ieb_no2_raw]*dt[,ipw_ieb_ozone_summer_raw]

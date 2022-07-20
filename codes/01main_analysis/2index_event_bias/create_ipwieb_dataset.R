@@ -14,7 +14,7 @@ library(data.table)
 setDTthreads(threads = 0)
 library(fst)
 
-dir_data <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
+dir_data <- paste0(getwd(),"/data/")
 
 truncate_ipw <- function(ipw_raw, upper_bound_percentile, lower_bound_percentile){
   #' ipw_raw: raw stabilized ipw

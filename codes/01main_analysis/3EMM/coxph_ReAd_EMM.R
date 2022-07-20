@@ -14,10 +14,10 @@ library(fst)
 setDTthreads(threads = 0)
 library(survival)
 
-setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/")
-dir_data <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
+# setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/")
+dir_data <- paste0(getwd(),"/data/")
 
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/github_repo/results/main_analysis/EMM/coxph_ReAd/"
+dir_out <- paste0(getwd(),"/results/main_analysis/EMM/coxph_ReAd/")
 
 ## load data ----
 dt <- read_fst(paste0(dir_data, "ADRDcohort_ReAd.fst"), as.data.table = T)

@@ -1,11 +1,9 @@
 library(ggplot2)
 library(stringr) 
 library(data.table)
-setwd("~/Desktop/airpollution_adrd_medicare/")
+# setwd("~/Desktop/airpollution_adrd_medicare/")
 
-dir_plot <- paste0(getwd(), "/github_repo/results/main_analysis/EMM/")
-
-# dir_plot <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/github_repo/results/main_analysis/EMM/"
+dir_plot <-paste0(getwd(),"/results/main_analysis/EMM/")
 
 ############################
 # outcome <- "mortality"

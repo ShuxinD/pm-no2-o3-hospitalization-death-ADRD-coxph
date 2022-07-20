@@ -14,8 +14,8 @@ library(fst)
 setDTthreads(threads = 0)
 library(survival)
 
-setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/")
-dir_data <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
+# setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/")
+dir_data <- paste0(getwd(),"/data/")
 
 ## load data ----
 dt <- read_fst(paste0(dir_data, "ADRDcohort_ReAd.fst"), as.data.table = T)
@@ -113,7 +113,7 @@ dt[, `:=` (deadipw_pm25 = deadipw_pm25,
 write_fst(dt[,.(qid, year, deadipw_pm25, deadipw_no2, deadipw_ozone, deadipw_ozone_summer, deadipw_ox, deadipw_all3, deadipw_all2)], paste0(dir_data,"ADRDcohort_ReAd_deadipw.fst"))
 
 ## single-pollutants model ----
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/github_repo/results/main_analysis/1plain/coxph_ReAd_cr/"
+dir_out <- paste0(getwd(),"/results/main_analysis/1plain/coxph_ReAd_cr/")
 pollutants <- c("pm25", "no2", "ozone_summer", "ox")
 
 for (pollutants_i in pollutants){
@@ -145,7 +145,7 @@ for (pollutants_i in pollutants){
 }
 
 ## multi-pollutants model ----
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/github_repo/results/main_analysis/1plain/coxph_ReAd_cr/"
+dir_out <- paste0(getwd(),"/results/main_analysis/1plain/coxph_ReAd_cr/")
 
 cat("estimate cox for 3-pollutant model \n")
 cox_all3 <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = ReAd) ~ 

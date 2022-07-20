@@ -14,10 +14,10 @@ library(data.table)
 library(fst)
 setDTthreads(threads = 0)
 
-setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/")
+# setwd("/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/")
 
-dir_in <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/data/"
-dir_out <- "/nfs/home/S/shd968/shared_space/ci3_shd968/medicareADRD/github_repo/results/descriptive_stats/"
+dir_in <- paste0(getwd(),"/data/")
+dir_out <- paste0(getwd(),"/results/descriptive_stats/")
 
 ## load mortality data----
 dt <- read_fst(paste0(dir_in, "ADRDcohort_dead.fst"), as.data.table = T)
