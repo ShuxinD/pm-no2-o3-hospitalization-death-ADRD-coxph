@@ -21,7 +21,7 @@ dt <- read_fst(paste0(dir_data, "ADRDcohort_dead.fst"), as.data.table = T)
 dt[, followupyr_start := (year - firstADRDyr-1)]
 dt[, followupyr_end := (year - firstADRDyr)]
 all_zip <- unique(dt[,zip])
-num_uniq_zip <- uniqueN(dt[,zip])
+num_uniq_zip <- uniqueN(dt[,zip]) #33608L
 
 IQRs <- data.table(IQR(dt$pm25), IQR(dt$no2), IQR(dt$ozone), IQR(dt$ox), IQR(dt$ozone_summer))
 colnames(IQRs) <- c("pm25", "no2", "ozone", "ox", "ozone_summer")
@@ -48,7 +48,7 @@ dt[, followupyr_start := (year - firstADRDyr-1)]
 dt[, followupyr_end := (year - firstADRDyr)]
 
 all_zip <- unique(dt[,zip])
-num_uniq_zip <- uniqueN(dt[,zip])
+num_uniq_zip <- uniqueN(dt[,zip]) # 33532L
 
 IQRs <- data.table(IQR(dt$pm25), IQR(dt$no2), IQR(dt$ozone), IQR(dt$ox), IQR(dt$ozone_summer))
 colnames(IQRs) <- c("pm25", "no2", "ozone", "ox", "ozone_summer")
