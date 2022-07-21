@@ -88,7 +88,7 @@ for (boots_id in 1:100) {
   cox_coefs_boots_3<-c(cox_coefs_boots_3, coef(cox)[3])
   rm(dt_boots)
   gc()
-  cat("finish", pollutants_i, "sample", boots_id, "of 100\n")
+  cat("finish all3 sample", boots_id, "of 100\n")
 }
 estimate0 <- fread(paste0(dir_estimate0, "cox_mortality_all3.csv"))
 coef0_1 <- estimate0[1,coef]
@@ -123,7 +123,7 @@ for (boots_id in 1:100) {
   cox_coefs_boots_2<-c(cox_coefs_boots_2, coef(cox)[2])
   rm(dt_boots)
   gc()
-  cat("finish", pollutants_i, "sample", boots_id, "of 100\n")
+  cat("finish all2 sample", boots_id, "of 100\n")
 }
 estimate0 <- fread(paste0(dir_estimate0, "cox_mortality_all2.csv"))
 coef0_1 <- estimate0[1,coef]
