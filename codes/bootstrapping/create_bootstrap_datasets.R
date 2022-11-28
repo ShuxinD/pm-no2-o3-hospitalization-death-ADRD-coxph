@@ -20,6 +20,8 @@ dir_data <- paste0(getwd(),"/data/")
 dt <- read_fst(paste0(dir_data, "ADRDcohort_dead.fst"), as.data.table = T)
 dt[, followupyr_start := (year - firstADRDyr-1)]
 dt[, followupyr_end := (year - firstADRDyr)]
+# median_popdensity <- median(dt[, popdensity]) # newly added
+# dt[, above_median_popdensity := popdensity>median_popdensity] # newly added
 all_zip <- unique(dt[,zip])
 num_uniq_zip <- uniqueN(dt[,zip]) #33608L
 
@@ -46,6 +48,8 @@ dt[dt_ipw, on = .(qid = qid, year = year)][]
 dt <- dt[dt_ipw, on = .(qid = qid, year = year)]
 dt[, followupyr_start := (year - firstADRDyr-1)]
 dt[, followupyr_end := (year - firstADRDyr)]
+# median_popdensity <- median(dt[, popdensity]) # newly added
+# dt[, above_median_popdensity := popdensity>median_popdensity] # newly added
 
 all_zip <- unique(dt[,zip])
 num_uniq_zip <- uniqueN(dt[,zip]) # 33532L
