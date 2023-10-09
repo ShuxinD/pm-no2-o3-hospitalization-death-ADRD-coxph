@@ -84,7 +84,7 @@ for (pollutants_i in pollutants) {
                    hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
                    summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                    as.factor(year) +  as.factor(region) +
-                   strata(as.factor(entry_age_break), as.factor(dual), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+                   strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
                  weights = get(paste0("deadipw_",pollutants_i)),
                  data = dt_boots,
                  tie = c("efron"),
@@ -129,7 +129,7 @@ for (pollutants_i in pollutants) {
                    hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
                    summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                    as.factor(year) +  as.factor(region) +
-                   strata(as.factor(entry_age_break), as.factor(above_median_popdensity), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+                   strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
                  weights = get(paste0("deadipw_",pollutants_i)),
                  data = dt_boots,
                  tie = c("efron"),
@@ -172,7 +172,7 @@ for (pollutants_i in pollutants) {
                    hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
                    summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                    as.factor(year) +  as.factor(region) +
-                   strata(as.factor(entry_age_break), as.factor(entry_age_over85), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+                   strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)), as.factor(dual)) + cluster(qid),
                  weights = get(paste0("deadipw_",pollutants_i)),
                  data = dt_boots,
                  tie = c("efron"),
@@ -216,7 +216,7 @@ for (pollutants_i in pollutants) {
                    hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
                    summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
                    as.factor(year) +  as.factor(region) +
-                   strata(as.factor(entry_age_break), as.factor(race_collapsed), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+                   strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
                  weights = get(paste0("deadipw_",pollutants_i)),
                  data = dt_boots,
                  tie = c("efron"),
@@ -249,4 +249,47 @@ for (pollutants_i in pollutants) {
   print(HR_results)
   fwrite(HR_results, paste0(dir_bootstrap_results, "cox_ReAd_EMM_race_collapsed_", pollutants_i, "_HR.csv"))
   cat("save HR for cox ReAd EMM bootstrapping race_collapsed", pollutants_i, "\n")
+}
+## by poverty (above median) ----
+# median_poverty # 0.08012821
+for (pollutants_i in pollutants) {
+  cox_coefs_boots_level0<-NULL
+  cox_coefs_boots_level1<-NULL
+  for (boots_id in 1:100) {
+    # set.seed(boots_id)
+    dt_boots<- read_fst(paste0(dir_bootsdata, boots_id,".fst"), as.data.table = T)
+    dt_boots[, above_median_poverty := poverty > 0.08012821]
+    # model
+    cox <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = ReAd) ~ 
+                   get(pollutants_i)*as.factor(above_median_poverty) + 
+                   mean_bmi + smoke_rate + 
+                   hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
+                   summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+                   as.factor(year) +  as.factor(region) +
+                   strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+                 weights = get(paste0("deadipw_",pollutants_i)),
+                 data = dt_boots,
+                 tie = c("efron"),
+                 na.action = na.omit)
+    cox_coefs_boots_level0 <- c(cox_coefs_boots_level0, coef(cox)[1])
+    cox_coefs_boots_level1 <- c(cox_coefs_boots_level0, coef(cox)[1] + coef(cox)[length(coef(cox))])
+    # rm(dt_boots)
+    gc()
+    cat("finish", pollutants_i, "sample", boots_id, "of 100\n")
+  }
+  estimate0 <- fread(paste0(dir_estimate0, "cox_ReAd_EMM_above_median_poverty_", pollutants_i, ".csv"))
+  coef0_level0 <- estimate0[1,coef]
+  coef0_level1 <- estimate0[1,coef] + estimate0[dim(estimate0)[1],coef]
+  var_boots_level0 <- floor((num_uniq_zip)^0.7)/num_uniq_zip*var(cox_coefs_boots_level0)
+  var_boots_level1 <- floor((num_uniq_zip)^0.7)/num_uniq_zip*var(cox_coefs_boots_level1)
+  HR_results <- data.table(HR = c(exp(coef0_level0*IQRs[,get(pollutants_i)]), exp(coef0_level1*IQRs[,get(pollutants_i)])),
+                           HR_lci_bootstrap = c(exp((coef0_level0-qnorm(.975)*sqrt(var_boots_level0))*IQRs[,get(pollutants_i)]), exp((coef0_level1-qnorm(.975)*sqrt(var_boots_level1))*IQRs[,get(pollutants_i)])),
+                           HR_uci_bootstrap = c(exp((coef0_level0+qnorm(.975)*sqrt(var_boots_level0))*IQRs[,get(pollutants_i)]), exp((coef0_level1+qnorm(.975)*sqrt(var_boots_level1))*IQRs[,get(pollutants_i)]))
+  )
+  HR_results <- as.data.frame(HR_results)
+  rownames(HR_results) <- paste0("level", levels(dt_boots[,as.factor(above_median_poverty)]))
+  setDT(HR_results, keep.rownames = T)
+  print(HR_results)
+  fwrite(HR_results, paste0(dir_bootstrap_results, "cox_ReAd_EMM_above_median_poverty_", pollutants_i, "_HR.csv"))
+  cat("save HR for cox ReAd EMM bootstrapping above_median_poverty", pollutants_i, "\n")
 }
