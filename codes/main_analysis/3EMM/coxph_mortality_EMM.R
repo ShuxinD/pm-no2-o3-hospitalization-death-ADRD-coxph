@@ -290,7 +290,7 @@ for (pollutants_i in pollutants) {
   # se_2 <- sqrt(cov_matrix[1,1] + cov_matrix[dim(cov_matrix)[1]-1, dim(cov_matrix)[1]-1] + 2*cov_matrix[1, dim(cov_matrix)[1]-1])
   HR_2 <- c(tb[1,coef] + tb[dim(tb)[1]-1,coef], IQRs[, get(pollutants_i)], exp((tb[1,coef] + tb[dim(tb)[1]-1,coef])*IQRs[, get(pollutants_i)]))
   # se_3 <- sqrt(cov_matrix[1,1] + cov_matrix[dim(cov_matrix)[1]-2,dim(cov_matrix)[1]] + 2*cov_matrix[1, dim(cov_matrix)[1]-2])
-  HR_3 <- c(tb[1,coef] + tb[dim(tb)[1]-2,coef], IQRs[, get(pollutants_i)], exp((tb[1,coef] + tb[tb(tb)[1]-2,coef])*IQRs[, get(pollutants_i)]))
+  HR_3 <- c(tb[1,coef] + tb[dim(tb)[1]-2,coef], IQRs[, get(pollutants_i)], exp((tb[1,coef] + tb[dim(tb)[1]-2,coef])*IQRs[, get(pollutants_i)]))
   
   HR <- rbind(HR_0, HR_3, HR_2, HR_1)
   print(HR)
@@ -332,7 +332,7 @@ for (pollutants_i in pollutants) {
   # se_2 <- sqrt(cov_matrix[1,1] + cov_matrix[dim(cov_matrix)[1]-1, dim(cov_matrix)[1]-1] + 2*cov_matrix[1, dim(cov_matrix)[1]-1])
   HR_2 <- c(tb[1,coef] + tb[dim(tb)[1]-1,coef], IQRs[, get(pollutants_i)], exp((tb[1,coef] + tb[dim(tb)[1]-1,coef])*IQRs[, get(pollutants_i)]))
   # se_3 <- sqrt(cov_matrix[1,1] + cov_matrix[dim(cov_matrix)[1]-2,dim(cov_matrix)[1]] + 2*cov_matrix[1, dim(cov_matrix)[1]-2])
-  HR_3 <- c(tb[1,coef] + tb[dim(tb)[1]-2,coef], IQRs[, get(pollutants_i)], exp((tb[1,coef] + tb[tb(tb)[1]-2,coef])*IQRs[, get(pollutants_i)]))
+  HR_3 <- c(tb[1,coef] + tb[dim(tb)[1]-2,coef], IQRs[, get(pollutants_i)], exp((tb[1,coef] + tb[dim(tb)[1]-2,coef])*IQRs[, get(pollutants_i)]))
   
   HR <- rbind(HR_0, HR_3, HR_2, HR_1)
   print(HR)

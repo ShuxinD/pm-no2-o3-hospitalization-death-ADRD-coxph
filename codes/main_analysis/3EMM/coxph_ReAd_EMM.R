@@ -307,3 +307,42 @@ for (pollutants_i in pollutants) {
   fwrite(HR, paste0(dir_out, "cox_ReAd_EMM_race_collapsed_dual0", pollutants_i, "_HR.csv"))
   cat("save HR for cox ReAd EMM race_collapsed_dual0", pollutants_i, "\n")
 }
+
+## revised EMM by poverty (above median)----
+median_poverty <- median(dt[, poverty])
+dt[, above_median_poverty := poverty>median_poverty]
+
+pollutants <- c("pm25", "no2", "ozone_summer", "ox")
+
+for (pollutants_i in pollutants) {
+  cat("fit coxph model EMM above median poverty", pollutants_i, "\n")
+  cox <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = ReAd) ~ 
+                 get(pollutants_i)*as.factor(above_median_poverty) + 
+                 mean_bmi + smoke_rate + 
+                 hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
+                 summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+                 as.factor(year) +  as.factor(region) +
+                 strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+               weights = get(paste0("deadipw_",pollutants_i)),
+               data = dt,
+               tie = c("efron"),
+               na.action = na.omit)
+  tb <- summary(cox)$coefficients
+  tb <- as.data.frame(tb)
+  setDT(tb, keep.rownames = TRUE)
+  fwrite(tb, paste0(dir_out, "cox_ReAd_EMM_above_median_poverty_", pollutants_i, ".csv"))
+  cov_matrix <- vcov(cox)
+  cat("output coefs...\n")
+  HR_0 <- c(tb[1,coef], IQRs[, get(pollutants_i)], exp(tb[1,coef]*IQRs[, get(pollutants_i)]), exp((tb[1,coef]-tb[1,`robust se`])*IQRs[, get(pollutants_i)]), exp((tb[1,coef]+tb[1,`robust se`])*IQRs[, get(pollutants_i)]))
+  se <- sqrt(cov_matrix[1,1] + cov_matrix[dim(cov_matrix)[1],dim(cov_matrix)[1]] + 2*cov_matrix[1, dim(cov_matrix)[1]])
+  HR_1 <- c(tb[dim(cov_matrix)[1],coef], IQRs[, get(pollutants_i)], exp(tb[dim(cov_matrix)[1],coef]*IQRs[, get(pollutants_i)]), exp((tb[dim(cov_matrix)[1],coef]-se)*IQRs[, get(pollutants_i)]),  exp((tb[dim(cov_matrix)[1],coef]+se)*IQRs[, get(pollutants_i)]))
+  HR <- rbind(HR_0, HR_1)
+  print(HR)
+  HR <- as.data.frame(HR)
+  colnames(HR) <- c("coef", "IQRunit", "HR_IQR", "HR_lci", "HR_uci")
+  rownames(HR) <- paste0("level", levels(dt[,as.factor(above_median_poverty)]))
+  setDT(HR, keep.rownames = T)
+  print(HR)
+  fwrite(HR, paste0(dir_out, "cox_ReAd_EMM_above_median_poverty_", pollutants_i, "_HR.csv"))
+  cat("save HR for cox ReAd EMM above median poverty", pollutants_i, "\n")
+}
