@@ -12,19 +12,19 @@ gc()
 library(data.table)
 library(fst)
 library(lubridate)
-library(NSAPHutils)
+# library(NSAPHutils)
 setDTthreads(threads = 0)
 
-dir_in <- paste0(getwd(),"/data/")
-dir_out <- paste0(getwd(),"/data/")
+dir_in <- file.path(getwd(),"data")
+dir_out <- file.path(getwd(),"data")
 
 ## load cohort enrollment info ----
-enrollInfo <- fread(paste0(dir_in, "EnrolledInfo.csv"))
+enrollInfo <- fread(file.path(dir_in, "EnrolledInfo.csv"))
 head(enrollInfo)
 
 ## load inpatient records ----
-dir_hospital <- "/nfs/home/S/shd968/shared_space/ci3_health_data/medicare/gen_admission/1999_2016/targeted_conditions/cache_data/admissions_by_year/"
-dir_cohortAd <- paste0(getwd(),"/data/ADRDcohort_hospitalization/")
+dir_hospital <- "/nfs/home/S/shd968/shared_space/ci3_health_data/medicare/gen_admission/1999_2016/targeted_conditions/cache_data/admissions_by_year/" # changed after moving to FASSE
+dir_cohortAd <- file.path(getwd(), "data", "ADRDcohort_hospitalization")
 
 file.remove(list.files(dir_cohortAd, 
                        pattern = ".fst",
@@ -49,9 +49,9 @@ gc()
 ## combine cohort hospitalization files together ----
 ADRDcohort_hosp <- NULL
 for (i in 2000:2016) {
-  adm_ <- read_fst( paste0(dir_cohortAd, "ADRDcohort_hospitalization", i, ".fst"))
+  adm_ <- read_fst(file.path(dir_cohortAd, paste0("ADRDcohort_hospitalization", i, ".fst")))
   ADRDcohort_hosp <- rbind(ADRDcohort_hosp, adm_)
-  cat("finish loading file:", "ADRDcohort_hospitalization", i,".fst", "\n")
+  cat("finish loading file:", paste0("ADRDcohort_hospitalization", i,".fst", "\n"))
 }
 rm(adm_)
 gc()
@@ -91,35 +91,50 @@ table(ReAdInfo[,firstReAdyr])
 fwrite(ReAdInfo, paste0(dir_in, "ReAdmissionInfo.csv"))
 
 ## load ADRD cohort data ---
-cohort <- read_fst(paste0(dir_in, "ADRDcohort_clean.fst"), as.data.table = T)
-ReAdInfo <- fread(paste0(dir_in, "ReAdmissionInfo.csv"))
+cohort <- read_fst(file.path(dir_in, "ADRDcohort_clean.fst"), as.data.table = T)
+uniqueN(cohort[,qid])
+# [1] 5552221
+ReAdInfo <- fread(file.path(dir_in, "ReAdmissionInfo.csv"))
 
 ## subset for analyzing ReAd ----
 #' those with ReAd, followup until ReAd
 dt_ReAd_event <- cohort[qid %in% ReAdInfo[,QID],]
-# uniqueN(dt_ReAd_event[,qid])
-# uniqueN(ReAdInfo[,QID])
+uniqueN(dt_ReAd_event[,qid])
+# [1] 3888787
+uniqueN(ReAdInfo[,QID])
+# [1] 4001221
 dt_ReAd_event <- merge(dt_ReAd_event, ReAdInfo, by.x = "qid", by.y = "QID", all.x = TRUE)
+anyNA(dt_ReAd_event)
+# [1] FALSE
 head(dt_ReAd_event)
-summary(dt_ReAd_event[,firstReAdyr]- dt_ReAd_event[,firstADRDyr])
+summary(dt_ReAd_event[,firstReAdyr]- dt_ReAd_event[, firstADRDyr])
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 1.000   1.000   1.000   2.114   3.000  16.000
 dt_ReAd_event$ReAd <- FALSE
 dt_ReAd_event[year==firstReAdyr, ReAd:=TRUE][]
 dt_ReAd_event <- dt_ReAd_event[year<=firstReAdyr, ]
+uniqueN(dt_ReAd_event[,qid])
+# [1] 3888787
 
 #' those without ReAd event, followup as the same as in mortality cohort
 dt_ReAd_noevent <- cohort[!(qid %in% ReAdInfo[,QID]),]
+uniqueN(dt_ReAd_noevent[,qid])
+# [1] 1663434
 head(dt_ReAd_noevent)
 dt_ReAd_noevent[, firstReAdyr := 0000][]
 dt_ReAd_noevent[, ReAd := FALSE]
 
 dt_ReAd <- rbind(dt_ReAd_event, dt_ReAd_noevent)
+uniqueN(dt_ReAd[,qid]) # number of subjects
+# [1] 5552221
 
 dim(dt_ReAd[(dead)&(ReAd),]) # the person-year death and readmission happened at the same time
 # [1] 1263845      35
+uniqueN(dt_ReAd[year>firstADRDyr,qid])
 write_fst(dt_ReAd[year>firstADRDyr,], paste0(dir_out, "ADRDcohort_ReAd.fst")) # subset dataset to starting from the next year of firstADRDyr
 
 ## subset to mortality cohort ----
 cohort <- read_fst(paste0(dir_in, "ADRDcohort_clean.fst"), as.data.table = T)
 write_fst(cohort[year>firstADRDyr,], paste0(dir_out, "ADRDcohort_dead.fst")) # subset datasets starting from the next year of firstADRDyr
+
+uniqueN(cohort[year>firstADRDyr,qid])

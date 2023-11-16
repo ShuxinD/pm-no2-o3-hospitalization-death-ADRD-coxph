@@ -13,11 +13,11 @@ library(data.table)
 library(fst)
 setDTthreads(threads = 0)
 
-dir_in <- paste0(getwd(),"/data/")
-dir_out <- paste0(getwd(),"/data/")
+dir_in <- file.path(getwd(),"data")
+dir_out <- file.path(getwd(),"data")
 
 ## load data ----
-ADRDcohort <- read_fst(paste0(dir_in, "ADRDcohort.fst"), as.data.table = T)
+ADRDcohort <- read_fst(file.path(dir_in, "ADRDcohort.fst"), as.data.table = T)
 names(ADRDcohort)
 # [1] "zip"                "year"               "qid"                "sex"                "race"              
 # [6] "age"                "dual"               "statecode"          "dead"               "mean_bmi"          
@@ -39,7 +39,7 @@ uniqueN(dt[,qid]) # number of subjects
 # [1] 7974481
 
 #' second: remove those without complete follow-ups/no-contribution
-omitInfo <- fread(paste0(dir_in,"omitInfo.csv"))
+omitInfo <- fread(file.path(dir_in,"omitInfo.csv"))
 dt <- dt[!(qid %in% omitInfo$qid),]
 dim(dt) # person-year
 # [1] 24121884       29
@@ -101,4 +101,5 @@ dt[, region := as.factor(region)]
 dt[, `:=`(dual = as.factor(dual))]
 
 dim(dt)[1] # 24066724
+uniqueN(dt[,qid])
 write_fst(dt, paste0(dir_out, "ADRDcohort_clean.fst"))
