@@ -1,7 +1,11 @@
-**/.DS_Store
-**/.Rhistory
+.DS_Store
+.Rhistory
 
-**/data/
+data/
+
+.fst
+.err
+.out
 
 # History files
 .Rhistory
