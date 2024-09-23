@@ -3,9 +3,9 @@
 
 data/
 
-.fst
-.err
-.out
+*.fst
+*.err
+*.out
 
 # History files
 .Rhistory
