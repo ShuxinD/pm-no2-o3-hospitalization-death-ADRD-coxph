@@ -1,0 +1,146 @@
+> ## setup----
+> rm(list = ls())
+> gc()
+         used (Mb) gc trigger (Mb) max used (Mb)
+Ncells 283111 15.2     664168 35.5   450926 24.1
+Vcells 486861  3.8    8388608 64.0  1814805 13.9
+> 
+> library(data.table)
+> library(fst)
+> setDTthreads(threads = 0)
+> 
+> wkdir <- "/n/dominici_nsaph_l3/Lab/projects/pm-no2-o3-hospitalization-death-ADRD-coxph"
+> rundir <- file.path(wkdir, "code", "revise_all_hospitalization")
+> 
+> ## load data ----
+> ALLcohort <- read_fst(file.path(rundir, "ALLcohort.fst"), as.data.table = T)
+> names(ALLcohort)
+ [1] "zip"                "year"               "qid"               
+ [4] "sex"                "race"               "age"               
+ [7] "dual"               "statecode"          "dead"              
+[10] "mean_bmi"           "smoke_rate"         "hispanic"          
+[13] "pct_blk"            "medhouseholdincome" "medianhousevalue"  
+[16] "poverty"            "education"          "popdensity"        
+[19] "pct_owner_occ"      "summer_tmmx"        "winter_tmmx"       
+[22] "summer_rmax"        "winter_rmax"        "firstHOSPyr"       
+[25] "pm25"               "no2"                "ozone"             
+[28] "ozone_summer"       "ox"                
+> dim(ALLcohort)
+[1] 244697370        29
+> uniqueN(ALLcohort[,qid]) # study population individuals
+[1] 38245064
+> 
+> ## omit ----
+> #' first: remove NAs
+> dt <- na.omit(ALLcohort) # remove NAs
+> dim(dt) # person-year
+[1] 237831575        29
+> uniqueN(dt[,qid]) # number of subjects
+[1] 37355945
+> 
+> #' second: remove those without complete follow-ups/no-contribution
+> omitInfo <- read_fst(file.path(rundir,"omitInfo.fst"))
+> dt <- dt[!(qid %in% omitInfo$qid),]
+> dim(dt) # person-year
+[1] 229571517        29
+> uniqueN(dt[,qid]) # number of subjects
+[1] 31200959
+> 
+> #' third: race==unknow
+> uniqueN(dt[race==0,qid]) # number subjects with unknown race info
+[1] 98873
+> dt <- dt[!(qid %in% dt[race==0,qid]),]
+> dim(dt) # person-year
+[1] 229125393        29
+> uniqueN(dt[,qid]) # number of subjects
+[1] 31102086
+> 
+> dim(dt) # final
+[1] 229125393        29
+> uniqueN(dt, by = "qid") #final # of subjects
+[1] 31102086
+> 
+> ## add necessary variables ----
+> #' create entry_age variable, 5 years as a break
+> tempAge <- dt[, .(entry_age = min(age)), by = qid]
+> head(tempAge)
+         qid entry_age
+1: A00063030        90
+2: A00101076        86
+3: A00105813        66
+4: A00108056        83
+5: A00110515        90
+6: A00121959        74
+> min(tempAge[,entry_age])
+[1] 65
+> max(tempAge[,entry_age])
+[1] 114
+> seq(65, 115, 5)
+ [1]  65  70  75  80  85  90  95 100 105 110 115
+> tempAge[, entry_age_break := cut(entry_age, breaks = seq(65, 115, 5), right = FALSE)][]
+                      qid entry_age entry_age_break
+       1:       A00063030        90         [90,95)
+       2:       A00101076        86         [85,90)
+       3:       A00105813        66         [65,70)
+       4:       A00108056        83         [80,85)
+       5:       A00110515        90         [90,95)
+      ---                                          
+31102082: llllllloX0l4OOS        66         [65,70)
+31102083: lllllllol0o70OX        79         [75,80)
+31102084: llllllloo7807Xo        79         [75,80)
+31102085: llllllloo78XUXo        88         [85,90)
+31102086: lllllllooS047l4        65         [65,70)
+> summary(tempAge[,entry_age_break])
+  [65,70)   [70,75)   [75,80)   [80,85)   [85,90)   [90,95)  [95,100) [100,105) 
+ 10312080   6745938   5735303   4401674   2622799   1032352    246602      5071 
+[105,110) [110,115) 
+      257        10 
+> head(tempAge)
+         qid entry_age entry_age_break
+1: A00063030        90         [90,95)
+2: A00101076        86         [85,90)
+3: A00105813        66         [65,70)
+4: A00108056        83         [80,85)
+5: A00110515        90         [90,95)
+6: A00121959        74         [70,75)
+> 
+> dt <- merge(dt, tempAge, by = "qid") ## add entry_age and entry_age_break
+> 
+> #' merge different race categories and create race_collapsed
+> dt[,race:=as.factor(race)]
+> table(dt[,race])
+
+        1         2         3         4         5         6 
+201226610  18646733   2013874   2684120   3721566    832490 
+> dt$race_collapsed <- "Others"
+> dt$race_collapsed[dt$race==1] <- "White"
+> dt$race_collapsed[dt$race==2] <- "Black"
+> dt$race_collapsed[dt$race==5] <- "Hispanic"
+> dt[, race_collapsed:=as.factor(race_collapsed)]
+> 
+> #' generate region based on statecode
+> NORTHEAST <- c("NY", "MA", "PA", "RI", "NH", "ME", "VT", "CT", "NJ")  
+> SOUTH <- c("DC", "VA", "NC", "WV", "KY", "SC", "GA", "FL", "AL", "TN", "MS", 
++            "AR", "MD", "DE", "OK", "TX", "LA")
+> MIDWEST <- c("OH", "IN", "MI", "IA", "MO", "WI", "MN", "SD", "ND", "IL", "KS", "NE")
+> WEST <- c("MT", "CO", "WY", "ID", "UT", "NV", "CA", "OR", "WA", "AZ", "NM")
+> dt$region <- ifelse(dt$statecode %in% NORTHEAST, "NORTHEAST",
++                     ifelse(dt$statecode %in% SOUTH, "SOUTH",
++                            ifelse(dt$statecode  %in% MIDWEST, "MIDWEST",
++                                   ifelse(dt$statecode  %in% WEST, "WEST",
++                                          NA))))
+> dt[, region := as.factor(region)]
+> 
+> #' check variable class ----
+> # summary(dt)
+> dt[, `:=`(dual = as.factor(dual))]
+> 
+> dim(dt)[1] # 24066724
+[1] 229125393
+> uniqueN(dt[,qid])
+[1] 31102086
+> write_fst(dt, file.path(rundir, "ALLcohort_clean.fst"))
+> 
+> proc.time()
+    user   system  elapsed 
+6386.255  342.779 1428.722 

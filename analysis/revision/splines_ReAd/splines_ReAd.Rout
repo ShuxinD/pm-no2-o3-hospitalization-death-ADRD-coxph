@@ -1,0 +1,122 @@
+> # setup ----
+> rm(list = ls())
+> gc()
+         used (Mb) gc trigger (Mb) max used (Mb)
+Ncells 283111 15.2     664168 35.5   450927 24.1
+Vcells 486861  3.8    8388608 64.0  1814805 13.9
+> 
+> library(data.table)
+> library(fst)
+> setDTthreads(threads = 0)
+> library(survival)
+> 
+> wkdir <- "/n/dominici_nsaph_l3/Lab/projects/pm-no2-o3-hospitalization-death-ADRD-coxph"
+> getwd()
+[1] "/n/dominici_nsaph_l3/Lab/projects/pm-no2-o3-hospitalization-death-ADRD-coxph/splines_ReAd"
+> cr_data_path <- file.path(wkdir, "data", "ADRDcohort_ReAd_deadipw.fst")
+> data_path <- file.path(wkdir, "data", "ADRDcohort_ReAd.fst")
+> 
+> ## load data ----
+> cr_dt <- read_fst(cr_data_path, as.data.table = T)
+> names(cr_dt)
+[1] "qid"                  "year"                 "deadipw_pm25"        
+[4] "deadipw_no2"          "deadipw_ozone"        "deadipw_ozone_summer"
+[7] "deadipw_ox"           "deadipw_all3"         "deadipw_all2"        
+> ReAd_dt <- read_fst(data_path, as.data.table = T)
+> names(ReAd_dt)
+ [1] "qid"                "zip"                "year"              
+ [4] "sex"                "race"               "age"               
+ [7] "dual"               "statecode"          "dead"              
+[10] "mean_bmi"           "smoke_rate"         "hispanic"          
+[13] "pct_blk"            "medhouseholdincome" "medianhousevalue"  
+[16] "poverty"            "education"          "popdensity"        
+[19] "pct_owner_occ"      "summer_tmmx"        "winter_tmmx"       
+[22] "summer_rmax"        "winter_rmax"        "firstADRDyr"       
+[25] "pm25"               "no2"                "ozone"             
+[28] "ozone_summer"       "ox"                 "entry_age"         
+[31] "entry_age_break"    "race_collapsed"     "region"            
+[34] "firstReAdyr"        "ReAd"              
+> dt <- merge(ReAd_dt, cr_dt, by = c("qid", "year"))
+> rm(cr_dt);rm(ReAd_dt); gc()
+            used   (Mb) gc trigger   (Mb)  max used   (Mb)
+Ncells   7179243  383.5   13521565  722.2   7184514  383.7
+Vcells 412655610 3148.4 1038801980 7925.5 863502423 6588.1
+> 
+> dt[, followupyr_start := (year - firstADRDyr-1)]
+> dt[, followupyr_end := (year - firstADRDyr)]
+> 
+> 
+> cat("estimate cox for 3-pollutant model \n")
+estimate cox for 3-pollutant model 
+> cox_all3 <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = ReAd) ~ 
++                     pspline(pm25, df=4) +
++                     pspline(no2, df=4) +
++                     pspline(ozone_summer, df=4) +
++                     mean_bmi + smoke_rate + 
++                     hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
++                     summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
++                     as.factor(year) +  as.factor(region) +
++                     strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
++                   weights = deadipw_all3,
++                   data = dt,
++                   tie = c("efron"), 
++                   na.action = na.omit)
+Warning message:
+In coxpenal.fit(X, Y, istrat, offset, init = init, control, weights = weights,  :
+  Inner loop failed to coverge for iterations 1 2 3 7 8 9 10
+> 
+> # Open PDF device
+> pdf("cox_smooth_base_plot_pm25.pdf", width = 7, height = 5)
+> # Generate the plot
+> termplot(cox_all3, term = 1, se = TRUE, col.term = "blue", lwd.term = 2, rug = TRUE)
+> # Close the file
+> dev.off()
+null device 
+          1 
+> 
+> # Open PDF device
+> pdf("cox_smooth_base_plot_no2.pdf", width = 7, height = 5)
+> # Generate the plot
+> termplot(cox_all3, term = 2, se = TRUE, col.term = "blue", lwd.term = 2, rug = TRUE)
+> # Close the file
+> dev.off()
+null device 
+          1 
+> 
+> pdf("cox_smooth_base_plot_ozone.pdf", width = 7, height = 5)
+> # Generate the plot
+> termplot(cox_all3, term = 3, se = TRUE, col.term = "blue", lwd.term = 2, rug = TRUE)
+> # Close the file
+> dev.off()
+null device 
+          1 
+> 
+> 
+> png("cox_smooth_base_plot_pm25.png", units = "in", width = 7, height = 5, res = 300)
+> # Generate the plot
+> termplot(cox_all3, term = 1, se = TRUE, col.term = "blue", lwd.term = 2, rug = TRUE)
+> # Close the file
+> dev.off()
+null device 
+          1 
+> 
+> png("cox_smooth_base_plot_no2.png", units = "in", width = 7, height = 5, res = 300)
+> # Generate the plot
+> termplot(cox_all3, term = 2, se = TRUE, col.term = "blue", lwd.term = 2, rug = TRUE)
+> # Close the file
+> dev.off()
+null device 
+          1 
+> 
+> png("cox_smooth_base_plot_ozone.png", units = "in", width = 7, height = 5, res = 300)
+> # Generate the plot
+> termplot(cox_all3, term = 3, se = TRUE, col.term = "blue", lwd.term = 2, rug = TRUE)
+> # Close the file
+> dev.off()
+null device 
+          1 
+> 
+> 
+> proc.time()
+     user    system   elapsed 
+21676.354   212.337 21700.138 

@@ -1,0 +1,130 @@
+> ## setup ----
+> rm(list = ls())
+> gc()
+         used (Mb) gc trigger (Mb) max used (Mb)
+Ncells 283111 15.2     664168 35.5   450926 24.1
+Vcells 486861  3.8    8388608 64.0  1814832 13.9
+> 
+> library(data.table)
+> library(fst)
+> library(lubridate)
+
+Attaching package: ‘lubridate’
+
+The following objects are masked from ‘package:data.table’:
+
+    hour, isoweek, mday, minute, month, quarter, second, wday, week,
+    yday, year
+
+The following objects are masked from ‘package:base’:
+
+    date, intersect, setdiff, union
+
+> 
+> setDTthreads(threads = 0)
+> 
+> dir_hosp <- file.path("/n/dominici_nsaph_l3/Lab/projects/analytic", "admissions_by_year")
+> dir_xwalk <- file.path("/n/dominici_nsaph_l3/Lab/data/ci3_health_data/medicare/id_crosswalk")
+> wkdir <- "/n/dominici_nsaph_l3/Lab/projects/pm-no2-o3-hospitalization-death-ADRD-coxph"
+> 
+> ## combine hospitalization files together ----
+> hosp <- NULL
+> for (i in 2000:2016) {
++   adm_ <- read_fst(file.path(dir_hosp, paste0("admissions_", i, ".fst")), 
++                    columns = c("QID", "ADATE"),
++                    as.data.table = T)
++   adm_[, ADATE := dmy(ADATE)][, year := year(ADATE)]
++   hosp <- rbind(hosp, adm_[year %in% 2000:2016, .(QID, year)])
++   cat("finish loading file:", "admissions_", i,".fst", "\n")
++   rm(adm_)
++ }
+finish loading file: admissions_ 2000 .fst 
+finish loading file: admissions_ 2001 .fst 
+finish loading file: admissions_ 2002 .fst 
+finish loading file: admissions_ 2003 .fst 
+finish loading file: admissions_ 2004 .fst 
+finish loading file: admissions_ 2005 .fst 
+finish loading file: admissions_ 2006 .fst 
+finish loading file: admissions_ 2007 .fst 
+finish loading file: admissions_ 2008 .fst 
+finish loading file: admissions_ 2009 .fst 
+finish loading file: admissions_ 2010 .fst 
+finish loading file: admissions_ 2011 .fst 
+finish loading file: admissions_ 2012 .fst 
+finish loading file: admissions_ 2013 .fst 
+finish loading file: admissions_ 2014 .fst 
+finish loading file: admissions_ 2015 .fst 
+finish loading file: admissions_ 2016 .fst 
+> gc()
+            used   (Mb) gc trigger   (Mb)   max used   (Mb)
+Ncells  38869454 2075.9   62274872 3325.9   38884292 2076.7
+Vcells 378930418 2891.1 1020403612 7785.1 1020403454 7785.1
+> 
+> setDT(hosp)
+> names(hosp)
+[1] "QID"  "year"
+> 
+> dim(hosp)
+[1] 153021194         2
+> 
+> any(duplicated(hosp))
+[1] TRUE
+> sum(duplicated(hosp))
+[1] 59400528
+> hosp <- unique(hosp) # remove all the duplicates
+> dim(hosp)
+[1] 93620666        2
+> 
+> # hosp_time <- hosp[,.(QID, YEAR)] # drop all diagnosis codes, only save QID, admission year
+> # gc()
+> # head(hosp_time)
+> # hosp_time <- unique(hosp_time) # remove duplicate of Admission year (some may be admitted several times in one year)
+> # dim(hosp_time)
+> # gc()
+> 
+> ## get enroll info ----
+> #' first admission year for each QID
+> setorder(hosp, QID, year)
+> enrolledInfo <- hosp[, .(firstHOSPyr = min(year)), by = QID]
+> dim(enrolledInfo)
+[1] 38280539        2
+> 
+> table(enrolledInfo[,firstHOSPyr])
+
+   2000    2001    2002    2003    2004    2005    2006    2007    2008    2009 
+5832820 3998989 3275717 2827843 2475546 2249844 2011283 1905537 1690995 1574143 
+   2010    2011    2012    2013    2014    2015    2016 
+1577685 1492561 1451956 1438499 1431371 1536443 1509307 
+> 
+> #' readmission year for each QID
+> temp <- merge(hosp, enrolledInfo, by = "QID", all.x = T)
+> ReAdInfo <- temp[year>firstHOSPyr,][, .(firstReAdyr = min(year)), by = QID]
+> 
+> ## exclude problematic IDs ----
+> probIDs <- read_fst(file.path(dir_xwalk, "no_crosswalk_no_death_ids.fst"), as.data.table = T) # IDs without cross
+> names(probIDs)
+ [1] "old_id"        "bene_dod"      "year"          "bene_dod.2000"
+ [5] "year.2000"     "bene_dod.2001" "year.2001"     "bene_dod.2002"
+ [9] "year.2002"     "bene_dod.2003" "year.2003"     "bene_dod.2004"
+[13] "year.2004"     "bene_dod.2005" "year.2005"     "bene_dod.2006"
+[17] "year.2006"    
+> sum(enrolledInfo[,QID] %in% probIDs[,old_id]) # number of problemetic IDs in enrolledInfo
+[1] 9636
+> sum(ReAdInfo[,QID] %in% probIDs[,old_id])
+[1] 2560
+> 
+> enrolledInfo <- enrolledInfo[!(QID %in% probIDs[,old_id]),] # exclude problematic IDs
+> ReAdInfo <- ReAdInfo[!(QID %in% probIDs[,old_id]),] 
+> 
+> dim(enrolledInfo)
+[1] 38270903        2
+> dim(ReAdInfo)
+[1] 23220109        2
+> 
+> ## save enrolled INFO ----
+> write_fst(enrolledInfo, file.path(wkdir,"code", "revise_all_hospitalization", "All_EnrolledInfo.fst"))
+> write_fst(ReAdInfo, file.path(wkdir,"code", "revise_all_hospitalization", "All_ReAdInfo.fst"))
+> 
+> proc.time()
+    user   system  elapsed 
+2181.244   25.163 1923.967 

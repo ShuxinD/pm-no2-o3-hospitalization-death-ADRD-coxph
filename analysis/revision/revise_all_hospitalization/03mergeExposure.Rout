@@ -1,0 +1,127 @@
+> ## setup----
+> rm(list = ls())
+> gc()
+         used (Mb) gc trigger (Mb) max used (Mb)
+Ncells 283111 15.2     664168 35.5   450926 24.1
+Vcells 486861  3.8    8388608 64.0  1814832 13.9
+> 
+> library(data.table)
+> setDTthreads(threads = 0)
+> library(fst)
+> 
+> wkdir <- "/n/dominici_nsaph_l3/Lab/projects/pm-no2-o3-hospitalization-death-ADRD-coxph"
+> rundir <- file.path(wkdir, "code", "revise_all_hospitalization")
+> 
+> dir_pm25 <- "/n/dominici_nsaph_l3/Lab/exposure/pm25/whole_us/annual/zipcode/qd_predictions_ensemble/ywei_aggregation"
+> dir_no2 <- "/n/dominici_nsaph_l3/Lab/exposure/no2/whole_us/annual/zipcode/qd_predictions_ensemble/ywei_aggregations"
+> dir_ozone <- "/n/dominici_nsaph_l3/Lab/exposure/ozone/whole_us/annual/zipcode/requaia_predictions/ywei_aggregation"
+> dir_summer_ozone <- file.path(wkdir, "data")
+> 
+> ## load ALL denominator files ----
+> ALLpeople <- read_fst(file.path(rundir, "ALLpeople_denom.fst"), as.data.table = T)
+> names(ALLpeople)
+ [1] "qid"                "year"               "zip"               
+ [4] "sex"                "race"               "age"               
+ [7] "dual"               "statecode"          "dead"              
+[10] "mean_bmi"           "smoke_rate"         "hispanic"          
+[13] "pct_blk"            "medhouseholdincome" "medianhousevalue"  
+[16] "poverty"            "education"          "popdensity"        
+[19] "pct_owner_occ"      "summer_tmmx"        "winter_tmmx"       
+[22] "summer_rmax"        "winter_rmax"        "firstHOSPyr"       
+> 
+> ## load exposure data ----
+> pm25_data <- fread(file.path(dir_pm25, "all_years.csv"))
+> head(pm25_data)
+   ZIP      pm25 year
+1:   1  6.210785 2000
+2:   2  8.670392 2000
+3:   3  5.983354 2000
+4:   4  9.302741 2000
+5:   5 10.434173 2000
+6:   6  5.180672 2000
+> no2_data <- fread(file.path(dir_no2, "all_years.csv"))
+> head(no2_data)
+   ZIP       no2 year
+1:   1  6.006554 2000
+2:   2  4.547713 2000
+3:   3 13.289577 2000
+4:   4  3.420172 2000
+5:   5  3.119593 2000
+6:   6  2.644896 2000
+> ozone_data <- fread(file.path(dir_ozone, "all_years.csv"))
+> head(ozone_data)
+   ZIP    ozone year
+1:   1 39.03045 2000
+2:   2 31.00137 2000
+3:   3 38.61330 2000
+4:   4 35.32410 2000
+5:   5 34.12403 2000
+6:   6 29.37630 2000
+> summer_ozone_data <- readRDS(file.path(dir_summer_ozone, "all_ozone_summer.rds"))
+> summer_ozone_data$zip <- as.integer(summer_ozone_data$zip)
+> gc()
+             used    (Mb) gc trigger    (Mb)   max used    (Mb)
+Ncells   38670070  2065.3   84837692  4530.9   38731494  2068.5
+Vcells 5255399711 40095.6 7561578504 57690.3 5256439591 40103.5
+> setDT(summer_ozone_data)
+> head(summer_ozone_data)
+   zip ozone_summer year
+1:   1     41.54740 2000
+2:   2     31.00676 2000
+3:   3     41.67986 2000
+4:   4     36.36666 2000
+5:   5     34.99543 2000
+6:   6     27.41023 2000
+> 
+> exposure <- merge(pm25_data, no2_data, by = c("ZIP", "year"))
+> exposure <- merge(exposure, ozone_data, by = c("ZIP", "year"))
+> exposure <- merge(exposure, summer_ozone_data, by.x = c("ZIP", "year"), by.y = c("zip", "year"))
+> head(exposure)
+   ZIP year     pm25       no2    ozone ozone_summer
+1:   1 2000 6.210785  6.006554 39.03045     41.54740
+2:   1 2001 2.798087  5.672134 41.57445     44.41148
+3:   1 2002 1.791314 15.377945 42.08517     45.19481
+4:   1 2003 1.964360  4.661727 41.95710     45.68558
+5:   1 2004 2.359631  7.749021 40.65162     43.17637
+6:   1 2005 2.125301  6.410086 41.31397     44.79749
+> rm(pm25_data)
+> rm(no2_data)
+> rm(ozone_data)
+> rm(summer_ozone_data)
+> gc()
+             used    (Mb) gc trigger    (Mb)   max used    (Mb)
+Ncells   38680498  2065.8   84837692  4530.9   38731494  2068.5
+Vcells 5252934007 40076.8 7561578504 57690.3 5276551491 40256.9
+> 
+> ## merge ----
+> dim(ALLpeople)
+[1] 244697370        24
+> #' though followup starting from the next year of firstHOSPyr, we need the exposure info to correct index event bias
+> 
+> combined <- merge(ALLpeople, exposure, by.x = c("zip", "year"), by.y = c("ZIP", "year"), all.x = T) # merge on the previous year of calendar follow-up year
+> # head(combined,100)
+> 
+> #' generate Ox based on no2 and ozone
+> combined[, ox := (1.07*no2 + 2.075*ozone)/3.14]
+> summary(combined[,.(pm25,no2,ozone,ozone_summer,ox)])
+      pm25             no2             ozone         ozone_summer   
+ Min.   : 0.0     Min.   :  0.0    Min.   :13.4     Min.   : 8.8    
+ 1st Qu.: 8.0     1st Qu.: 11.1    1st Qu.:36.7     1st Qu.:41.7    
+ Median : 9.8     Median : 16.5    Median :38.7     Median :44.8    
+ Mean   : 9.9     Mean   : 18.6    Mean   :38.8     Mean   :44.8    
+ 3rd Qu.:11.8     3rd Qu.: 24.5    3rd Qu.:40.8     3rd Qu.:48.3    
+ Max.   :30.9     Max.   :127.6    Max.   :65.1     Max.   :80.8    
+ NA's   :479632   NA's   :479632   NA's   :479632   NA's   :479632  
+       ox        
+ Min.   : 9.8    
+ 1st Qu.:29.3    
+ Median :31.6    
+ Mean   :32.0    
+ 3rd Qu.:34.2    
+ Max.   :70.8    
+ NA's   :479632  
+> write_fst(combined, file.path(rundir, "ALLcohort.fst"))
+> 
+> proc.time()
+   user  system elapsed 
+499.497  73.899 610.485 

@@ -1,0 +1,217 @@
+> # setup ----
+> rm(list = ls())
+> gc()
+         used (Mb) gc trigger (Mb) max used (Mb)
+Ncells 283111 15.2     664168 35.5   450926 24.1
+Vcells 486861  3.8    8388608 64.0  1814805 13.9
+> 
+> library(data.table)
+> library(fst)
+> setDTthreads(threads = 0)
+> library(survival)
+> 
+> wkdir <- "/n/dominici_nsaph_l3/Lab/projects/pm-no2-o3-hospitalization-death-ADRD-coxph"
+> rundir <- file.path(wkdir, "code", "revise_all_hospitalization")
+> 
+> ## load data ----
+> dt <- read_fst(file.path(rundir, "ALLcohort_dead.fst"), as.data.table = T)
+> names(dt)
+ [1] "qid"                "zip"                "year"              
+ [4] "sex"                "race"               "age"               
+ [7] "dual"               "statecode"          "dead"              
+[10] "mean_bmi"           "smoke_rate"         "hispanic"          
+[13] "pct_blk"            "medhouseholdincome" "medianhousevalue"  
+[16] "poverty"            "education"          "popdensity"        
+[19] "pct_owner_occ"      "summer_tmmx"        "winter_tmmx"       
+[22] "summer_rmax"        "winter_rmax"        "firstHOSPyr"       
+[25] "pm25"               "no2"                "ozone"             
+[28] "ozone_summer"       "ox"                 "entry_age"         
+[31] "entry_age_break"    "race_collapsed"     "region"            
+> 
+> dt[, followupyr_start := (year - firstHOSPyr-1)]
+> dt[, followupyr_end := (year - firstHOSPyr)]
+> 
+> IQRs <- data.table(IQR(dt$pm25), IQR(dt$no2), IQR(dt$ozone), IQR(dt$ox), IQR(dt$ozone_summer))
+> colnames(IQRs) <- c("pm25", "no2", "ozone", "ox", "ozone_summer")
+> print(IQRs)
+       pm25      no2    ozone       ox ozone_summer
+1: 3.700979 13.13711 4.063813 4.766689     6.404789
+> 
+> ## single-pollutants model ----
+> pollutants <- c("pm25", "no2", "ozone_summer", "ox")
+> 
+> # for (pollutants_i in pollutants){
+> #   cat("fit coxph model", pollutants_i, "\n")
+> #   cox <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = dead) ~ 
+> #                  pspline(get(pollutants_i), df=3) + 
+> #                  mean_bmi + smoke_rate + 
+> #                  hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
+> #                  summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
+> #                  as.factor(year) +  as.factor(region) +
+> #                  strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
+> #                data = dt,
+> #                tie = "efron",
+> #                na.action = na.omit)
+> #   termplot(cox, term=1, se=TRUE, col.term=1, col.se=1)
+> # }
+> for (pollutants_i in pollutants){
++   cat("fit coxph model", pollutants_i, "\n")
++   cox <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = dead) ~ 
++                  get(pollutants_i) + 
++                  mean_bmi + smoke_rate + 
++                  hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
++                  summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
++                  as.factor(year) +  as.factor(region) +
++                  strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
++                data = dt,
++                tie = c("efron"),
++                na.action = na.omit)
++   tb <- summary(cox)$coefficients
++   tb <- as.data.frame(tb)
++   setDT(tb, keep.rownames = TRUE)
++   fwrite(tb, file.path(rundir, "coxph_mortality", paste0("cox_mortality_", pollutants_i, ".csv")))
++   cat("output coefs...\n")
++   HR <- tb[1,]
++   HR <- cbind(HR, IQRs[, get(pollutants_i)])
++   HR[, `:=`(HR_IQR = exp(coef*IQRs[, get(pollutants_i)]),
++             HR_lci = exp((coef-qnorm(0.975)*`robust se`)*IQRs[, get(pollutants_i)]),
++             HR_uci = exp((coef+qnorm(0.975)*`robust se`)*IQRs[, get(pollutants_i)]))]
++   print(HR)
++   fwrite(HR, file.path(rundir, "coxph_mortality", paste0("cox_mortality_", pollutants_i, "_HR.csv")))
++   cat("save HR for cox mortality", pollutants_i, "\n")
++ }
+fit coxph model pm25 
+output coefs...
+save HR for cox mortality pm25 
+fit coxph model no2 
+output coefs...
+save HR for cox mortality no2 
+fit coxph model ozone_summer 
+output coefs...
+save HR for cox mortality ozone_summer 
+fit coxph model ox 
+output coefs...
+save HR for cox mortality ox 
+> 
+> ## multi-pollutants model ----
+> cat("estimate cox for 3-pollutant model \n")
+estimate cox for 3-pollutant model 
+> cox_all3 <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = dead) ~ 
++                     pm25 + no2 + ozone_summer + 
++                     mean_bmi + smoke_rate + 
++                     hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
++                     summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
++                     as.factor(year) +  as.factor(region) +
++                     strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
++                   data = dt,
++                   tie = c("efron"), 
++                   na.action = na.omit)
+> tb <- summary(cox_all3)$coefficients
+> tb <- as.data.frame(tb)
+> setDT(tb, keep.rownames = TRUE)[]
+                            rn          coef exp(coef)     se(coef)
+ 1:                       pm25  5.097494e-03 1.0051105 1.413892e-04
+ 2:                        no2  1.554067e-03 1.0015553 4.217855e-05
+ 3:               ozone_summer  5.973863e-04 1.0005976 6.371453e-05
+ 4:                   mean_bmi  7.429611e-03 1.0074573 3.218496e-04
+ 5:                 smoke_rate  1.615061e-01 1.1752796 4.041703e-03
+ 6:                   hispanic -1.273243e-01 0.8804481 2.212209e-03
+ 7:                    pct_blk  4.320436e-02 1.0441513 1.899680e-03
+ 8:         medhouseholdincome  1.874441e-06 1.0000019 2.608850e-08
+ 9:           medianhousevalue -4.744496e-07 0.9999995 3.604451e-09
+10:                    poverty -2.762718e-01 0.7586067 5.842655e-03
+11:                  education  1.822651e-01 1.1999322 3.026288e-03
+12:                 popdensity -9.657013e-07 0.9999990 4.087471e-08
+13:              pct_owner_occ -1.473082e-01 0.8630280 2.530257e-03
+14:                summer_tmmx -1.356468e-03 0.9986445 1.652422e-04
+15:                winter_tmmx -3.350252e-04 0.9996650 8.492211e-05
+16:                summer_rmax -5.031272e-04 0.9994970 4.874133e-05
+17:                winter_rmax  3.635475e-04 1.0003636 4.787630e-05
+18:        as.factor(year)2002 -6.680902e-02 0.9353738 1.771632e-03
+19:        as.factor(year)2003 -1.413634e-01 0.8681738 1.740611e-03
+20:        as.factor(year)2004 -2.142200e-01 0.8071708 1.771318e-03
+21:        as.factor(year)2005 -2.429698e-01 0.7842952 1.748495e-03
+22:        as.factor(year)2006 -2.805215e-01 0.7553897 1.806134e-03
+23:        as.factor(year)2007 -3.113526e-01 0.7324556 1.861227e-03
+24:        as.factor(year)2008 -3.116069e-01 0.7322693 1.848045e-03
+25:        as.factor(year)2009 -3.612716e-01 0.6967897 1.902007e-03
+26:        as.factor(year)2010 -3.725263e-01 0.6889915 1.889978e-03
+27:        as.factor(year)2011 -3.807258e-01 0.6833652 1.901470e-03
+28:        as.factor(year)2012 -3.951123e-01 0.6736044 1.927082e-03
+29:        as.factor(year)2013 -3.935677e-01 0.6746456 1.941375e-03
+30:        as.factor(year)2014 -4.196159e-01 0.6572993 1.962689e-03
+31:        as.factor(year)2015 -4.007991e-01 0.6697846 1.962931e-03
+32:        as.factor(year)2016 -4.154963e-01 0.6600127 2.032875e-03
+33: as.factor(region)NORTHEAST  3.133572e-02 1.0318319 8.351492e-04
+34:     as.factor(region)SOUTH  4.806046e-02 1.0492341 9.752271e-04
+35:      as.factor(region)WEST  5.762266e-02 1.0593152 1.532287e-03
+                            rn          coef exp(coef)     se(coef)
+       robust se           z      Pr(>|z|)
+ 1: 1.408882e-04   36.181137 1.205536e-286
+ 2: 4.207733e-05   36.933600 1.335508e-298
+ 3: 6.370195e-05    9.377834  6.734210e-21
+ 4: 3.218474e-04   23.084263 6.663422e-118
+ 5: 4.028496e-03   40.090921  0.000000e+00
+ 6: 2.240339e-03  -56.832612  0.000000e+00
+ 7: 1.921821e-03   22.480951 6.375827e-112
+ 8: 2.612813e-08   71.740369  0.000000e+00
+ 9: 3.621744e-09 -131.000322  0.000000e+00
+10: 5.909367e-03  -46.751503  0.000000e+00
+11: 3.042592e-03   59.904545  0.000000e+00
+12: 4.115217e-08  -23.466597 8.949576e-122
+13: 2.544932e-03  -57.882960  0.000000e+00
+14: 1.651091e-04   -8.215587  2.111288e-16
+15: 8.474601e-05   -3.953286  7.708515e-05
+16: 4.875476e-05  -10.319550  5.749226e-25
+17: 4.782713e-05    7.601283  2.932098e-14
+18: 1.764810e-03  -37.856223 1.352633e-313
+19: 1.735244e-03  -81.465998  0.000000e+00
+20: 1.767648e-03 -121.189260  0.000000e+00
+21: 1.745401e-03 -139.205700  0.000000e+00
+22: 1.802932e-03 -155.591860  0.000000e+00
+23: 1.859411e-03 -167.446870  0.000000e+00
+24: 1.848557e-03 -168.567621  0.000000e+00
+25: 1.903014e-03 -189.841746  0.000000e+00
+26: 1.892338e-03 -196.860399  0.000000e+00
+27: 1.904429e-03 -199.916029  0.000000e+00
+28: 1.930117e-03 -204.709044  0.000000e+00
+29: 1.945149e-03 -202.332939  0.000000e+00
+30: 1.967788e-03 -213.242382  0.000000e+00
+31: 1.968784e-03 -203.576962  0.000000e+00
+32: 2.040364e-03 -203.638310  0.000000e+00
+33: 8.356460e-04   37.498797 9.635926e-308
+34: 9.715415e-04   49.468254  0.000000e+00
+35: 1.530861e-03   37.640693 4.645542e-310
+       robust se           z      Pr(>|z|)
+> fwrite(tb, file.path(rundir, "coxph_mortality", "cox_mortality_all3.csv"))
+> 
+> IQRunit <- c(IQRs$pm25, IQRs$no2, IQRs$ozone_summer)
+> HR <- tb[1:3,]
+> HR <- cbind(HR,IQRunit)
+> cat("output HR for cox 3-pollutant model \n")
+output HR for cox 3-pollutant model 
+> HR[, `:=`(HR_IQR = exp(coef*IQRunit),
++           HR_lci = exp((coef-1.96*`robust se`)*IQRunit),
++           HR_uci = exp((coef+1.96*`robust se`)*IQRunit))][]
+             rn         coef exp(coef)     se(coef)    robust se         z
+1:         pm25 0.0050974937  1.005111 1.413892e-04 1.408882e-04 36.181137
+2:          no2 0.0015540672  1.001555 4.217855e-05 4.207733e-05 36.933600
+3: ozone_summer 0.0005973863  1.000598 6.371453e-05 6.370195e-05  9.377834
+        Pr(>|z|)   IQRunit   HR_IQR   HR_lci   HR_uci
+1: 1.205536e-286  3.700979 1.019045 1.018004 1.020087
+2: 1.335508e-298 13.137108 1.020626 1.019521 1.021732
+3:  6.734210e-21  6.404789 1.003833 1.003031 1.004637
+> fwrite(HR, file.path(rundir, "coxph_mortality", "cox_mortality_all3_HR.csv"))
+> 
+> cat("estimate cox for 2-pollutant model \n")
+estimate cox for 2-pollutant model 
+> cox_all2 <- coxph(Surv(time = followupyr_start, time2 = followupyr_end, event = dead) ~ 
++                     pm25 + ox +
++                     mean_bmi + smoke_rate + 
++                     hispanic + pct_blk + medhouseholdincome + medianhousevalue + poverty + education + popdensity + pct_owner_occ +
++                     summer_tmmx + winter_tmmx + summer_rmax + winter_rmax +
++                     as.factor(year) +  as.factor(region) +
++                     strata(as.factor(entry_age_break), as.factor(sex), as.factor(race_collapsed), as.factor(dual)) + cluster(qid),
++                   data = dt,
++                   tie = c("efron"), 
++                   na.action = na.omit)

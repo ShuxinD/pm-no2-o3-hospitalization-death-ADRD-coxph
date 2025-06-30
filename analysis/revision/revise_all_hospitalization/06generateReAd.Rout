@@ -1,0 +1,311 @@
+> ## setup ----
+> rm(list = ls())
+> gc()
+         used (Mb) gc trigger (Mb) max used (Mb)
+Ncells 283111 15.2     664168 35.5   450926 24.1
+Vcells 486861  3.8    8388608 64.0  1814805 13.9
+> 
+> library(data.table)
+> library(fst)
+> library(lubridate)
+
+Attaching package: ‘lubridate’
+
+The following objects are masked from ‘package:data.table’:
+
+    hour, isoweek, mday, minute, month, quarter, second, wday, week,
+    yday, year
+
+The following objects are masked from ‘package:base’:
+
+    date, intersect, setdiff, union
+
+> # library(NSAPHutils)
+> setDTthreads(threads = 0)
+> 
+> wkdir <- "/n/dominici_nsaph_l3/Lab/projects/pm-no2-o3-hospitalization-death-ADRD-coxph"
+> rundir <- file.path(wkdir, "code", "revise_all_hospitalization")
+> 
+> ## load cohort enrollment info ----
+> enrollInfo <- read_fst(file.path(rundir, "All_EnrolledInfo.fst"), as.data.table = T)
+> names(enrollInfo)
+[1] "QID"         "firstHOSPyr"
+> summary(enrollInfo)
+        QID            firstHOSPyr  
+ A00111961:       1   Min.   :2000  
+ A00162434:       1   1st Qu.:2001  
+ A00222673:       1   Median :2005  
+ A00369498:       1   Mean   :2006  
+ A00462643:       1   3rd Qu.:2010  
+ A00468900:       1   Max.   :2016  
+ (Other)  :38270897                 
+> 
+> ## load ReAd info ----
+> ReAdInfo <- read_fst(file.path(rundir, "All_ReAdInfo.fst"), as.data.table = T)
+> dim(ReAdInfo)
+[1] 23220109        2
+> names(ReAdInfo)
+[1] "QID"         "firstReAdyr"
+> 
+> table(ReAdInfo[,firstReAdyr])
+
+   2001    2002    2003    2004    2005    2006    2007    2008    2009    2010 
+1995293 2014195 1967260 1867620 1775796 1632982 1510948 1380656 1274486 1249505 
+   2011    2012    2013    2014    2015    2016 
+1187336 1127213 1075234 1042790 1074806 1043989 
+> # 2001   2002   2003   2004   2005   2006   2007   2008   2009   2010   2011   2012   2013   2014   2015   2016
+> # 227029 263466 275973 275394 280187 269377 262687 256008 246500 247995 247408 244919 231994 224024 226428 221832
+> 
+> ## load ADRD cohort data ---
+> cohort <- read_fst(file.path(rundir, "ALLcohort_clean.fst"), as.data.table = T)
+> uniqueN(cohort[,qid])
+[1] 31102086
+> # [1] 5552221
+> 
+> ## subset for analyzing ReAd ----
+> #' those with ReAd, followup until ReAd
+> dt_ReAd_event <- cohort[qid %in% ReAdInfo[,QID],]
+> uniqueN(dt_ReAd_event[,qid])
+[1] 22351912
+> uniqueN(ReAdInfo[,QID])
+[1] 23220109
+> 
+> dt_ReAd_event <- merge(dt_ReAd_event, ReAdInfo, by.x = "qid", by.y = "QID", all.x = TRUE)
+> anyNA(dt_ReAd_event)
+[1] FALSE
+> names(dt_ReAd_event)
+ [1] "qid"                "zip"                "year"              
+ [4] "sex"                "race"               "age"               
+ [7] "dual"               "statecode"          "dead"              
+[10] "mean_bmi"           "smoke_rate"         "hispanic"          
+[13] "pct_blk"            "medhouseholdincome" "medianhousevalue"  
+[16] "poverty"            "education"          "popdensity"        
+[19] "pct_owner_occ"      "summer_tmmx"        "winter_tmmx"       
+[22] "summer_rmax"        "winter_rmax"        "firstHOSPyr"       
+[25] "pm25"               "no2"                "ozone"             
+[28] "ozone_summer"       "ox"                 "entry_age"         
+[31] "entry_age_break"    "race_collapsed"     "region"            
+[34] "firstReAdyr"       
+> summary(dt_ReAd_event[,firstReAdyr]- dt_ReAd_event[, firstHOSPyr])
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.000   1.000   2.000   3.403   5.000  16.000 
+> dt_ReAd_event$ReAd <- FALSE
+> dt_ReAd_event[year==firstReAdyr, ReAd:=TRUE][]
+                       qid   zip year sex race age dual statecode  dead
+        1:       000977925 39759 2000   2    2  72    1        MS FALSE
+        2:       000977925 39759 2001   2    2  73    1        MS FALSE
+        3:       000977925 39759 2002   2    2  74    1        MS FALSE
+        4:       000977925 39759 2003   2    2  75    1        MS  TRUE
+        5:       001365119 13624 2001   2    1  86    1        NY FALSE
+       ---                                                             
+176127251: llllllloooooooo 41015 2012   2    1  74    0        KY FALSE
+176127252: llllllloooooooo 41015 2013   2    1  75    0        KY FALSE
+176127253: llllllloooooooo 41015 2014   2    1  76    0        KY FALSE
+176127254: llllllloooooooo 41015 2015   2    1  77    0        KY FALSE
+176127255: llllllloooooooo 41015 2016   2    1  78    0        KY FALSE
+           mean_bmi smoke_rate   hispanic    pct_blk medhouseholdincome
+        1: 26.76430  0.3564099 0.01144585 0.37306222           25183.00
+        2: 26.82766  0.3637603 0.01145554 0.37305723           25190.33
+        3: 26.20588  0.3835616 0.01148440 0.37304237           25212.15
+        4: 27.71135  0.3076923 0.01159655 0.37298465           25296.94
+        5: 28.39659  0.5771268 0.08737219 0.13262777           36422.27
+       ---                                                             
+176127251: 27.58263  0.4897119 0.01165902 0.01428708           50451.00
+176127252: 27.74672  0.4926985 0.01690211 0.01278810           50105.00
+176127253: 27.73360  0.4950840 0.01695578 0.02091376           50108.00
+176127254: 27.64648  0.5029452 0.02062939 0.02884294           48822.00
+176127255: 27.64648  0.5029452 0.02587469 0.03319326           48175.00
+           medianhousevalue    poverty education popdensity pct_owner_occ
+        1:         81200.00 0.18356868 0.3995733  114.92740     0.5332878
+        2:         81267.25 0.18345644 0.3993666  114.95766     0.5331809
+        3:         81467.44 0.18312232 0.3987513  115.04773     0.5328628
+        4:         82245.45 0.18182383 0.3963601  115.39777     0.5316264
+        5:         78247.95 0.07938707 0.2283021   94.12476     0.7274301
+       ---                                                               
+176127251:        117400.00 0.09868700 0.3361506  822.41940     0.7240918
+176127252:        115100.00 0.11092715 0.3211044  792.82840     0.7312376
+176127253:        110800.00 0.09929078 0.2952243  804.22470     0.7279831
+176127254:        111000.00 0.10601942 0.2741994  822.93030     0.6905168
+176127255:        113200.00 0.08756107 0.2757660  832.28310     0.6782703
+           summer_tmmx winter_tmmx summer_rmax winter_rmax firstHOSPyr
+        1:    307.4464    288.5887    95.88130    89.34269        2000
+        2:    305.0477    284.4128    99.04420    91.19192        2000
+        3:    305.6003    287.5990    98.71470    87.13656        2000
+        4:    304.4637    284.9710    99.56594    86.08058        2000
+        5:    298.9030    271.2556    91.85688    98.48912        2001
+       ---                                                            
+176127251:    305.2446    281.6051    87.07069    88.74481        2005
+176127252:    303.1738    280.8774    92.37479    85.28068        2005
+176127253:    301.1692    276.2605    81.30170    88.57506        2005
+176127254:    300.7807    276.0477    93.22615    85.14525        2005
+176127255:    302.7138    280.7372    91.54448    87.12756        2005
+                pm25       no2    ozone ozone_summer       ox entry_age
+        1: 15.798674 16.250342 43.13368     49.98803 34.04148        72
+        2: 13.285854 10.902373 40.39829     46.00522 30.41146        72
+        3: 12.567190  7.634067 38.94445     45.24619 28.33700        72
+        4: 12.919531  7.442204 38.66917     43.75667 28.08971        72
+        5:  9.241950 10.505740 42.74915     52.62076 31.82982        86
+       ---                                                             
+176127251: 10.542029 12.177210 40.29438     50.94583 30.77722        67
+176127252:  9.468129 10.710741 38.50702     47.02761 29.09636        67
+176127253: 10.301792 11.554196 38.89964     47.78645 29.64323        67
+176127254:  8.983060 10.141964 39.58074     46.87386 29.61208        67
+176127255:  8.067070  9.873142 38.82901     45.94013 29.02371        67
+           entry_age_break race_collapsed    region firstReAdyr  ReAd
+        1:         [70,75)          Black     SOUTH        2002 FALSE
+        2:         [70,75)          Black     SOUTH        2002 FALSE
+        3:         [70,75)          Black     SOUTH        2002  TRUE
+        4:         [70,75)          Black     SOUTH        2002 FALSE
+        5:         [85,90)          White NORTHEAST        2002 FALSE
+       ---                                                           
+176127251:         [65,70)          White     SOUTH        2006 FALSE
+176127252:         [65,70)          White     SOUTH        2006 FALSE
+176127253:         [65,70)          White     SOUTH        2006 FALSE
+176127254:         [65,70)          White     SOUTH        2006 FALSE
+176127255:         [65,70)          White     SOUTH        2006 FALSE
+> dt_ReAd_event <- dt_ReAd_event[year<=firstReAdyr, ]
+> uniqueN(dt_ReAd_event[,qid])
+[1] 22351912
+> # [1] 3888787
+> 
+> #' those without ReAd event, followup as the same as in mortality cohort
+> dt_ReAd_noevent <- cohort[!(qid %in% ReAdInfo[,QID]),]
+> uniqueN(dt_ReAd_noevent[,qid])
+[1] 8750174
+> head(dt_ReAd_noevent)
+         qid   zip year sex race age dual statecode  dead mean_bmi smoke_rate
+1: 000074485 34470 2003   2    1  65    0        FL FALSE 27.36000  0.5348837
+2: 000074485 34470 2004   2    1  66    0        FL FALSE 27.30606  0.5436242
+3: 000074485 34470 2005   2    1  67    0        FL FALSE 27.24596  0.5542857
+4: 000074485 34470 2006   2    1  68    0        FL FALSE 27.27247  0.5952381
+5: 003150905 44072 2005   2    1  67    0        OH FALSE 26.74337  0.4031945
+6: 003150905 44072 2006   2    1  68    0        OH FALSE 26.81727  0.4096482
+      hispanic     pct_blk medhouseholdincome medianhousevalue    poverty
+1: 0.054031341 0.079790864           30768.76         72215.15 0.10219573
+2: 0.057036786 0.085640536           31050.78         76255.56 0.10416374
+3: 0.065301760 0.101727136           31826.33         87366.67 0.10957578
+4: 0.079171865 0.128095239           32637.25        104950.00 0.12483500
+5: 0.007744654 0.008887884           67206.67        242633.33 0.05875342
+6: 0.005624181 0.006685658           62809.50        283925.00 0.06541039
+   education popdensity pct_owner_occ summer_tmmx winter_tmmx summer_rmax
+1: 0.3056834  1412.4884     0.6401928    304.8478    293.0209    99.84070
+2: 0.2962679  1431.8788     0.6391588    305.7519    293.4872    99.83791
+3: 0.2703753  1485.2023     0.6363154    305.7247    294.2063    99.51676
+4: 0.2271278  1565.0007     0.6239884    306.2248    294.1091    99.08492
+5: 0.1665573   247.2230     0.8980767    301.2241    274.7081    91.03278
+6: 0.1693318   236.8374     0.8638476    299.2369    275.2702    92.28148
+   winter_rmax firstHOSPyr      pm25      no2    ozone ozone_summer       ox
+1:    90.77430        2003  9.713695 16.06979 37.43222     39.43527 30.21227
+2:    91.85078        2003 10.426643 15.93465 40.91831     42.71005 32.46992
+3:    84.82401        2003  9.825630 15.75484 38.06470     40.81652 30.52291
+4:    88.02993        2003  9.369781 15.39421 41.16685     43.14750 32.45001
+5:    93.09766        2005 14.628081 21.39932 41.69098     52.25516 34.84269
+6:    91.37349        2005 11.391555 19.58210 37.83332     45.16364 31.67420
+   entry_age entry_age_break race_collapsed  region
+1:        65         [65,70)          White   SOUTH
+2:        65         [65,70)          White   SOUTH
+3:        65         [65,70)          White   SOUTH
+4:        65         [65,70)          White   SOUTH
+5:        67         [65,70)          White MIDWEST
+6:        67         [65,70)          White MIDWEST
+> dt_ReAd_noevent[, firstReAdyr := 0000][]
+                      qid   zip year sex race age dual statecode  dead mean_bmi
+       1:       000074485 34470 2003   2    1  65    0        FL FALSE 27.36000
+       2:       000074485 34470 2004   2    1  66    0        FL FALSE 27.30606
+       3:       000074485 34470 2005   2    1  67    0        FL FALSE 27.24596
+       4:       000074485 34470 2006   2    1  68    0        FL FALSE 27.27247
+       5:       003150905 44072 2005   2    1  67    0        OH FALSE 26.74337
+      ---                                                                      
+52998134: lllllllooooool4 41101 2013   2    1  83    0        KY FALSE 29.06345
+52998135: lllllllooooool4 41101 2014   2    1  83    0        KY  TRUE 29.09647
+52998136: lllllllooooool4 41105 2007   2    1  77    0        KY FALSE 28.78906
+52998137: llllllloooooooU 40701 2007   1    1  77    0        KY FALSE 29.27239
+52998138: llllllloooooooU 40701 2008   1    1  78    0        KY  TRUE 27.60307
+          smoke_rate    hispanic     pct_blk medhouseholdincome
+       1:  0.5348837 0.054031341 0.079790864           30768.76
+       2:  0.5436242 0.057036786 0.085640536           31050.78
+       3:  0.5542857 0.065301760 0.101727136           31826.33
+       4:  0.5952381 0.079171865 0.128095239           32637.25
+       5:  0.4031945 0.007744654 0.008887884           67206.67
+      ---                                                      
+52998134:  0.4443373 0.018635779 0.020900901           34959.00
+52998135:  0.4397760 0.016409772 0.024378735           36630.00
+52998136:  0.4965035 0.018696037 0.025974139           34207.00
+52998137:  0.4782609 0.009032411 0.002280311           31822.33
+52998138:  0.6315789 0.009032411 0.002280311           31822.33
+          medianhousevalue    poverty education popdensity pct_owner_occ
+       1:         72215.15 0.10219573 0.3056834  1412.4884     0.6401928
+       2:         76255.56 0.10416374 0.2962679  1431.8788     0.6391588
+       3:         87366.67 0.10957578 0.2703753  1485.2023     0.6363154
+       4:        104950.00 0.12483500 0.2271278  1565.0007     0.6239884
+       5:        242633.33 0.05875342 0.1665573   247.2230     0.8980767
+      ---                                                               
+52998134:         90100.00 0.09548387 0.1884191  2012.3190     0.6064326
+52998135:         92500.00 0.09690049 0.1611801  1975.9570     0.6051661
+52998136:         90933.33 0.12151416 0.2590709  1985.7637     0.6021476
+52998137:         92700.00 0.19372144 0.3874554   197.3369     0.6737813
+52998138:         92700.00 0.19372144 0.3874554   197.3369     0.6737813
+          summer_tmmx winter_tmmx summer_rmax winter_rmax firstHOSPyr      pm25
+       1:    304.8478    293.0209    99.84070    90.77430        2003  9.713695
+       2:    305.7519    293.4872    99.83791    91.85078        2003 10.426643
+       3:    305.7247    294.2063    99.51676    84.82401        2003  9.825630
+       4:    306.2248    294.1091    99.08492    88.02993        2003  9.369781
+       5:    301.2241    274.7081    91.03278    93.09766        2005 14.628081
+      ---                                                                      
+52998134:    303.5508    281.9836    96.50839    90.51185        2007 10.141324
+52998135:    301.6833    278.4081    89.38455    88.99415        2007  9.722752
+52998136:    304.0186    280.0374    90.12057    85.68077        2007 15.007213
+52998137:    304.1026    281.9660    91.97920    84.63657        2007 13.496725
+52998138:    302.8544    282.0934    91.29186    88.02769        2007 10.781266
+                no2    ozone ozone_summer       ox entry_age entry_age_break
+       1: 16.069794 37.43222     39.43527 30.21227        65         [65,70)
+       2: 15.934645 40.91831     42.71005 32.46992        65         [65,70)
+       3: 15.754842 38.06470     40.81652 30.52291        65         [65,70)
+       4: 15.394207 41.16685     43.14750 32.45001        65         [65,70)
+       5: 21.399318 41.69098     52.25516 34.84269        67         [65,70)
+      ---                                                                   
+52998134: 12.672909 37.66002     42.32093 29.20527        77         [75,80)
+52998135: 14.133689 38.78621     44.20200 30.44727        77         [75,80)
+52998136: 22.133762 44.45793     52.83855 36.92144        77         [75,80)
+52998137:  9.385019 43.63528     51.78562 32.03350        77         [75,80)
+52998138: 10.897572 41.30983     47.48818 31.01220        77         [75,80)
+          race_collapsed  region firstReAdyr
+       1:          White   SOUTH           0
+       2:          White   SOUTH           0
+       3:          White   SOUTH           0
+       4:          White   SOUTH           0
+       5:          White MIDWEST           0
+      ---                                   
+52998134:          White   SOUTH           0
+52998135:          White   SOUTH           0
+52998136:          White   SOUTH           0
+52998137:          White   SOUTH           0
+52998138:          White   SOUTH           0
+> dt_ReAd_noevent[, ReAd := FALSE]
+> 
+> dt_ReAd <- rbind(dt_ReAd_event, dt_ReAd_noevent)
+> uniqueN(dt_ReAd[,qid]) # number of subjects
+[1] 31102086
+> # [1] 5552221
+> 
+> dim(dt_ReAd[(dead)&(ReAd),]) # the person-year death and readmission happened at the same time
+[1] 3703353      35
+> # [1] 1263845      35
+> uniqueN(dt_ReAd[year>firstHOSPyr,qid])
+[1] 31077204
+> write_fst(dt_ReAd[year>firstHOSPyr,], file.path(rundir, "ALLcohort_ReAd.fst")) # subset dataset to starting from the next year of firstADRDyr
+> rm(dt_ReAd);gc()
+              used    (Mb)  gc trigger     (Mb)    max used     (Mb)
+Ncells    38816787  2073.1    75118638   4011.8    38883890   2076.7
+Vcells 10568911548 80634.4 22667253138 172937.5 22618020487 172561.9
+> 
+> ## subset to mortality cohort ----
+> cohort <- read_fst(file.path(rundir, "ALLcohort_clean.fst"), as.data.table = T)
+> write_fst(cohort[year>firstHOSPyr,], file.path(rundir, "ALLcohort_dead.fst")) # subset datasets starting from the next year of firstADRDyr
+> 
+> uniqueN(cohort[year>firstHOSPyr,qid])
+[1] 31077204
+> 
+> proc.time()
+    user   system  elapsed 
+3354.820  247.821 1585.350 
